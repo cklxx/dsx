@@ -31,7 +31,6 @@ use codex_app_server_protocol::RateLimitWindow;
 use codex_app_server_protocol::SpendControlLimitSnapshot;
 use codex_config::LoaderOverrides;
 use codex_config::types::AuthCredentialsStoreMode;
-use codex_model_provider_info::ModelProviderInfo;
 use codex_models_manager::test_support::construct_model_info_offline_for_tests;
 use codex_models_manager::test_support::get_model_offline_for_tests;
 use codex_protocol::ThreadId;
@@ -328,6 +327,9 @@ async fn status_snapshot_shows_chatgpt_plan_without_email() {
     let mut config = test_config(&temp_home).await;
     config.model = Some("gpt-5.1-codex-max".to_string());
     config.model_provider_id = "openai".to_string();
+    // dsx defaults to the DeepSeek provider (no OpenAI auth). Opt in so the embedded
+    // app-server reads the written ChatGPT credentials and reports the account plan.
+    config.model_provider.requires_openai_auth = true;
     config.cli_auth_credentials_store_mode = AuthCredentialsStoreMode::File;
     set_workspace_cwd(&mut config, test_path_buf("/workspace/tests").abs());
 
