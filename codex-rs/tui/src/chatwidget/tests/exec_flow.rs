@@ -417,7 +417,7 @@ async fn exec_end_without_begin_does_not_flush_unrelated_running_exploring_cell(
     );
     let active = active_blob(&chat);
     assert!(
-        active.contains("• Exploring"),
+        active.contains("· Exploring"),
         "expected unrelated exploring call to remain active: {active:?}"
     );
     assert!(
@@ -494,7 +494,7 @@ async fn overlapping_exploring_exec_end_is_not_misclassified_as_orphan() {
         "expected second running command to stay in the same active cell: {active:?}"
     );
     assert!(
-        active.contains("• Exploring"),
+        active.contains("· Exploring"),
         "expected grouped exploring header to remain active: {active:?}"
     );
 

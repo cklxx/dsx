@@ -63,19 +63,16 @@ pub(crate) fn shimmer_text(text: &str, motion_mode: MotionMode) -> Vec<Span<'sta
 }
 
 fn animated_activity_indicator(start_time: Option<Instant>) -> Span<'static> {
-    // DeepSeek-blue breathing dot: a stable, vertically centered glyph whose
-    // colour pulses between a dim and a bright blue. Keeping the glyph fixed
-    // (only the colour animates) keeps rendered snapshots deterministic.
+    // DeepSeek-blue breathing "bubble" — a vertically centered dot that grows
+    // and shrinks. Snapshot tests render at elapsed≈0 (the first frame, "·"),
+    // so the captured glyph stays deterministic even though it animates live.
+    const BUBBLE: [&str; 6] = ["·", "∘", "○", "●", "○", "∘"];
     let elapsed = start_time.map(|st| st.elapsed()).unwrap_or_default();
-    // 0..1, ~1.4s period.
-    let t = ((elapsed.as_millis() as f32 / 1400.0) * std::f32::consts::TAU)
-        .sin()
-        .mul_add(0.5, 0.5);
-    let lerp = |a: u8, b: u8| (a as f32 + (b as f32 - a as f32) * t).round() as u8;
+    let idx = ((elapsed.as_millis() / 140) as usize) % BUBBLE.len();
     Span::styled(
-        "●",
+        BUBBLE[idx],
         Style::default()
-            .fg(Color::Rgb(lerp(74, 150), lerp(99, 178), lerp(170, 255)))
+            .fg(Color::Rgb(130, 160, 255))
             .add_modifier(Modifier::BOLD),
     )
 }

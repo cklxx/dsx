@@ -111,8 +111,8 @@ fn next_add_to_history_event(rx: &mut tokio::sync::mpsc::UnboundedReceiver<AppEv
 
 #[tokio::test]
 async fn service_tier_commands_lowercase_catalog_names() {
-    let (mut chat, _rx, _op_rx) = make_chatwidget_manual(Some("gpt-5.4")).await;
-    let mut preset = get_available_model(&chat, "gpt-5.4");
+    let (mut chat, _rx, _op_rx) = make_chatwidget_manual(Some("deepseek-v4-pro")).await;
+    let mut preset = get_available_model(&chat, "deepseek-v4-pro");
     let expected_description = preset
         .service_tiers
         .iter()
@@ -399,9 +399,9 @@ async fn queued_slash_menu_cancel_drains_next_input() {
 
 #[tokio::test]
 async fn queued_settings_selection_applies_before_next_input() {
-    let (mut chat, mut rx, mut op_rx) = make_chatwidget_manual(Some("gpt-5.3-codex")).await;
+    let (mut chat, mut rx, mut op_rx) = make_chatwidget_manual(Some("deepseek-v4-flash")).await;
     chat.thread_id = Some(ThreadId::new());
-    let mut preset = get_available_model(&chat, "gpt-5.4");
+    let mut preset = get_available_model(&chat, "deepseek-v4-pro");
     preset.supported_reasoning_efforts.truncate(1);
     let selected_effort = preset.supported_reasoning_efforts[0].effort.clone();
     chat.model_catalog = std::sync::Arc::new(ModelCatalog::new(vec![preset]));
@@ -439,7 +439,7 @@ async fn queued_settings_selection_applies_before_next_input() {
     match next_submit_op(&mut op_rx) {
         Op::UserTurn { model, effort, .. } => assert_eq!(
             (model, effort),
-            ("gpt-5.4".to_string(), Some(selected_effort))
+            ("deepseek-v4-pro".to_string(), Some(selected_effort))
         ),
         other => panic!("expected queued message with updated model, got {other:?}"),
     }

@@ -467,6 +467,9 @@ async fn prefetch_rate_limits_is_gated_on_chatgpt_auth_provider() {
     assert!(!chat.should_prefetch_rate_limits());
 
     set_chatgpt_auth(&mut chat);
+    // The dsx default provider (deepseek) does not require OpenAI auth, so opt in to
+    // exercise the auth-gated branch the way the OpenAI provider did.
+    chat.config.model_provider.requires_openai_auth = true;
     assert!(chat.should_prefetch_rate_limits());
 
     chat.config.model_provider.requires_openai_auth = false;

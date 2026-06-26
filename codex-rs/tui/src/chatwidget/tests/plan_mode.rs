@@ -291,7 +291,7 @@ async fn submit_user_message_with_mode_sets_coding_collaboration_mode() {
 
 #[tokio::test]
 async fn reasoning_selection_in_plan_mode_opens_scope_prompt_event() {
-    let (mut chat, mut rx, _op_rx) = make_chatwidget_manual(Some("gpt-5.4")).await;
+    let (mut chat, mut rx, _op_rx) = make_chatwidget_manual(Some("deepseek-v4-pro")).await;
     chat.thread_id = Some(ThreadId::new());
     chat.set_feature_enabled(Feature::CollaborationModes, /*enabled*/ true);
     let plan_mask = collaboration_modes::plan_mask(chat.model_catalog.as_ref())
@@ -301,7 +301,7 @@ async fn reasoning_selection_in_plan_mode_opens_scope_prompt_event() {
     set_chatgpt_auth(&mut chat);
     chat.set_reasoning_effort(Some(ReasoningEffortConfig::High));
 
-    let preset = get_available_model(&chat, "gpt-5.4");
+    let preset = get_available_model(&chat, "deepseek-v4-pro");
     chat.open_reasoning_popup(preset);
     chat.handle_key_event(KeyEvent::from(KeyCode::Down));
     chat.handle_key_event(KeyEvent::from(KeyCode::Enter));
@@ -312,13 +312,13 @@ async fn reasoning_selection_in_plan_mode_opens_scope_prompt_event() {
         AppEvent::OpenPlanReasoningScopePrompt {
             model,
             effort: Some(_)
-        } if model == "gpt-5.4"
+        } if model == "deepseek-v4-pro"
     );
 }
 
 #[tokio::test]
 async fn reasoning_selection_in_plan_mode_without_effort_change_does_not_open_scope_prompt_event() {
-    let (mut chat, mut rx, _op_rx) = make_chatwidget_manual(Some("gpt-5.4")).await;
+    let (mut chat, mut rx, _op_rx) = make_chatwidget_manual(Some("deepseek-v4-pro")).await;
     chat.thread_id = Some(ThreadId::new());
     chat.set_feature_enabled(Feature::CollaborationModes, /*enabled*/ true);
     let plan_mask = collaboration_modes::plan_mask(chat.model_catalog.as_ref())
@@ -329,7 +329,7 @@ async fn reasoning_selection_in_plan_mode_without_effort_change_does_not_open_sc
 
     chat.set_reasoning_effort(Some(ReasoningEffortConfig::Medium));
 
-    let preset = get_available_model(&chat, "gpt-5.4");
+    let preset = get_available_model(&chat, "deepseek-v4-pro");
     chat.open_reasoning_popup(preset);
     chat.handle_key_event(KeyEvent::from(KeyCode::Enter));
 
@@ -337,7 +337,7 @@ async fn reasoning_selection_in_plan_mode_without_effort_change_does_not_open_sc
     assert!(
         events.iter().any(|event| matches!(
             event,
-            AppEvent::UpdateModel(model) if model == "gpt-5.4"
+            AppEvent::UpdateModel(model) if model == "deepseek-v4-pro"
         )),
         "expected model update event; events: {events:?}"
     );
@@ -352,7 +352,7 @@ async fn reasoning_selection_in_plan_mode_without_effort_change_does_not_open_sc
 #[tokio::test]
 async fn reasoning_selection_in_plan_mode_matching_plan_effort_but_different_global_opens_scope_prompt()
  {
-    let (mut chat, mut rx, _op_rx) = make_chatwidget_manual(Some("gpt-5.4")).await;
+    let (mut chat, mut rx, _op_rx) = make_chatwidget_manual(Some("deepseek-v4-pro")).await;
     chat.thread_id = Some(ThreadId::new());
     chat.set_feature_enabled(Feature::CollaborationModes, /*enabled*/ true);
     let plan_mask = collaboration_modes::plan_mask(chat.model_catalog.as_ref())
@@ -366,7 +366,7 @@ async fn reasoning_selection_in_plan_mode_matching_plan_effort_but_different_glo
     // should open the scope prompt rather than silently rewriting the global default.
     chat.set_reasoning_effort(Some(ReasoningEffortConfig::High));
 
-    let preset = get_available_model(&chat, "gpt-5.4");
+    let preset = get_available_model(&chat, "deepseek-v4-pro");
     chat.open_reasoning_popup(preset);
     chat.handle_key_event(KeyEvent::from(KeyCode::Enter));
 
@@ -376,13 +376,13 @@ async fn reasoning_selection_in_plan_mode_matching_plan_effort_but_different_glo
         AppEvent::OpenPlanReasoningScopePrompt {
             model,
             effort: Some(ReasoningEffortConfig::Medium)
-        } if model == "gpt-5.4"
+        } if model == "deepseek-v4-pro"
     );
 }
 
 #[tokio::test]
 async fn reasoning_shortcut_in_plan_mode_updates_plan_override_without_prompt_or_persist() {
-    let (mut chat, mut rx, _op_rx) = make_chatwidget_manual(Some("gpt-5.4")).await;
+    let (mut chat, mut rx, _op_rx) = make_chatwidget_manual(Some("deepseek-v4-pro")).await;
     chat.thread_id = Some(ThreadId::new());
     chat.set_feature_enabled(Feature::CollaborationModes, /*enabled*/ true);
     let plan_mask = collaboration_modes::plan_mask(chat.model_catalog.as_ref())
@@ -429,7 +429,7 @@ async fn reasoning_shortcut_in_plan_mode_updates_plan_override_without_prompt_or
 
 #[tokio::test]
 async fn plan_mode_reasoning_override_is_marked_current_in_reasoning_popup() {
-    let (mut chat, _rx, _op_rx) = make_chatwidget_manual(Some("gpt-5.4")).await;
+    let (mut chat, _rx, _op_rx) = make_chatwidget_manual(Some("deepseek-v4-pro")).await;
     chat.set_feature_enabled(Feature::CollaborationModes, /*enabled*/ true);
     set_chatgpt_auth(&mut chat);
     chat.set_reasoning_effort(Some(ReasoningEffortConfig::High));
@@ -439,7 +439,7 @@ async fn plan_mode_reasoning_override_is_marked_current_in_reasoning_popup() {
         .expect("expected plan collaboration mode");
     chat.set_collaboration_mask(plan_mask);
 
-    let preset = get_available_model(&chat, "gpt-5.4");
+    let preset = get_available_model(&chat, "deepseek-v4-pro");
     chat.open_reasoning_popup(preset);
 
     let popup = render_bottom_popup(&chat, /*width*/ 100);
@@ -452,7 +452,7 @@ async fn plan_mode_reasoning_override_is_marked_current_in_reasoning_popup() {
 
 #[tokio::test]
 async fn reasoning_selection_in_plan_mode_model_switch_does_not_open_scope_prompt_event() {
-    let (mut chat, mut rx, _op_rx) = make_chatwidget_manual(Some("gpt-5.4")).await;
+    let (mut chat, mut rx, _op_rx) = make_chatwidget_manual(Some("deepseek-v4-pro")).await;
     chat.thread_id = Some(ThreadId::new());
     chat.set_feature_enabled(Feature::CollaborationModes, /*enabled*/ true);
     let plan_mask = collaboration_modes::plan_mask(chat.model_catalog.as_ref())
@@ -461,7 +461,7 @@ async fn reasoning_selection_in_plan_mode_model_switch_does_not_open_scope_promp
     let _ = drain_insert_history(&mut rx);
     set_chatgpt_auth(&mut chat);
 
-    let preset = get_available_model(&chat, "gpt-5.2");
+    let preset = get_available_model(&chat, "deepseek-v4-flash");
     chat.open_reasoning_popup(preset);
     chat.handle_key_event(KeyEvent::from(KeyCode::Enter));
 
@@ -469,7 +469,7 @@ async fn reasoning_selection_in_plan_mode_model_switch_does_not_open_scope_promp
     assert!(
         events.iter().any(|event| matches!(
             event,
-            AppEvent::UpdateModel(model) if model == "gpt-5.2"
+            AppEvent::UpdateModel(model) if model == "deepseek-v4-flash"
         )),
         "expected model update event; events: {events:?}"
     );
@@ -1286,9 +1286,10 @@ async fn enter_submits_when_plan_stream_is_not_active() {
 
     assert!(chat.input_queue.queued_user_messages.is_empty());
     match next_submit_op(&mut op_rx) {
+        // dsx catalog models do not advertise personality support, so the turn
+        // carries no personality even though Enter submits immediately.
         Op::UserTurn {
-            personality: Some(Personality::Pragmatic),
-            ..
+            personality: None, ..
         } => {}
         other => panic!("expected Op::UserTurn, got {other:?}"),
     }
@@ -1570,13 +1571,15 @@ async fn collab_mode_is_sent_after_enabling() {
         .set_composer_text("hello".to_string(), Vec::new(), Vec::new());
     chat.handle_key_event(KeyEvent::from(KeyCode::Enter));
     match next_submit_op(&mut op_rx) {
+        // dsx catalog models do not advertise personality support, so the turn
+        // carries no personality.
         Op::UserTurn {
             collaboration_mode:
                 Some(CollaborationMode {
                     mode: ModeKind::Default,
                     ..
                 }),
-            personality: Some(Personality::Pragmatic),
+            personality: None,
             ..
         } => {}
         other => {
@@ -1594,13 +1597,15 @@ async fn collab_mode_applies_default_preset() {
         .set_composer_text("hello".to_string(), Vec::new(), Vec::new());
     chat.handle_key_event(KeyEvent::from(KeyCode::Enter));
     match next_submit_op(&mut op_rx) {
+        // dsx catalog models do not advertise personality support, so the turn
+        // carries no personality.
         Op::UserTurn {
             collaboration_mode:
                 Some(CollaborationMode {
                     mode: ModeKind::Default,
                     ..
                 }),
-            personality: Some(Personality::Pragmatic),
+            personality: None,
             ..
         } => {}
         other => {
@@ -1614,10 +1619,15 @@ async fn collab_mode_applies_default_preset() {
 
 #[tokio::test]
 async fn user_turn_includes_personality_from_config() {
-    let (mut chat, _rx, mut op_rx) = make_chatwidget_manual(Some("gpt-5.3-codex")).await;
+    let (mut chat, _rx, mut op_rx) = make_chatwidget_manual(Some("deepseek-v4-pro")).await;
     chat.set_feature_enabled(Feature::Personality, /*enabled*/ true);
     chat.thread_id = Some(ThreadId::new());
-    chat.set_model("gpt-5.3-codex");
+    // The bundled dsx catalog does not advertise personality support, so inject a
+    // personality-capable preset to exercise the config -> UserTurn plumbing.
+    let mut preset = get_available_model(&chat, "deepseek-v4-pro");
+    preset.supports_personality = true;
+    chat.model_catalog = std::sync::Arc::new(ModelCatalog::new(vec![preset]));
+    chat.set_model("deepseek-v4-pro");
     chat.set_personality(Personality::Friendly);
 
     chat.bottom_pane
