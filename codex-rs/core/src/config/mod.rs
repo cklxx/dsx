@@ -3391,18 +3391,13 @@ impl Config {
             agent_roles::load_agent_roles(fs, &cfg, &config_layer_stack, &mut startup_warnings)
                 .await?;
 
-        let openai_base_url = cfg
-            .openai_base_url
-            .clone()
-            .filter(|value| !value.is_empty());
-
         let model_providers =
-            merge_configured_model_providers(built_in_model_providers(openai_base_url), cfg.model_providers)
+            merge_configured_model_providers(built_in_model_providers(), cfg.model_providers)
                 .map_err(|message| std::io::Error::new(std::io::ErrorKind::InvalidData, message))?;
 
         let model_provider_id = model_provider
             .or(cfg.model_provider)
-            .unwrap_or_else(|| "openai".to_string());
+            .unwrap_or_else(|| "deepseek".to_string());
         let model_provider = model_providers
             .get(&model_provider_id)
             .ok_or_else(|| {

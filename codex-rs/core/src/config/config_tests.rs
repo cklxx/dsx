@@ -72,7 +72,6 @@ use codex_features::Feature;
 use codex_features::FeaturesToml;
 use codex_model_provider_info::LMSTUDIO_OSS_PROVIDER_ID;
 use codex_model_provider_info::OLLAMA_OSS_PROVIDER_ID;
-use codex_model_provider_info::WireApi;
 use codex_models_manager::bundled_models_response;
 use codex_network_proxy::NetworkMode;
 use codex_protocol::config_types::SERVICE_TIER_DEFAULT_REQUEST_VALUE;
@@ -769,39 +768,6 @@ region = "us-west-2"
             .and_then(|aws| aws.region.as_deref()),
         Some("us-west-2")
     );
-}
-
-#[tokio::test]
-async fn load_config_rejects_unsupported_amazon_bedrock_overrides() {
-    let cfg = toml::from_str::<ConfigToml>(
-        r#"
-model_provider = "amazon-bedrock"
-
-[model_providers.amazon-bedrock]
-name = "Custom Bedrock"
-base_url = "https://bedrock.example.com/v1"
-requires_openai_auth = true
-supports_websockets = true
-
-[model_providers.amazon-bedrock.aws]
-profile = "codex-bedrock"
-region = "us-west-2"
-"#,
-    )
-    .expect("Amazon Bedrock unsupported overrides should deserialize");
-
-    let err = Config::load_from_base_config_with_overrides(
-        cfg,
-        ConfigOverrides::default(),
-        tempdir().expect("tempdir").abs(),
-    )
-    .await
-    .unwrap_err();
-
-    assert_eq!(err.kind(), std::io::ErrorKind::InvalidData);
-    assert!(err.to_string().contains(
-        "model_providers.amazon-bedrock only supports changing `aws.profile` and `aws.region`; other non-default provider fields are not supported"
-    ));
 }
 
 #[test]
@@ -5614,30 +5580,6 @@ async fn legacy_toggles_map_to_features() -> std::io::Result<()> {
 }
 
 #[tokio::test]
-async fn responses_websocket_features_do_not_change_wire_api() -> std::io::Result<()> {
-    for feature_key in ["responses_websockets", "responses_websockets_v2"] {
-        let codex_home = TempDir::new()?;
-        let mut entries = BTreeMap::new();
-        entries.insert(feature_key.to_string(), true);
-        let cfg = ConfigToml {
-            features: Some(FeaturesToml::from(entries)),
-            ..Default::default()
-        };
-
-        let config = Config::load_from_base_config_with_overrides(
-            cfg,
-            ConfigOverrides::default(),
-            codex_home.abs(),
-        )
-        .await?;
-
-        assert_eq!(config.model_provider.wire_api, WireApi::Responses);
-    }
-
-    Ok(())
-}
-
-#[tokio::test]
 async fn config_honors_explicit_file_oauth_store_mode() -> std::io::Result<()> {
     let codex_home = TempDir::new()?;
     let cfg = ConfigToml {
@@ -6942,7 +6884,7 @@ async fn for_config_writes_selected_user_config_file() -> anyhow::Result<()> {
     let codex_home = TempDir::new()?;
     let base_config = codex_home.path().join(CONFIG_TOML_FILE);
     let selected_config = codex_home.path().join("work.config.toml");
-    tokio::fs::write(&base_config, r#"model_provider = "openai""#).await?;
+    tokio::fs::write(&base_config, r#"model_provider = "deepseek""#).await?;
     tokio::fs::write(&selected_config, r#"model = "gpt-old""#).await?;
 
     let config = ConfigBuilder::without_managed_config_for_tests()
@@ -6966,7 +6908,7 @@ async fn for_config_writes_selected_user_config_file() -> anyhow::Result<()> {
     assert_eq!(selected.model_reasoning_effort, Some(ReasoningEffort::High));
     assert_eq!(
         tokio::fs::read_to_string(&base_config).await?,
-        r#"model_provider = "openai""#
+        r#"model_provider = "deepseek""#
     );
 
     Ok(())

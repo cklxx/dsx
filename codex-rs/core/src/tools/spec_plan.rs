@@ -51,11 +51,11 @@ use crate::tools::handlers::multi_agents_v2::SendMessageHandler as SendMessageHa
 use crate::tools::handlers::multi_agents_v2::SpawnAgentHandler as SpawnAgentHandlerV2;
 use crate::tools::handlers::multi_agents_v2::WaitAgentHandler as WaitAgentHandlerV2;
 use crate::tools::handlers::view_image_spec::ViewImageToolOptions;
-use crate::tools::hosted_spec::WebSearchToolOptions;
 use crate::tools::hosted_spec::create_image_generation_tool;
-use crate::tools::hosted_spec::create_web_search_tool;
 use crate::tools::registry::CoreToolRuntime;
 use crate::tools::registry::ToolExposure;
+use crate::tools::web::ReadUrlHandler;
+use crate::tools::web::WebSearchHandler;
 use crate::tools::registry::ToolRegistry;
 use crate::tools::registry::override_tool_exposure;
 use crate::tools::router::ToolRouter;
@@ -299,26 +299,6 @@ fn hosted_model_tool_specs(context: &CoreToolPlanContext<'_>) -> Vec<ToolSpec> {
     }
 
     let mut specs = Vec::new();
-    let standalone_web_search_available = standalone_web_search_enabled(turn_context)
-        && context
-            .extension_tool_executors
-            .iter()
-            .any(|executor| executor.tool_name() == ToolName::namespaced("web", "run"));
-    // `Some(Cached/Live/Disabled)` are the options for mode when standalone search is unavailable
-    // and the provider supports hosted search. `None` prevents emitting a hosted search tool.
-    let web_search_mode = (!standalone_web_search_available
-        && turn_context.provider.capabilities().web_search)
-        .then_some(turn_context.config.web_search_mode.value());
-    let web_search_config = web_search_mode
-        .as_ref()
-        .and(turn_context.config.web_search_config.as_ref());
-    if let Some(hosted_web_search_tool) = create_web_search_tool(WebSearchToolOptions {
-        web_search_mode,
-        web_search_config,
-        web_search_tool_type: turn_context.model_info.web_search_tool_type,
-    }) {
-        specs.push(hosted_web_search_tool);
-    }
     // TODO: Remove hosted image generation once the standalone extension is ready.
     if image_generation_tool_enabled(turn_context)
         && !standalone_image_generation_available(turn_context, context.extension_tool_executors)
@@ -711,6 +691,13 @@ fn add_core_utility_tools(context: &CoreToolPlanContext<'_>, planned_tools: &mut
     let environment_mode = tool_environment_mode(context.step_context);
 
     planned_tools.add(PlanHandler);
+
+    // Client-side web tools for the DeepSeek agent. These replace the deleted
+    // OpenAI hosted web-search tool; the agent drives them via explicit
+    // `web_search` / `read_url` function calls (DeepSeek's server-side
+    // <|action|>/<|query|>/<|read_url|> tokens are not emitted over the Messages API).
+    planned_tools.add(WebSearchHandler::default());
+    planned_tools.add(ReadUrlHandler);
 
     if features.enabled(Feature::DeferredExecutor) {
         planned_tools.add(WaitForEnvironmentHandler);

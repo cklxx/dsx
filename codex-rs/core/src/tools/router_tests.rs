@@ -248,8 +248,8 @@ async fn tools_without_handlers_do_not_support_parallel() -> anyhow::Result<()> 
     );
 
     assert!(!router.tool_supports_parallel(&ToolCall {
-        tool_name: ToolName::plain("web_search"),
-        call_id: "call-web-search".to_string(),
+        tool_name: ToolName::plain("tool_without_registered_handler"),
+        call_id: "call-no-handler".to_string(),
         payload: ToolPayload::Function {
             arguments: "{}".to_string(),
         },
@@ -445,7 +445,6 @@ fn namespace_function_names(specs: &[ToolSpec], namespace_name: &str) -> Vec<Str
             | ToolSpec::Freeform(_)
             | ToolSpec::ToolSearch { .. }
             | ToolSpec::ImageGeneration { .. }
-            | ToolSpec::WebSearch { .. }
             | ToolSpec::Namespace(_) => None,
         })
         .unwrap_or_default()

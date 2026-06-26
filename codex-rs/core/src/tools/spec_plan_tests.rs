@@ -1,21 +1,13 @@
 use std::collections::BTreeMap;
-use std::collections::HashMap;
 use std::sync::Arc;
 
 use codex_features::Feature;
-use codex_login::AuthManager;
-use codex_login::CodexAuth;
 use codex_mcp::ToolInfo;
 use codex_model_provider::create_model_provider;
-use codex_model_provider_info::AMAZON_BEDROCK_PROVIDER_ID;
-use codex_model_provider_info::ModelProviderInfo;
-use codex_protocol::config_types::WebSearchMode;
 use codex_protocol::dynamic_tools::DynamicToolSpec;
 use codex_protocol::openai_models::ApplyPatchToolType;
 use codex_protocol::openai_models::ConfigShellToolType;
-use codex_protocol::openai_models::InputModality;
 use codex_protocol::openai_models::ToolMode;
-use codex_protocol::openai_models::WebSearchToolType;
 use codex_protocol::protocol::SessionSource;
 use codex_protocol::protocol::SubAgentSource;
 use codex_tools::DiscoverablePluginInfo;
@@ -26,7 +18,6 @@ use codex_tools::ToolCall as ExtensionToolCall;
 use codex_tools::ToolExecutor;
 use codex_tools::ToolExposure;
 use codex_tools::ToolName;
-use codex_tools::ToolOutput;
 use codex_tools::ToolSpec;
 use pretty_assertions::assert_eq;
 use serde_json::json;
@@ -84,7 +75,6 @@ impl ToolPlanProbe {
                 ToolSpec::Function(_)
                 | ToolSpec::ToolSearch { .. }
                 | ToolSpec::ImageGeneration { .. }
-                | ToolSpec::WebSearch { .. }
                 | ToolSpec::Freeform(_) => None,
             })
             .collect::<BTreeMap<_, _>>();
@@ -247,81 +237,17 @@ fn update_config(turn: &mut TurnContext, update: impl FnOnce(&mut crate::config:
     turn.config = Arc::new(config);
 }
 
-fn set_web_search_mode(turn: &mut TurnContext, mode: WebSearchMode) {
-    update_config(turn, |config| {
-        config
-            .web_search_mode
-            .set(mode)
-            .expect("test web search mode should be accepted");
-    });
-}
-
-fn use_chatgpt_auth(turn: &mut TurnContext) {
-    turn.auth_manager = Some(AuthManager::from_auth_for_testing(
-        CodexAuth::create_dummy_chatgpt_auth_for_testing(),
-    ));
-    turn.provider = create_model_provider(
-        turn.config.model_provider.clone(),
-        turn.auth_manager.clone(),
-    );
-}
-
 fn use_bedrock_provider(turn: &mut TurnContext) {
-    let provider_info = ModelProviderInfo::create_amazon_bedrock_provider(/*aws*/ None);
+    // A generic non-OpenAI provider (the Amazon Bedrock provider was removed).
+    let mut provider_info = turn.config.model_provider.clone();
+    provider_info.name = "Custom".to_string();
+    provider_info.requires_openai_auth = false;
+    provider_info.http_headers = None;
     update_config(turn, |config| {
-        config.model_provider_id = AMAZON_BEDROCK_PROVIDER_ID.to_string();
+        config.model_provider_id = "custom".to_string();
         config.model_provider = provider_info.clone();
     });
     turn.provider = create_model_provider(provider_info, turn.auth_manager.clone());
-}
-
-fn use_actor_authorized_provider(turn: &mut TurnContext) {
-    let mut provider_info = turn.config.model_provider.clone();
-    provider_info.requires_openai_auth = false;
-    provider_info.http_headers = Some(HashMap::from([
-        (
-            "x-openai-actor-authorization".to_string(),
-            "test-actor-authorization".to_string(),
-        ),
-        (
-            "ChatGPT-Account-ID".to_string(),
-            "test-account-id".to_string(),
-        ),
-    ]));
-    turn.auth_manager = None;
-    update_config(turn, |config| {
-        config.model_provider = provider_info.clone();
-    });
-    turn.provider = create_model_provider(provider_info, /*auth_manager*/ None);
-}
-
-struct WebRunExtensionTool;
-
-impl ToolExecutor<ExtensionToolCall> for WebRunExtensionTool {
-    fn tool_name(&self) -> ToolName {
-        ToolName::namespaced("web", "run")
-    }
-
-    fn spec(&self) -> ToolSpec {
-        ToolSpec::Namespace(codex_tools::ResponsesApiNamespace {
-            name: "web".to_string(),
-            description: "Test web namespace.".to_string(),
-            tools: vec![ResponsesApiNamespaceTool::Function(ResponsesApiTool {
-                name: "run".to_string(),
-                description: "Test standalone web search tool.".to_string(),
-                strict: false,
-                defer_loading: None,
-                parameters: codex_tools::JsonSchema::default(),
-                output_schema: None,
-            })],
-        })
-    }
-
-    fn handle(&self, _call: ExtensionToolCall) -> codex_tools::ToolExecutorFuture<'_> {
-        Box::pin(async {
-            Ok(Box::new(codex_tools::JsonToolOutput::new(json!({}))) as Box<dyn ToolOutput>)
-        })
-    }
 }
 
 struct DeferredExtensionTool;
@@ -1492,14 +1418,7 @@ async fn code_mode_only_can_expose_namespaced_multi_agent_v2_as_normal_tools() {
 
     assert_eq!(
         plan.visible_names,
-        vec![
-            "exec",
-            "wait",
-            "request_user_input",
-            "agents",
-            // Hosted Responses tools.
-            "web_search",
-        ]
+        vec!["exec", "wait", "request_user_input", "agents"]
     );
     assert!(
         !plan
@@ -1525,144 +1444,3 @@ async fn code_mode_only_can_expose_namespaced_multi_agent_v2_as_normal_tools() {
     }
 }
 
-#[tokio::test]
-async fn hosted_tools_follow_provider_auth_model_and_config_gates() {
-    let api_key_auth = probe(|turn| {
-        set_feature(turn, Feature::ImageGeneration, /*enabled*/ true);
-        turn.model_info.input_modalities = vec![InputModality::Image];
-    })
-    .await;
-    api_key_auth.assert_visible_lacks(&["image_generation"]);
-
-    let unrelated_chatgpt_auth = probe(|turn| {
-        use_chatgpt_auth(turn);
-        set_feature(turn, Feature::ImageGeneration, /*enabled*/ true);
-        let mut provider_info = turn.provider.info().clone();
-        provider_info.requires_openai_auth = false;
-        provider_info.http_headers = None;
-        update_config(turn, |config| {
-            config.model_provider = provider_info.clone();
-        });
-        turn.provider = create_model_provider(provider_info, turn.auth_manager.clone());
-        turn.model_info.input_modalities = vec![InputModality::Image];
-    })
-    .await;
-    unrelated_chatgpt_auth.assert_visible_lacks(&["image_generation"]);
-
-    let actor_authorized_provider = probe(|turn| {
-        set_feature(turn, Feature::ImageGeneration, /*enabled*/ true);
-        use_actor_authorized_provider(turn);
-        turn.model_info.input_modalities = vec![InputModality::Image];
-    })
-    .await;
-    actor_authorized_provider.assert_visible_contains(&["image_generation"]);
-
-    let feature_disabled = probe(|turn| {
-        set_feature(turn, Feature::ImageGeneration, /*enabled*/ false);
-        use_actor_authorized_provider(turn);
-        turn.model_info.input_modalities = vec![InputModality::Image];
-    })
-    .await;
-    feature_disabled.assert_visible_lacks(&["image_generation"]);
-
-    let text_only_model = probe(|turn| {
-        set_feature(turn, Feature::ImageGeneration, /*enabled*/ true);
-        use_actor_authorized_provider(turn);
-        turn.model_info.input_modalities = vec![];
-    })
-    .await;
-    text_only_model.assert_visible_lacks(&["image_generation"]);
-
-    let unsupported_image_generation_provider = probe(|turn| {
-        set_feature(turn, Feature::ImageGeneration, /*enabled*/ true);
-        use_bedrock_provider(turn);
-        use_actor_authorized_provider(turn);
-        turn.model_info.input_modalities = vec![InputModality::Image];
-    })
-    .await;
-    unsupported_image_generation_provider.assert_visible_lacks(&["image_generation"]);
-
-    let image_generation = probe(|turn| {
-        use_chatgpt_auth(turn);
-        set_feature(turn, Feature::ImageGeneration, /*enabled*/ true);
-        turn.model_info.input_modalities = vec![InputModality::Image];
-    })
-    .await;
-    image_generation.assert_visible_contains(&["image_generation"]);
-
-    let extension_flag_without_imagegen_tool = probe(|turn| {
-        use_chatgpt_auth(turn);
-        set_feature(turn, Feature::ImageGeneration, /*enabled*/ true);
-        set_feature(turn, Feature::ImageGenExt, /*enabled*/ true);
-        turn.model_info.input_modalities = vec![InputModality::Image];
-    })
-    .await;
-    extension_flag_without_imagegen_tool.assert_visible_contains(&["image_generation"]);
-    extension_flag_without_imagegen_tool.assert_visible_lacks(&["image_gen"]);
-
-    let live_web_search = probe(|turn| {
-        set_web_search_mode(turn, WebSearchMode::Live);
-        turn.model_info.web_search_tool_type = WebSearchToolType::TextAndImage;
-    })
-    .await;
-    assert_eq!(
-        live_web_search.visible_spec("web_search"),
-        &ToolSpec::WebSearch {
-            external_web_access: Some(true),
-            index_gated_web_access: None,
-            filters: None,
-            user_location: None,
-            search_context_size: None,
-            search_content_types: Some(vec!["text".to_string(), "image".to_string()]),
-        }
-    );
-
-    let code_mode_only = probe(|turn| {
-        use_chatgpt_auth(turn);
-        set_features(turn, &[Feature::CodeModeOnly, Feature::MultiAgentV2]);
-        set_web_search_mode(turn, WebSearchMode::Live);
-        turn.model_info.input_modalities = vec![InputModality::Image];
-    })
-    .await;
-    assert_eq!(
-        code_mode_only.visible_names,
-        vec![
-            // Code-mode entrypoints.
-            codex_code_mode::PUBLIC_TOOL_NAME,
-            codex_code_mode::WAIT_TOOL_NAME,
-            "request_user_input",
-            // Multi-agent v2 tools.
-            MULTI_AGENT_V2_NAMESPACE,
-            // Hosted Responses tools.
-            "web_search",
-            "image_generation",
-        ]
-    );
-
-    let standalone_web_search_without_web_run = probe(|turn| {
-        set_feature(turn, Feature::StandaloneWebSearch, /*enabled*/ true);
-        set_web_search_mode(turn, WebSearchMode::Live);
-    })
-    .await;
-    standalone_web_search_without_web_run.assert_visible_contains(&["web_search"]);
-
-    let standalone_web_search = probe_with(
-        |turn| {
-            set_feature(turn, Feature::StandaloneWebSearch, /*enabled*/ true);
-            set_web_search_mode(turn, WebSearchMode::Live);
-        },
-        ToolPlanInputs {
-            extension_tool_executors: vec![Arc::new(WebRunExtensionTool)],
-            ..Default::default()
-        },
-    )
-    .await;
-    standalone_web_search.assert_visible_lacks(&["web_search"]);
-
-    let unsupported_provider = probe(|turn| {
-        set_web_search_mode(turn, WebSearchMode::Live);
-        use_bedrock_provider(turn);
-    })
-    .await;
-    unsupported_provider.assert_visible_lacks(&["web_search"]);
-}

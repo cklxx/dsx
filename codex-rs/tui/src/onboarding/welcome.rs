@@ -88,14 +88,18 @@ impl WidgetRef for &WelcomeWidget {
         let mut lines: Vec<Line> = Vec::new();
         if show_animation {
             let frame = self.animation.current_frame();
-            lines.extend(frame.lines().map(Into::into));
+            lines.extend(
+                frame
+                    .lines()
+                    .map(|line| Line::from(line.to_string()).light_blue()),
+            );
             lines.push("".into());
         }
         lines.push(Line::from(vec![
             "  ".into(),
             "Welcome to ".into(),
-            "Codex".bold(),
-            ", OpenAI's command-line coding agent".into(),
+            "dsx".bold().light_blue(),
+            ", the DeepSeek command-line coding agent".into(),
         ]));
 
         Paragraph::new(lines)

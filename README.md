@@ -1,71 +1,60 @@
-<p align="center"><strong>Codex CLI</strong> is a coding agent from OpenAI that runs locally on your computer.
+<p align="center"><strong>dsx</strong> is a terminal coding agent powered by <strong>DeepSeek&nbsp;V4</strong> that runs locally on your computer.</p>
+
 <p align="center">
-  <img src="https://github.com/openai/codex/blob/main/.github/codex-cli-splash.png" alt="Codex CLI splash" width="80%" />
+  <code>🐳 &gt;_ dsx</code> — DeepSeek-only fork of OpenAI Codex.
 </p>
-</br>
-If you want Codex in your code editor (VS Code, Cursor, Windsurf), <a href="https://developers.openai.com/codex/ide">install in your IDE.</a>
-</br>If you want the desktop app experience, run <code>codex app</code> or visit <a href="https://chatgpt.com/codex?app-landing-page=true">the Codex App page</a>.
-</br>If you are looking for the <em>cloud-based agent</em> from OpenAI, <strong>Codex Web</strong>, go to <a href="https://chatgpt.com/codex">chatgpt.com/codex</a>.</p>
 
 ---
 
+## What it is
+
+`dsx` is a fork of [OpenAI Codex CLI](https://github.com/openai/codex), retargeted to speak **only** the DeepSeek V4 API. The OpenAI Responses wire, ChatGPT login, and hosted tools are removed; in their place dsx talks to DeepSeek's Anthropic-compatible Messages API and ships its own web tools.
+
+- **Models** — `deepseek-v4-pro` (default, used for normal task execution) and `deepseek-v4-flash` (fast model used for auto-summaries, context compaction, and auxiliary tasks).
+- **Wire** — DeepSeek's Anthropic-compatible endpoint (`https://api.deepseek.com/anthropic/v1/messages`), authenticated with `x-api-key`. Streaming reasoning (`<think>`) is rendered live.
+- **Web** — built-in `web_search` (keyless DuckDuckGo by default, pluggable backend) and `read_url` (fetch + HTML→text) tools the agent can call.
+- **Local-first** — API-key only, no account or login flow.
+
 ## Quickstart
 
-### Installing and running Codex CLI
-
-Run the following on Mac or Linux to install Codex CLI:
+dsx is a Rust workspace; build the binary from source:
 
 ```shell
-curl -fsSL https://chatgpt.com/codex/install.sh | sh
+git clone git@github.com:cklxx/dsx.git
+cd dsx/codex-rs
+cargo build --release --bin dsx
 ```
 
-Run the following on Windows to install Codex CLI:
-
-```
-powershell -ExecutionPolicy ByPass -c "irm https://chatgpt.com/codex/install.ps1 | iex"
-```
-
-Codex CLI can also be installed via the following package managers:
+Set your DeepSeek API key and run it:
 
 ```shell
-# Install using npm
-npm install -g @openai/codex
+export DEEPSEEK_API_KEY=sk-...        # get one at https://platform.deepseek.com
+./target/release/dsx
 ```
+
+Get a key at [platform.deepseek.com](https://platform.deepseek.com). The default model is `deepseek-v4-pro`; switch in-session with `/model` or pin it in config.
+
+### One-shot (non-interactive)
 
 ```shell
-# Install using Homebrew
-brew install --cask codex
+DEEPSEEK_API_KEY=sk-... cargo run -q -p codex-exec -- "summarize the changes in this repo"
 ```
 
-Then simply run `codex` to get started.
+## Configuration
 
-<details>
-<summary>You can also go to the <a href="https://github.com/openai/codex/releases/latest">latest GitHub Release</a> and download the appropriate binary for your platform.</summary>
+Config lives in `$CODEX_HOME/config.toml` (default `~/.codex/config.toml`):
 
-Each GitHub Release contains many executables, but in practice, you likely want one of these:
+```toml
+model          = "deepseek-v4-pro"   # or deepseek-v4-flash
+model_provider = "deepseek"           # the only built-in provider
+```
 
-- macOS
-  - Apple Silicon/arm64: `codex-aarch64-apple-darwin.tar.gz`
-  - x86_64 (older Mac hardware): `codex-x86_64-apple-darwin.tar.gz`
-- Linux
-  - x86_64: `codex-x86_64-unknown-linux-musl.tar.gz`
-  - arm64: `codex-aarch64-unknown-linux-musl.tar.gz`
+The `deepseek` provider is the default and reads `DEEPSEEK_API_KEY` from the environment. flash↔pro routing is automatic: normal turns run on `deepseek-v4-pro`; compaction, auto-summaries, and side tasks run on `deepseek-v4-flash`.
 
-Each archive contains a single entry with the platform baked into the name (e.g., `codex-x86_64-unknown-linux-musl`), so you likely want to rename it to `codex` after extracting it.
+## Architecture
 
-</details>
+The engine, headless server (`dsx app-server`, JSON-RPC), and front-ends are layered, so a native UI can drive the same core over `unix://`/`ws://`. The DeepSeek Anthropic wire lives in `codex-rs/codex-api/src/{anthropic.rs, sse/anthropic.rs, endpoint/anthropic.rs}`; the provider + catalog in `codex-rs/model-provider-info` and `codex-rs/models-manager/models.json`; the web tools in `codex-rs/core/src/tools/web.rs`.
 
-### Using Codex with your ChatGPT plan
+## Credits & License
 
-Run `codex` and select **Sign in with ChatGPT**. We recommend signing into your ChatGPT account to use Codex as part of your Plus, Pro, Business, Edu, or Enterprise plan. [Learn more about what's included in your ChatGPT plan](https://help.openai.com/en/articles/11369540-codex-in-chatgpt).
-
-You can also use Codex with an API key, but this requires [additional setup](https://developers.openai.com/codex/auth#sign-in-with-an-api-key).
-
-## Docs
-
-- [**Codex Documentation**](https://developers.openai.com/codex)
-- [**Contributing**](./docs/contributing.md)
-- [**Installing & building**](./docs/install.md)
-- [**Open source fund**](./docs/open-source-fund.md)
-
-This repository is licensed under the [Apache-2.0 License](LICENSE).
+dsx is built on [OpenAI Codex](https://github.com/openai/codex) and is licensed under the [Apache-2.0 License](LICENSE). DeepSeek and the DeepSeek V4 models are products of DeepSeek; this project is an independent, unofficial client.

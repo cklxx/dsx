@@ -4587,6 +4587,13 @@
             "responses"
           ],
           "type": "string"
+        },
+        {
+          "description": "The Anthropic-compatible Messages API (DeepSeek at `/anthropic/v1/messages`).",
+          "enum": [
+            "anthropic"
+          ],
+          "type": "string"
         }
       ]
     },

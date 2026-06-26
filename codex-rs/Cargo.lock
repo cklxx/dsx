@@ -2018,7 +2018,6 @@ dependencies = [
  "codex-utils-json-to-toml",
  "codex-utils-path-uri",
  "codex-utils-pty",
- "codex-web-search-extension",
  "codex-windows-sandbox",
  "core_test_support",
  "flate2",
@@ -2697,7 +2696,6 @@ dependencies = [
  "codex-utils-pty",
  "codex-utils-stream-parser",
  "codex-utils-string",
- "codex-web-search-extension",
  "codex-windows-sandbox",
  "core_test_support",
  "csv",
@@ -4421,25 +4419,6 @@ version = "0.0.0"
 dependencies = [
  "pretty_assertions",
  "v8",
-]
-
-[[package]]
-name = "codex-web-search-extension"
-version = "0.0.0"
-dependencies = [
- "codex-api",
- "codex-core",
- "codex-extension-api",
- "codex-login",
- "codex-model-provider",
- "codex-model-provider-info",
- "codex-protocol",
- "codex-tools",
- "http 1.4.0",
- "pretty_assertions",
- "schemars 0.8.22",
- "serde_json",
- "url",
 ]
 
 [[package]]
