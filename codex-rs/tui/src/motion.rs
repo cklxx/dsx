@@ -5,6 +5,9 @@
 
 use std::time::Instant;
 
+use ratatui::style::Color;
+use ratatui::style::Modifier;
+use ratatui::style::Style;
 use ratatui::style::Stylize;
 use ratatui::text::Span;
 
@@ -60,19 +63,21 @@ pub(crate) fn shimmer_text(text: &str, motion_mode: MotionMode) -> Vec<Span<'sta
 }
 
 fn animated_activity_indicator(start_time: Option<Instant>) -> Span<'static> {
+    // DeepSeek-blue breathing dot: a stable, vertically centered glyph whose
+    // colour pulses between a dim and a bright blue. Keeping the glyph fixed
+    // (only the colour animates) keeps rendered snapshots deterministic.
     let elapsed = start_time.map(|st| st.elapsed()).unwrap_or_default();
-    if supports_color::on_cached(supports_color::Stream::Stdout)
-        .map(|level| level.has_16m)
-        .unwrap_or(false)
-    {
-        shimmer_spans("•")
-            .into_iter()
-            .next()
-            .unwrap_or_else(|| "•".into())
-    } else {
-        let blink_on = (elapsed.as_millis() / 600).is_multiple_of(2);
-        if blink_on { "•".into() } else { "◦".dim() }
-    }
+    // 0..1, ~1.4s period.
+    let t = ((elapsed.as_millis() as f32 / 1400.0) * std::f32::consts::TAU)
+        .sin()
+        .mul_add(0.5, 0.5);
+    let lerp = |a: u8, b: u8| (a as f32 + (b as f32 - a as f32) * t).round() as u8;
+    Span::styled(
+        "●",
+        Style::default()
+            .fg(Color::Rgb(lerp(74, 150), lerp(99, 178), lerp(170, 255)))
+            .add_modifier(Modifier::BOLD),
+    )
 }
 
 #[cfg(test)]

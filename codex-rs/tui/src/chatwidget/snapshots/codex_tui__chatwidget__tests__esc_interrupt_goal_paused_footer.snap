@@ -3,9 +3,9 @@ source: tui/src/chatwidget/tests/status_and_layout.rs
 expression: snapshot
 ---
 "                                                                                "
-"• Working (0s • esc to interrupt)                                               "
+"● Working (0s • esc to interrupt)                                               "
 "                                                                                "
 "                                                                                "
 "› Ask Codex to do anything                                                      "
 "                                                                                "
-"  gpt-5.5 default · /tmp/project                    Goal paused (/goal resume)  "
+"  deepseek-v4-pro default · /tmp/project            Goal paused (/goal resume)  "

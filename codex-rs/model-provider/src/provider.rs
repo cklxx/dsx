@@ -92,9 +92,11 @@ pub const DEFAULT_MEMORY_EXTRACTION_PREFERRED_MODEL: &str = "deepseek-v4-flash";
 /// a backend-specific model ID.
 pub const DEFAULT_MEMORY_CONSOLIDATION_PREFERRED_MODEL: &str = "deepseek-v4-pro";
 
-/// Default model used for conversation compaction / auto-summarization (a
-/// fast, cheap model) when a provider does not require a backend-specific ID.
-pub const DEFAULT_COMPACTION_PREFERRED_MODEL: &str = "deepseek-v4-flash";
+/// Default model used for conversation compaction / auto-summarization.
+///
+/// Uses the strong `pro` model (like upstream Codex, which compacts with the
+/// session model) so the rolling "infinite compaction" summaries stay faithful.
+pub const DEFAULT_COMPACTION_PREFERRED_MODEL: &str = "deepseek-v4-pro";
 
 /// Runtime provider abstraction used by model execution.
 ///
