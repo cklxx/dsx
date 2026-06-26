@@ -8,8 +8,6 @@ use ratatui::style::Style;
 use ratatui::text::Span;
 
 use crate::color::blend;
-use crate::terminal_palette::default_bg;
-use crate::terminal_palette::default_fg;
 
 static PROCESS_START: OnceLock<Instant> = OnceLock::new();
 
@@ -36,8 +34,10 @@ pub(crate) fn shimmer_spans(text: &str) -> Vec<Span<'static>> {
     let band_half_width = 5.0;
 
     let mut spans: Vec<Span<'static>> = Vec::with_capacity(chars.len());
-    let base_color = default_fg().unwrap_or((128, 128, 128));
-    let highlight_color = default_bg().unwrap_or((255, 255, 255));
+    // DeepSeek-blue shimmer: the text reads in a muted brand blue with a
+    // brighter blue glow sweeping across it.
+    let base_color = (132, 158, 238);
+    let highlight_color = (205, 222, 255);
     for (i, ch) in chars.iter().enumerate() {
         let i_pos = i as isize + padding as isize;
         let pos = pos as isize;

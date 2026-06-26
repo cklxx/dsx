@@ -74,10 +74,12 @@ fn table_separator_style_for(
 
 #[allow(clippy::disallowed_methods)]
 pub fn user_message_bg(terminal_bg: (u8, u8, u8)) -> Color {
+    // Subtle, more-transparent fill: blend only lightly toward black/white so the
+    // composer reads as a faint tint of the terminal background, not a white box.
     let (top, alpha) = if is_light(terminal_bg) {
-        ((0, 0, 0), 0.04)
+        ((0, 0, 0), 0.02)
     } else {
-        ((255, 255, 255), 0.12)
+        ((255, 255, 255), 0.06)
     };
     best_color(blend(top, terminal_bg, alpha))
 }

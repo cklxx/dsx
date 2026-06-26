@@ -4115,6 +4115,8 @@ impl ChatComposer {
         self.draft.textarea.desired_height(inner_width)
             + remote_images_height
             + remote_images_separator
+            // Vertical padding: 1 row above + 1 below (must match the top/bottom
+            // inset used in the render layout).
             + 2
             + match &self.popups.active {
                 ActivePopup::None => footer_total_height,
