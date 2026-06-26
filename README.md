@@ -1,23 +1,25 @@
-<p align="center"><strong>dsx</strong> is a terminal coding agent powered by <strong>DeepSeek&nbsp;V4</strong> that runs locally on your computer.</p>
+<h1 align="center">🐳 dsx</h1>
 
-<p align="center">
-  <code>🐳 &gt;_ dsx</code> — DeepSeek-only fork of OpenAI Codex.
-</p>
+<p align="center"><strong>dsx</strong> is a terminal coding agent powered by <strong>DeepSeek&nbsp;V4</strong> that runs locally on your machine.</p>
+
+<p align="center"><code>&gt;_ dsx</code></p>
 
 ---
 
-## What it is
+dsx lives in your terminal and works alongside you on real code: it reads the repo, runs commands in a sandbox, edits files, searches the web, and reasons out loud — driven entirely by DeepSeek V4. It's local-first and API-key only: no account, no login, no cloud session.
 
-`dsx` is a fork of [OpenAI Codex CLI](https://github.com/openai/codex), retargeted to speak **only** the DeepSeek V4 API. The OpenAI Responses wire, ChatGPT login, and hosted tools are removed; in their place dsx talks to DeepSeek's Anthropic-compatible Messages API and ships its own web tools.
+## Highlights
 
-- **Models** — `deepseek-v4-pro` (default, used for normal task execution) and `deepseek-v4-flash` (fast model used for auto-summaries, context compaction, and auxiliary tasks).
-- **Wire** — DeepSeek's Anthropic-compatible endpoint (`https://api.deepseek.com/anthropic/v1/messages`), authenticated with `x-api-key`. Streaming reasoning (`<think>`) is rendered live.
-- **Web** — built-in `web_search` (keyless DuckDuckGo by default, pluggable backend) and `read_url` (fetch + HTML→text) tools the agent can call.
-- **Local-first** — API-key only, no account or login flow.
+- **DeepSeek V4, end to end.** `deepseek-v4-pro` runs your tasks; `deepseek-v4-flash` handles auto-summaries, context compaction, and side work. Routing between them is automatic.
+- **Live reasoning.** Talks the DeepSeek Anthropic-compatible Messages wire and streams `<think>` reasoning as it works.
+- **Built-in web.** A `web_search` tool (keyless DuckDuckGo by default, pluggable backend) and a `read_url` tool that fetches a page and extracts readable text — so the agent can look things up mid-task.
+- **Agentic by default.** Plans, runs shell commands under a sandbox with approval controls, applies edits, and verifies its own work before handing back.
+- **Made to feel like dsx.** A spouting-whale welcome screen and a DeepSeek-blue UI, in your terminal.
+- **Local & private.** Just a `DEEPSEEK_API_KEY` in your environment; nothing else leaves your machine.
 
 ## Quickstart
 
-dsx is a Rust workspace; build the binary from source:
+dsx is a Rust workspace — build the binary from source:
 
 ```shell
 git clone git@github.com:cklxx/dsx.git
@@ -25,36 +27,46 @@ cd dsx/codex-rs
 cargo build --release --bin dsx
 ```
 
-Set your DeepSeek API key and run it:
+Set your DeepSeek API key (get one at [platform.deepseek.com](https://platform.deepseek.com)) and run it:
 
 ```shell
-export DEEPSEEK_API_KEY=sk-...        # get one at https://platform.deepseek.com
+export DEEPSEEK_API_KEY=sk-...
 ./target/release/dsx
 ```
 
-Get a key at [platform.deepseek.com](https://platform.deepseek.com). The default model is `deepseek-v4-pro`; switch in-session with `/model` or pin it in config.
-
-### One-shot (non-interactive)
+That drops you into the interactive TUI. For a quick one-shot instead:
 
 ```shell
-DEEPSEEK_API_KEY=sk-... cargo run -q -p codex-exec -- "summarize the changes in this repo"
+DEEPSEEK_API_KEY=sk-... cargo run -q -p codex-exec -- "explain what this repo does"
 ```
+
+### Put `dsx` on your PATH
+
+```shell
+ln -sf "$PWD/target/release/dsx" ~/.local/bin/dsx   # or ~/.cargo/bin/dsx
+```
+
+Then just `dsx` from anywhere.
 
 ## Configuration
 
-Config lives in `$CODEX_HOME/config.toml` (default `~/.codex/config.toml`):
+Config lives in `$CODEX_HOME/config.toml` (default `~/.codex/config.toml`; point `CODEX_HOME` elsewhere to keep a dedicated dsx home):
 
 ```toml
 model          = "deepseek-v4-pro"   # or deepseek-v4-flash
 model_provider = "deepseek"           # the only built-in provider
 ```
 
-The `deepseek` provider is the default and reads `DEEPSEEK_API_KEY` from the environment. flash↔pro routing is automatic: normal turns run on `deepseek-v4-pro`; compaction, auto-summaries, and side tasks run on `deepseek-v4-flash`.
+The `deepseek` provider is the default and reads `DEEPSEEK_API_KEY` from the environment — there is no login flow. Switch models in-session with `/model`.
 
-## Architecture
+## How it works
 
-The engine, headless server (`dsx app-server`, JSON-RPC), and front-ends are layered, so a native UI can drive the same core over `unix://`/`ws://`. The DeepSeek Anthropic wire lives in `codex-rs/codex-api/src/{anthropic.rs, sse/anthropic.rs, endpoint/anthropic.rs}`; the provider + catalog in `codex-rs/model-provider-info` and `codex-rs/models-manager/models.json`; the web tools in `codex-rs/core/src/tools/web.rs`.
+dsx is layered: a core engine, a headless server (`dsx app-server`, JSON-RPC over `stdio`/`unix`/`ws`), and front-ends that drive it — so a native UI can sit on the same core. Key pieces:
 
-## Credits & License
+- DeepSeek Anthropic wire — `codex-rs/codex-api/src/{anthropic.rs, sse/anthropic.rs, endpoint/anthropic.rs}`
+- Provider + model catalog — `codex-rs/model-provider-info/` and `codex-rs/models-manager/models.json`
+- Web tools — `codex-rs/core/src/tools/web.rs`
 
-dsx is built on [OpenAI Codex](https://github.com/openai/codex) and is licensed under the [Apache-2.0 License](LICENSE). DeepSeek and the DeepSeek V4 models are products of DeepSeek; this project is an independent, unofficial client.
+## License
+
+Built on [OpenAI Codex](https://github.com/openai/codex) and licensed under [Apache-2.0](LICENSE). DeepSeek and the DeepSeek V4 models are products of DeepSeek; dsx is an independent, unofficial client.
