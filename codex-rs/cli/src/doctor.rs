@@ -29,7 +29,6 @@ use std::time::Instant;
 use anyhow::Context;
 use clap::Parser;
 use codex_api::ApiError;
-use codex_api::ResponsesWebsocketClient;
 use codex_api::is_azure_responses_provider;
 use codex_arg0::Arg0DispatchPaths;
 use codex_config::types::McpServerConfig;
@@ -90,9 +89,6 @@ use thread_inventory::thread_inventory_check;
 use title::terminal_title_check;
 use updates::updates_check;
 
-const OPENAI_BETA_HEADER: &str = "OpenAI-Beta";
-const RESPONSES_WEBSOCKETS_V2_BETA_HEADER_VALUE: &str = "responses_websockets=2026-02-06";
-const WEBSOCKET_IMMEDIATE_CLOSE_GRACE: Duration = Duration::from_millis(250);
 const SLOW_CHECK_PROGRESS_THRESHOLD: Duration = Duration::from_secs(2);
 const SLOW_CHECK_PROGRESS_INTERVAL: Duration = Duration::from_secs(1);
 const PROXY_ENV_VARS: &[&str] = &[
@@ -2293,172 +2289,23 @@ fn is_rollout_file(path: &Path) -> bool {
 
 async fn websocket_reachability_check(
     config: &Config,
-    auth_manager: Option<Arc<AuthManager>>,
+    _auth_manager: Option<Arc<AuthManager>>,
 ) -> DoctorCheck {
+    // dsx speaks only the DeepSeek Anthropic HTTP wire; there is no WebSocket transport.
     let provider = &config.model_provider;
     let mut details = vec![
         format!("model provider: {}", config.model_provider_id),
         format!("provider name: {}", provider.name),
         format!("wire API: {}", provider.wire_api),
-        format!("supports websockets: {}", provider.supports_websockets),
     ];
     push_proxy_env_details(&mut details);
-
-    if !provider.supports_websockets {
-        return DoctorCheck::new(
-            "network.websocket_reachability",
-            "websocket",
-            CheckStatus::Ok,
-            "Responses WebSocket is not enabled for the active provider",
-        )
-        .details(details);
-    }
-
-    details.push(format!(
-        "connect timeout: {} ms",
-        provider.websocket_connect_timeout().as_millis()
-    ));
-
-    let runtime_provider = create_model_provider(provider.clone(), auth_manager);
-    let auth = runtime_provider.auth().await;
-    details.push(format!(
-        "auth mode: {}",
-        auth.as_ref().map(auth_mode_name).unwrap_or("none")
-    ));
-
-    let api_provider = match runtime_provider.api_provider().await {
-        Ok(api_provider) => api_provider,
-        Err(err) => {
-            return websocket_probe_warning(
-                "Responses WebSocket provider setup failed",
-                details,
-                format!("provider setup failed: {err}"),
-            );
-        }
-    };
-    match api_provider.websocket_url_for_path("responses") {
-        Ok(url) => {
-            details.push(format!("endpoint: {url}"));
-            if let Some(host) = url.host_str()
-                && let Some(port) = url.port_or_known_default()
-            {
-                details.extend(dns_address_family_details(host, port).await);
-            }
-        }
-        Err(err) => {
-            return websocket_probe_warning(
-                "Responses WebSocket endpoint could not be built",
-                details,
-                format!("endpoint build failed: {err}"),
-            );
-        }
-    }
-
-    let api_auth = match runtime_provider.api_auth().await {
-        Ok(api_auth) => api_auth,
-        Err(err) => {
-            return websocket_probe_warning(
-                "Responses WebSocket auth could not be resolved",
-                details,
-                format!("auth resolution failed: {err}"),
-            );
-        }
-    };
-
-    let mut extra_headers = HeaderMap::new();
-    extra_headers.insert(
-        OPENAI_BETA_HEADER,
-        HeaderValue::from_static(RESPONSES_WEBSOCKETS_V2_BETA_HEADER_VALUE),
-    );
-    let client = ResponsesWebsocketClient::new(api_provider, api_auth);
-    match tokio::time::timeout(
-        provider.websocket_connect_timeout(),
-        client.probe_handshake(
-            extra_headers,
-            default_headers(),
-            WEBSOCKET_IMMEDIATE_CLOSE_GRACE,
-        ),
-    )
-    .await
-    {
-        Ok(Ok(probe)) => {
-            details.push(format!("handshake result: HTTP {}", probe.status));
-            details.push(format!("reasoning header: {}", probe.reasoning_included));
-            details.push(format!(
-                "models etag present: {}",
-                probe.models_etag_present
-            ));
-            details.push(format!(
-                "server model present: {}",
-                probe.server_model_present
-            ));
-            if let Some(close) = probe.immediate_close {
-                details.push(format!("immediate close code: {}", close.code));
-                details.push(format!("immediate close reason: {}", close.reason));
-                return DoctorCheck::new(
-                    "network.websocket_reachability",
-                    "websocket",
-                    CheckStatus::Warning,
-                    "Responses WebSocket closed immediately after handshake",
-                )
-                .details(details)
-                .remediation(
-                    "Check proxy, VPN, firewall, DNS, custom CA, and WebSocket policy support.",
-                );
-            }
-            DoctorCheck::new(
-                "network.websocket_reachability",
-                "websocket",
-                CheckStatus::Ok,
-                "Responses WebSocket handshake succeeded",
-            )
-            .details(details)
-        }
-        Ok(Err(err)) => websocket_probe_warning(
-            "Responses WebSocket failed; HTTPS fallback may still work",
-            details,
-            websocket_error_detail(&err),
-        ),
-        Err(_) => websocket_probe_warning(
-            "Responses WebSocket timed out; HTTPS fallback may still work",
-            details,
-            "handshake timed out".to_string(),
-        ),
-    }
-}
-
-fn websocket_probe_warning(
-    summary: &'static str,
-    mut details: Vec<String>,
-    error_detail: String,
-) -> DoctorCheck {
-    details.push(error_detail);
     DoctorCheck::new(
         "network.websocket_reachability",
         "websocket",
-        CheckStatus::Warning,
-        summary,
+        CheckStatus::Ok,
+        "WebSocket transport is not used (HTTP-only)",
     )
     .details(details)
-    .remediation("Check proxy, VPN, firewall, DNS, custom CA, and WebSocket policy support.")
-}
-
-fn websocket_error_detail(err: &ApiError) -> String {
-    match err {
-        ApiError::Transport(transport) => format!("handshake transport error: {transport}"),
-        ApiError::Api { status, message } => {
-            format!("handshake API error: {status} {message}")
-        }
-        ApiError::Stream(message) => format!("handshake stream error: {message}"),
-        ApiError::ContextWindowExceeded
-        | ApiError::QuotaExceeded
-        | ApiError::UsageNotIncluded
-        | ApiError::Retryable { .. }
-        | ApiError::RateLimit(_)
-        | ApiError::InvalidRequest { .. }
-        | ApiError::CyberPolicy { .. }
-        | ApiError::ServerOverloaded => format!("handshake error: {err}"),
-    }
 }
 
 fn auth_mode_name(auth: &CodexAuth) -> &'static str {

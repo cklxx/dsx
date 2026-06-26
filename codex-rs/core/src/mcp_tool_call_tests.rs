@@ -35,11 +35,8 @@ use codex_rollout_trace::ToolDispatchRequester;
 use codex_rollout_trace::replay_bundle;
 use codex_utils_path_uri::PathUri;
 use core_test_support::hooks::trusted_config_layer_stack;
-use core_test_support::responses::ev_assistant_message;
-use core_test_support::responses::ev_completed;
-use core_test_support::responses::ev_response_created;
-use core_test_support::responses::mount_sse_once;
-use core_test_support::responses::sse;
+use core_test_support::responses::mount_anthropic_sse_once;
+use core_test_support::responses::sse_anthropic_message;
 use core_test_support::responses::start_mock_server;
 use pretty_assertions::assert_eq;
 use serde::Deserialize;
@@ -2805,22 +2802,17 @@ async fn permission_request_hook_runs_after_remembered_mcp_approval() {
 #[tokio::test]
 async fn guardian_mode_mcp_denial_returns_rationale_message() {
     let server = start_mock_server().await;
-    let guardian_request_log = mount_sse_once(
+    let guardian_request_log = mount_anthropic_sse_once(
         &server,
-        sse(vec![
-            ev_response_created("resp-guardian"),
-            ev_assistant_message(
-                "msg-guardian",
-                &serde_json::json!({
-                    "risk_level": "high",
-                    "user_authorization": "low",
-                    "outcome": "deny",
-                    "rationale": "The tool call would expose private calendar data without clear user authorization.",
-                })
-                .to_string(),
-            ),
-            ev_completed("resp-guardian"),
-        ]),
+        sse_anthropic_message(
+            &serde_json::json!({
+                "risk_level": "high",
+                "user_authorization": "low",
+                "outcome": "deny",
+                "rationale": "The tool call would expose private calendar data without clear user authorization.",
+            })
+            .to_string(),
+        ),
     )
     .await;
 
@@ -2887,9 +2879,11 @@ async fn guardian_mode_mcp_denial_returns_rationale_message() {
     };
     assert!(message.contains("Reason: The tool call would expose private calendar data"));
     assert!(message.contains("policy circumvention"));
-    assert_eq!(
-        guardian_request_log.single_request().path(),
-        "/v1/responses"
+    assert!(
+        guardian_request_log
+            .single_request()
+            .path()
+            .ends_with("/messages")
     );
 }
 

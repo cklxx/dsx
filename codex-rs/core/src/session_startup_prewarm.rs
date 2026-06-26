@@ -303,23 +303,9 @@ async fn schedule_startup_prewarm_inner(
             window_id,
             CodexResponsesRequestKind::Prewarm,
         );
-    let mut client_session = session.services.model_client.new_session();
-    let websocket_warmup_started_at = Instant::now();
-    client_session
-        .prewarm_websocket(
-            &startup_prompt,
-            &startup_turn_context.model_info,
-            &startup_turn_context.session_telemetry,
-            startup_turn_context.reasoning_effort.clone(),
-            startup_turn_context.reasoning_summary,
-            startup_turn_context.config.service_tier.clone(),
-            &responses_metadata,
-        )
-        .await?;
-    startup_turn_context.session_telemetry.record_startup_phase(
-        "startup_prewarm_websocket_warmup",
-        websocket_warmup_started_at.elapsed(),
-        /*status*/ None,
-    );
+    // The Responses WebSocket prewarm transport has been removed. Startup prewarm now only
+    // builds the turn context and tool snapshot; no websocket warmup request is sent.
+    let _ = (&startup_prompt, &responses_metadata);
+    let client_session = session.services.model_client.new_session();
     Ok(client_session)
 }

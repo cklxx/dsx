@@ -37,6 +37,10 @@ pub enum CargoBinError {
 /// This helper allows callers to transparently support both.
 #[allow(deprecated)]
 pub fn cargo_bin(name: &str) -> Result<PathBuf, CargoBinError> {
+    // The user-facing CLI binary was renamed from "codex" to "dsx". Many tests
+    // still request it by its historical name, so transparently remap to the
+    // current binary name instead of updating every call site.
+    let name = if name == "codex" { "dsx" } else { name };
     let env_keys = cargo_bin_env_keys(name);
     for key in &env_keys {
         if let Some(value) = std::env::var_os(key) {

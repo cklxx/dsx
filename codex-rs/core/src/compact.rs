@@ -224,6 +224,14 @@ async fn run_compact_task_inner_impl(
     initial_context_injection: InitialContextInjection,
     compaction_metadata: CompactionTurnMetadata,
 ) -> CodexResult<String> {
+    // Compaction (auto and /compact) runs on the provider's fast model
+    // (deepseek-v4-flash) to keep summarization cheap; main turns stay on pro.
+    let compaction_model = turn_context.provider.compaction_preferred_model().to_string();
+    let turn_context = Arc::new(
+        turn_context
+            .with_model(compaction_model, &sess.services.models_manager)
+            .await,
+    );
     let compaction_item = TurnItem::ContextCompaction(ContextCompactionItem::new());
     sess.emit_turn_item_started(&turn_context, &compaction_item)
         .await;

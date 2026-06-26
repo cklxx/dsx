@@ -40,7 +40,6 @@ mod approvals;
 mod auto_review;
 mod cli_stream;
 mod client;
-mod client_websockets;
 mod code_mode;
 mod codex_delegate;
 mod collaboration_instructions;

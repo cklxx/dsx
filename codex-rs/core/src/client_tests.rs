@@ -4,10 +4,6 @@ use super::ModelClient;
 use super::PendingUnauthorizedRetry;
 use super::Prompt;
 use super::UnauthorizedRecoveryExecution;
-use super::X_CODEX_INSTALLATION_ID_HEADER;
-use super::X_CODEX_PARENT_THREAD_ID_HEADER;
-use super::X_CODEX_TURN_METADATA_HEADER;
-use super::X_CODEX_WINDOW_ID_HEADER;
 use super::X_OPENAI_SUBAGENT_HEADER;
 use crate::AttestationContext;
 use crate::AttestationProvider;
@@ -18,7 +14,6 @@ use crate::test_support::responses_metadata as test_responses_metadata;
 use codex_api::AgentIdentityTelemetry;
 use codex_api::ApiError;
 use codex_api::ResponseEvent;
-use codex_api::TransportError;
 use codex_login::AuthCredentialsStoreMode;
 use codex_login::AuthKeyringBackendKind;
 use codex_login::AuthManager;
@@ -26,11 +21,9 @@ use codex_login::CodexAuth;
 use codex_login::auth::AgentIdentityAuthPolicy;
 use codex_model_provider::BearerAuthProvider;
 use codex_model_provider::SharedModelProvider;
-use codex_model_provider::create_model_provider;
 use codex_model_provider_info::CHATGPT_CODEX_BASE_URL;
 use codex_model_provider_info::ModelProviderInfo;
 use codex_model_provider_info::WireApi;
-use codex_model_provider_info::create_oss_provider_with_base_url;
 use codex_otel::SessionTelemetry;
 use codex_protocol::ThreadId;
 use codex_protocol::auth::AuthMode;
@@ -90,7 +83,11 @@ fn test_model_client_with_thread_id(
     thread_id: ThreadId,
     session_source: SessionSource,
 ) -> ModelClient {
-    let provider = create_oss_provider_with_base_url("https://example.com/v1", WireApi::Responses);
+    let provider = ModelProviderInfo {
+        base_url: Some("https://example.com/v1".to_string()),
+        wire_api: WireApi::Responses,
+        ..ModelProviderInfo::default()
+    };
     ModelClient::new(
         /*auth_manager*/ None,
         AgentIdentityAuthPolicy::JwtOnly,
@@ -131,7 +128,12 @@ async fn compact_uses_bearer_after_agent_identity_session_fallback() -> anyhow::
 
     let codex_home = TempDir::new()?;
     let auth_manager = chatgpt_auth_manager(&codex_home, server.uri()).await;
-    let mut provider = ModelProviderInfo::create_openai_provider(/*base_url*/ None);
+    // The agent-identity bootstrap path is only taken for first-party providers
+    // (`requires_openai_auth = true`), so construct one directly.
+    let mut provider = ModelProviderInfo {
+        requires_openai_auth: true,
+        ..ModelProviderInfo::default()
+    };
     provider.base_url = Some(format!("{}/v1", server.uri()));
     provider.supports_websockets = false;
     let thread_id = ThreadId::new();
@@ -486,69 +488,6 @@ fn build_subagent_headers_sets_internal_memory_consolidation_label() {
     );
 }
 
-#[test]
-fn build_ws_client_metadata_includes_window_lineage_and_turn_metadata() {
-    let parent_thread_id = ThreadId::new();
-    let client = test_model_client(SessionSource::SubAgent(SubAgentSource::ThreadSpawn {
-        parent_thread_id,
-        depth: 2,
-        agent_path: None,
-        agent_nickname: None,
-        agent_role: None,
-    }));
-
-    let thread_id = client.state.thread_id.to_string();
-    let expected_window_id = format!("{thread_id}:1");
-    let responses_metadata = test_responses_metadata_for_client(
-        &client,
-        Some("turn-123"),
-        expected_window_id.clone(),
-        Some(parent_thread_id),
-        TestCodexResponsesRequestKind::Turn,
-    );
-    let client_metadata =
-        client.build_ws_client_metadata(&responses_metadata, /*use_responses_lite*/ false);
-    let parent_thread_id = parent_thread_id.to_string();
-    let turn_metadata: serde_json::Value = serde_json::from_str(
-        client_metadata
-            .get(X_CODEX_TURN_METADATA_HEADER)
-            .expect("turn metadata"),
-    )
-    .expect("valid turn metadata");
-    for (client_key, metadata_key, expected) in [
-        (
-            X_CODEX_INSTALLATION_ID_HEADER,
-            "installation_id",
-            "11111111-1111-4111-8111-111111111111",
-        ),
-        ("session_id", "session_id", thread_id.as_str()),
-        ("thread_id", "thread_id", thread_id.as_str()),
-        ("turn_id", "turn_id", "turn-123"),
-        (
-            X_CODEX_WINDOW_ID_HEADER,
-            "window_id",
-            expected_window_id.as_str(),
-        ),
-        (
-            X_CODEX_PARENT_THREAD_ID_HEADER,
-            "parent_thread_id",
-            parent_thread_id.as_str(),
-        ),
-    ] {
-        assert_eq!(
-            client_metadata.get(client_key).map(String::as_str),
-            Some(expected)
-        );
-        assert_eq!(turn_metadata[metadata_key].as_str(), Some(expected));
-    }
-    assert_eq!(
-        client_metadata
-            .get(X_OPENAI_SUBAGENT_HEADER)
-            .map(String::as_str),
-        Some("collab_spawn")
-    );
-}
-
 #[tokio::test]
 async fn summarize_memories_returns_empty_for_empty_input() {
     let client = test_model_client(SessionSource::Cli);
@@ -647,39 +586,6 @@ async fn response_stream_records_last_model_feedback_ids() {
     assert_eq!(
         tags.get("last_model_response_id").map(String::as_str),
         Some("\"resp-123\"")
-    );
-}
-
-#[tokio::test]
-async fn bedrock_unauthorized_error_uses_provider_mapping() {
-    let provider = create_model_provider(
-        ModelProviderInfo::create_amazon_bedrock_provider(/*aws*/ None),
-        /*auth_manager*/ None,
-    );
-    let mut auth_recovery = None;
-    let url = "https://bedrock-mantle.us-east-2.api.aws/openai/v1/responses";
-    let error = super::handle_unauthorized(
-        TransportError::Http {
-            status: http::StatusCode::UNAUTHORIZED,
-            url: Some(url.to_string()),
-            headers: None,
-            body: Some(
-                "Signature expired: 20260609T133205Z is now earlier than 20260614T062525Z"
-                    .to_string(),
-            ),
-        },
-        &mut auth_recovery,
-        &test_session_telemetry(),
-        &provider,
-    )
-    .await
-    .expect_err("expired Bedrock signature should fail");
-
-    assert_eq!(
-        error.to_string(),
-        format!(
-            "Amazon Bedrock rejected the request because its AWS signature has expired. Refresh your AWS credentials and retry. If `AWS_BEARER_TOKEN_BEDROCK` is set, update or unset it, then restart Codex, url: {url}"
-        )
     );
 }
 
@@ -801,12 +707,20 @@ fn model_client_with_counting_attestation(
             Some(AuthManager::from_auth_for_testing(
                 CodexAuth::create_dummy_chatgpt_auth_for_testing(),
             )),
-            ModelProviderInfo::create_openai_provider(Some(CHATGPT_CODEX_BASE_URL.to_string())),
+            ModelProviderInfo {
+                base_url: Some(CHATGPT_CODEX_BASE_URL.to_string()),
+                wire_api: WireApi::Responses,
+                ..ModelProviderInfo::default()
+            },
         )
     } else {
         (
             None,
-            create_oss_provider_with_base_url("https://example.com/v1", WireApi::Responses),
+            ModelProviderInfo {
+                base_url: Some("https://example.com/v1".to_string()),
+                wire_api: WireApi::Responses,
+                ..ModelProviderInfo::default()
+            },
         )
     };
     let model_client = ModelClient::new(
@@ -826,31 +740,6 @@ fn model_client_with_counting_attestation(
         })),
     );
     (model_client, attestation_calls)
-}
-
-#[tokio::test]
-async fn websocket_handshake_includes_attestation_for_chatgpt_codex_responses() {
-    let (model_client, attestation_calls) =
-        model_client_with_counting_attestation(/*include_attestation*/ true);
-    let responses_metadata = test_responses_metadata_for_client(
-        &model_client,
-        /*turn_id*/ None,
-        format!("{}:0", model_client.state.thread_id),
-        /*parent_thread_id*/ None,
-        TestCodexResponsesRequestKind::WebsocketConnection,
-    );
-
-    let headers = model_client
-        .build_websocket_headers(&responses_metadata)
-        .await;
-
-    assert_eq!(
-        headers
-            .get(crate::attestation::X_OAI_ATTESTATION_HEADER)
-            .and_then(|value| value.to_str().ok()),
-        Some("v1.header-1"),
-    );
-    assert_eq!(attestation_calls.load(Ordering::Relaxed), 1);
 }
 
 #[tokio::test]

@@ -16,7 +16,8 @@ async fn offline_model_info_without_tool_output_override() {
         TestModelsEndpoint::new(Vec::new()),
     );
 
-    let model_info = manager.get_model_info("gpt-5.2", &config).await;
+    // Unknown slug resolves to fallback metadata (bytes-mode truncation).
+    let model_info = manager.get_model_info("unknown-offline-model", &config).await;
 
     assert_eq!(
         model_info.truncation_policy,
@@ -36,7 +37,8 @@ async fn offline_model_info_with_tool_output_override() {
         TestModelsEndpoint::new(Vec::new()),
     );
 
-    let model_info = manager.get_model_info("gpt-5.4", &config).await;
+    // A tokens-mode catalog model with a tool-output override keeps tokens mode.
+    let model_info = manager.get_model_info("deepseek-v4-pro", &config).await;
 
     assert_eq!(
         model_info.truncation_policy,

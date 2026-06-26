@@ -1048,6 +1048,155 @@ pub async fn mount_sse_once(server: &MockServer, body: String) -> ResponseMock {
     response_mock
 }
 
+/// Mock matcher for the DeepSeek Anthropic Messages endpoint (`.../v1/messages`).
+fn anthropic_messages_mock() -> (MockBuilder, ResponseMock) {
+    let response_mock = ResponseMock::new();
+    let mock = Mock::given(method("POST"))
+        .and(path_regex(".*/messages$"))
+        .and(response_mock.clone());
+    (mock, response_mock)
+}
+
+/// Serializes Anthropic Messages SSE events. Always emits a `data:` line so that
+/// single-field terminal events such as `message_stop` reach the decoder.
+fn anthropic_sse(events: Vec<Value>) -> String {
+    use std::fmt::Write as _;
+    let mut out = String::new();
+    for ev in events {
+        let kind = ev.get("type").and_then(Value::as_str).unwrap();
+        write!(&mut out, "event: {kind}\ndata: {ev}\n\n").unwrap();
+    }
+    out
+}
+
+/// Builds an Anthropic Messages SSE stream carrying a single assistant text
+/// message that ends the turn.
+pub fn sse_anthropic_message(text: &str) -> String {
+    anthropic_sse(vec![
+        serde_json::json!({"type":"message_start","message":{"id":"msg-anthropic","usage":{"input_tokens":0,"output_tokens":0}}}),
+        serde_json::json!({"type":"content_block_start","index":0,"content_block":{"type":"text","text":""}}),
+        serde_json::json!({"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":text}}),
+        serde_json::json!({"type":"content_block_stop","index":0}),
+        serde_json::json!({"type":"message_delta","delta":{"stop_reason":"end_turn"},"usage":{"output_tokens":0}}),
+        serde_json::json!({"type":"message_stop"}),
+    ])
+}
+
+/// Builds an Anthropic Messages SSE stream that completes the turn without
+/// emitting any assistant content block (a missing assessment payload).
+pub fn sse_anthropic_no_message() -> String {
+    anthropic_sse(vec![
+        serde_json::json!({"type":"message_start","message":{"id":"msg-anthropic","usage":{"input_tokens":0,"output_tokens":0}}}),
+        serde_json::json!({"type":"message_delta","delta":{"stop_reason":"end_turn"},"usage":{"output_tokens":0}}),
+        serde_json::json!({"type":"message_stop"}),
+    ])
+}
+
+/// Mounts a single Anthropic Messages SSE response.
+pub async fn mount_anthropic_sse_once(server: &MockServer, body: String) -> ResponseMock {
+    let (mock, response_mock) = anthropic_messages_mock();
+    mock.respond_with(sse_response(body))
+        .up_to_n_times(1)
+        .mount(server)
+        .await;
+    response_mock
+}
+
+/// Mounts a sequence of Anthropic Messages SSE responses, one per request.
+pub async fn mount_anthropic_sse_sequence(
+    server: &MockServer,
+    bodies: Vec<String>,
+) -> ResponseMock {
+    use std::sync::atomic::AtomicUsize;
+    use std::sync::atomic::Ordering;
+
+    struct SeqResponder {
+        num_calls: AtomicUsize,
+        responses: Vec<String>,
+    }
+
+    impl Respond for SeqResponder {
+        fn respond(&self, _: &wiremock::Request) -> ResponseTemplate {
+            let call_num = self.num_calls.fetch_add(1, Ordering::SeqCst);
+            let body = self
+                .responses
+                .get(call_num)
+                .unwrap_or_else(|| panic!("no response for {call_num}"));
+            ResponseTemplate::new(200)
+                .insert_header("content-type", "text/event-stream")
+                .set_body_string(body.clone())
+        }
+    }
+
+    let num_calls = bodies.len();
+    let responder = SeqResponder {
+        num_calls: AtomicUsize::new(0),
+        responses: bodies,
+    };
+
+    let (mock, response_mock) = anthropic_messages_mock();
+    mock.respond_with(responder)
+        .up_to_n_times(num_calls as u64)
+        .expect(num_calls as u64)
+        .mount(server)
+        .await;
+
+    response_mock
+}
+
+/// Mounts a single non-SSE response (e.g. an HTTP error) for the Anthropic
+/// Messages endpoint.
+pub async fn mount_anthropic_response_once(
+    server: &MockServer,
+    response: ResponseTemplate,
+) -> ResponseMock {
+    let (mock, response_mock) = anthropic_messages_mock();
+    mock.respond_with(response)
+        .up_to_n_times(1)
+        .mount(server)
+        .await;
+    response_mock
+}
+
+/// Mounts a sequence of arbitrary responses (e.g. an HTTP error followed by an
+/// SSE success) for the Anthropic Messages endpoint, one per request.
+pub async fn mount_anthropic_response_sequence(
+    server: &MockServer,
+    responses: Vec<ResponseTemplate>,
+) -> ResponseMock {
+    use std::sync::atomic::AtomicUsize;
+    use std::sync::atomic::Ordering;
+
+    struct SeqResponder {
+        num_calls: AtomicUsize,
+        responses: Vec<ResponseTemplate>,
+    }
+
+    impl Respond for SeqResponder {
+        fn respond(&self, _: &wiremock::Request) -> ResponseTemplate {
+            let call_num = self.num_calls.fetch_add(1, Ordering::SeqCst);
+            self.responses
+                .get(call_num)
+                .expect("missing response for call")
+                .clone()
+        }
+    }
+
+    let num_calls = responses.len();
+    let responder = SeqResponder {
+        num_calls: AtomicUsize::new(0),
+        responses,
+    };
+
+    let (mock, response_mock) = anthropic_messages_mock();
+    mock.respond_with(responder)
+        .up_to_n_times(num_calls as u64)
+        .expect(num_calls as u64)
+        .mount(server)
+        .await;
+    response_mock
+}
+
 pub async fn mount_compact_json_once_match<M>(
     server: &MockServer,
     matcher: M,

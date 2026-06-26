@@ -2,11 +2,8 @@ use crate::FreeformTool;
 use crate::JsonSchema;
 use crate::LoadableToolSpec;
 use crate::ResponsesApiNamespace;
+use crate::ResponsesApiNamespaceTool;
 use crate::ResponsesApiTool;
-use codex_protocol::config_types::WebSearchContextSize;
-use codex_protocol::config_types::WebSearchFilters as ConfigWebSearchFilters;
-use codex_protocol::config_types::WebSearchUserLocation as ConfigWebSearchUserLocation;
-use codex_protocol::config_types::WebSearchUserLocationType;
 use serde::Serialize;
 use serde_json::Value;
 
@@ -27,27 +24,6 @@ pub enum ToolSpec {
     },
     #[serde(rename = "image_generation")]
     ImageGeneration { output_format: String },
-    // TODO: Understand why we get an error on web_search although the API docs
-    // say it's supported.
-    // https://platform.openai.com/docs/guides/tools-web-search?api-mode=responses#:~:text=%7B%20type%3A%20%22web_search%22%20%7D%2C
-    // The `external_web_access` field determines whether the web search is over
-    // cached or live content.
-    // https://platform.openai.com/docs/guides/tools-web-search#live-internet-access
-    #[serde(rename = "web_search")]
-    WebSearch {
-        #[serde(skip_serializing_if = "Option::is_none")]
-        external_web_access: Option<bool>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        index_gated_web_access: Option<bool>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        filters: Option<ResponsesApiWebSearchFilters>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        user_location: Option<ResponsesApiWebSearchUserLocation>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        search_context_size: Option<WebSearchContextSize>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        search_content_types: Option<Vec<String>>,
-    },
     #[serde(rename = "custom")]
     Freeform(FreeformTool),
 }
@@ -59,7 +35,6 @@ impl ToolSpec {
             ToolSpec::Namespace(namespace) => namespace.name.as_str(),
             ToolSpec::ToolSearch { .. } => "tool_search",
             ToolSpec::ImageGeneration { .. } => "image_generation",
-            ToolSpec::WebSearch { .. } => "web_search",
             ToolSpec::Freeform(tool) => tool.name.as_str(),
         }
     }
@@ -90,44 +65,54 @@ pub fn create_tools_json_for_responses_api(
     Ok(tools_json)
 }
 
-#[derive(Debug, Clone, Serialize, PartialEq)]
-pub struct ResponsesApiWebSearchFilters {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub allowed_domains: Option<Vec<String>>,
-}
-
-impl From<ConfigWebSearchFilters> for ResponsesApiWebSearchFilters {
-    fn from(filters: ConfigWebSearchFilters) -> Self {
-        Self {
-            allowed_domains: filters.allowed_domains,
+/// Returns Anthropic-compatible tool definitions: `{name, description, input_schema}`.
+///
+/// Namespaced tools are flattened to their function name; Responses-API hosted
+/// tools (web_search/image_generation/tool_search) have no Anthropic analogue
+/// and are dropped. Freeform/grammar tools are exposed as a single string arg.
+pub fn create_tools_json_for_anthropic(
+    tools: &[ToolSpec],
+) -> Result<Vec<Value>, serde_json::Error> {
+    let mut tools_json = Vec::new();
+    for tool in tools {
+        match tool {
+            ToolSpec::Function(t) => {
+                tools_json.push(anthropic_tool(&t.name, &t.description, &t.parameters)?);
+            }
+            ToolSpec::Namespace(ns) => {
+                for nt in &ns.tools {
+                    let ResponsesApiNamespaceTool::Function(t) = nt;
+                    tools_json.push(anthropic_tool(&t.name, &t.description, &t.parameters)?);
+                }
+            }
+            ToolSpec::Freeform(t) => {
+                // ponytail: lossy — a grammar-constrained tool becomes a plain string arg.
+                tools_json.push(serde_json::json!({
+                    "name": t.name,
+                    "description": t.description,
+                    "input_schema": {
+                        "type": "object",
+                        "properties": { "input": { "type": "string" } },
+                        "required": ["input"],
+                    },
+                }));
+            }
+            ToolSpec::ToolSearch { .. } | ToolSpec::ImageGeneration { .. } => {}
         }
     }
+    Ok(tools_json)
 }
 
-#[derive(Debug, Clone, Serialize, PartialEq)]
-pub struct ResponsesApiWebSearchUserLocation {
-    #[serde(rename = "type")]
-    pub r#type: WebSearchUserLocationType,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub country: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub region: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub city: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub timezone: Option<String>,
-}
-
-impl From<ConfigWebSearchUserLocation> for ResponsesApiWebSearchUserLocation {
-    fn from(user_location: ConfigWebSearchUserLocation) -> Self {
-        Self {
-            r#type: user_location.r#type,
-            country: user_location.country,
-            region: user_location.region,
-            city: user_location.city,
-            timezone: user_location.timezone,
-        }
-    }
+fn anthropic_tool(
+    name: &str,
+    description: &str,
+    parameters: &JsonSchema,
+) -> Result<Value, serde_json::Error> {
+    Ok(serde_json::json!({
+        "name": name,
+        "description": description,
+        "input_schema": serde_json::to_value(parameters)?,
+    }))
 }
 
 #[cfg(test)]

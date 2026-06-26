@@ -244,7 +244,7 @@ mod tests {
                     .expect("current dir should be absolute"),
             }),
             requires_openai_auth: false,
-            ..ModelProviderInfo::create_openai_provider(/*base_url*/ None)
+            ..ModelProviderInfo::create_deepseek_provider()
         }
     }
 
@@ -261,7 +261,7 @@ mod tests {
     #[test]
     fn provider_without_command_auth_reports_no_command_auth() {
         let endpoint = OpenAiModelsEndpoint::new(
-            ModelProviderInfo::create_openai_provider(/*base_url*/ None),
+            ModelProviderInfo::create_deepseek_provider(),
             /*auth_manager*/ None,
         );
 

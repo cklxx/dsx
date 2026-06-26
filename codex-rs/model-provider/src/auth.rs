@@ -262,8 +262,6 @@ mod tests {
     use codex_login::AuthKeyringBackendKind;
     use codex_login::auth::AgentIdentityAuthRecord;
     use codex_login::auth::BedrockApiKeyAuth;
-    use codex_model_provider_info::WireApi;
-    use codex_model_provider_info::create_oss_provider_with_base_url;
     use codex_protocol::account::PlanType;
     use pretty_assertions::assert_eq;
     use serde_json::json;
@@ -381,8 +379,7 @@ mod tests {
 
     #[test]
     fn unauthenticated_auth_provider_adds_no_headers() {
-        let provider =
-            create_oss_provider_with_base_url("http://localhost:11434/v1", WireApi::Responses);
+        let provider = ModelProviderInfo::create_deepseek_provider();
         let auth = resolve_provider_auth(/*auth*/ None, &provider).expect("auth should resolve");
 
         assert!(auth.to_auth_headers().is_empty());
@@ -390,7 +387,7 @@ mod tests {
 
     #[test]
     fn openai_provider_rejects_bedrock_api_key_auth() {
-        let provider = ModelProviderInfo::create_openai_provider(/*base_url*/ None);
+        let provider = ModelProviderInfo::create_deepseek_provider();
         let auth = CodexAuth::BedrockApiKey(BedrockApiKeyAuth {
             api_key: "bedrock-api-key-test".to_string(),
             region: "us-east-1".to_string(),
@@ -410,7 +407,7 @@ mod tests {
         let auth = CodexAuth::AgentIdentity(
             agent_identity_auth(/*chatgpt_account_is_fedramp*/ false).await,
         );
-        let provider = ModelProviderInfo::create_openai_provider(/*base_url*/ None);
+        let provider = ModelProviderInfo::create_deepseek_provider();
 
         let auth = resolve_provider_auth_for_scope(
             /*auth_manager*/ None,
@@ -478,7 +475,7 @@ mod tests {
         )
         .await;
         let (_codex_home, auth_manager, auth) = chatgpt_auth_manager(server.uri()).await;
-        let provider = ModelProviderInfo::create_openai_provider(/*base_url*/ None);
+        let provider = ModelProviderInfo::create_deepseek_provider();
         let fallback = AgentIdentitySessionFallback::default();
 
         let provider_auth = resolve_provider_auth_for_scope(
@@ -518,7 +515,7 @@ mod tests {
         )
         .await;
         let (_codex_home, auth_manager, auth) = chatgpt_auth_manager(server.uri()).await;
-        let provider = ModelProviderInfo::create_openai_provider(/*base_url*/ None);
+        let provider = ModelProviderInfo::create_deepseek_provider();
         let fallback = AgentIdentitySessionFallback::default();
 
         resolve_provider_auth_for_scope(
@@ -552,7 +549,7 @@ mod tests {
         )
         .await;
         let (_codex_home, auth_manager, auth) = chatgpt_auth_manager(server.uri()).await;
-        let provider = ModelProviderInfo::create_openai_provider(/*base_url*/ None);
+        let provider = ModelProviderInfo::create_deepseek_provider();
         let first_fallback = AgentIdentitySessionFallback::default();
         let second_fallback = AgentIdentitySessionFallback::default();
 

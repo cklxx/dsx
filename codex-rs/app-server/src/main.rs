@@ -35,7 +35,7 @@ struct AppServerArgs {
     #[arg(
         long = "session-source",
         value_name = "SOURCE",
-        default_value = "vscode",
+        default_value = "dsx",
         value_parser = SessionSource::from_startup_arg
     )]
     session_source: SessionSource,
