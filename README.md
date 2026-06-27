@@ -17,47 +17,59 @@ dsx lives in your terminal and works alongside you on real code: it reads the re
 - **Made to feel like dsx.** A spouting-whale welcome screen and a DeepSeek-blue UI, in your terminal.
 - **Local & private.** Just a `DEEPSEEK_API_KEY` in your environment; nothing else leaves your machine.
 
-## Quickstart
+## Install
 
-dsx is a Rust workspace — build the binary from source:
+### Download binary (macOS ARM64)
 
-```shell
-git clone git@github.com:cklxx/dsx.git
+```bash
+curl -fsSL https://github.com/cklxx/dsx/releases/download/v0.1.0/dsx-0.1.0-darwin-arm64.tar.gz | tar xz
+sudo mv dsx /usr/local/bin/
+```
+
+More platforms and a Homebrew formula are on the way. For now, build from source:
+
+```bash
+git clone https://github.com/cklxx/dsx.git
 cd dsx/codex-rs
 cargo build --release --bin dsx
+ln -sf "$PWD/target/release/dsx" ~/.local/bin/dsx
 ```
 
-Set your DeepSeek API key (get one at [platform.deepseek.com](https://platform.deepseek.com)) and run it:
+## Quickstart
 
-```shell
+Set your DeepSeek API key ([get one](https://platform.deepseek.com)) and run:
+
+```bash
 export DEEPSEEK_API_KEY=sk-...
-./target/release/dsx
+dsx
 ```
 
-That drops you into the interactive TUI. For a quick one-shot instead:
+That drops you into the interactive TUI. For a one-shot:
 
-```shell
-DEEPSEEK_API_KEY=sk-... cargo run -q -p codex-exec -- "explain what this repo does"
+```bash
+dsx exec "explain what this repo does"
 ```
 
-### Put `dsx` on your PATH
+## GUI
 
-```shell
-ln -sf "$PWD/target/release/dsx" ~/.local/bin/dsx   # or ~/.cargo/bin/dsx
+dsx ships with a minimal browser GUI that talks to `dsx app-server` over WebSocket JSON-RPC:
+
+```bash
+./dsx-gui/start.sh
 ```
 
-Then just `dsx` from anywhere.
+Opens a self-contained HTML page at `http://127.0.0.1:9021`. Just type and send.
 
 ## Configuration
 
-Config lives in `$CODEX_HOME/config.toml` (default `~/.codex/config.toml`; point `CODEX_HOME` elsewhere to keep a dedicated dsx home):
+Config lives at `$CODEX_HOME/config.toml` (default `~/.dsx/config.toml`):
 
 ```toml
 model          = "deepseek-v4-pro"   # or deepseek-v4-flash
 model_provider = "deepseek"           # the only built-in provider
 ```
 
-The `deepseek` provider is the default and reads `DEEPSEEK_API_KEY` from the environment — there is no login flow. Switch models in-session with `/model`.
+The `deepseek` provider reads `DEEPSEEK_API_KEY` from the environment — there is no login flow. Switch models in-session with `/model`.
 
 ## How it works
 
