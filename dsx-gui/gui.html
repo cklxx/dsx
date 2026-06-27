@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>dsx</title>
+<style>
+  :root { --bg: #1a1a2e; --surface: #16213e; --border: #0f3460; --text: #e0e0e0;
+          --dim: #888; --accent: #e94560; --user: #533483; --code-bg: #0d1117; }
+  * { box-sizing:border-box; margin:0; padding:0 }
+  body { font:14px/1.5 'SF Mono','JetBrains Mono',monospace; background:var(--bg); color:var(--text); height:100vh; display:flex; flex-direction:column }
+  #bar { display:flex; align-items:center; gap:8px; padding:6px 12px; background:var(--surface); border-bottom:1px solid var(--border); font-size:12px }
+  #bar .dot { width:8px; height:8px; border-radius:50%; background:var(--dim); flex-shrink:0 }
+  #bar .dot.on { background:#4caf50 }
+  #bar input { flex:1; background:var(--bg); border:1px solid var(--border); color:var(--text); padding:4px 8px; border-radius:3px; font:inherit; font-size:12px }
+  #bar button { background:var(--accent); color:#fff; border:none; padding:4px 10px; border-radius:3px; cursor:pointer; font:inherit; font-size:12px }
+  #bar button:disabled { opacity:.4 }
+  #msgs { flex:1; overflow-y:auto; padding:12px; display:flex; flex-direction:column; gap:8px }
+  .msg { max-width:86ch; padding:8px 12px; border-radius:6px; white-space:pre-wrap; word-break:break-word }
+  .msg.user { align-self:flex-end; background:var(--user) }
+  .msg.agent { align-self:flex-start; background:var(--surface); border:1px solid var(--border) }
+  .msg.reasoning { align-self:flex-start; background:var(--code-bg); border:1px solid var(--border); color:var(--dim); font-style:italic; font-size:13px }
+  .msg.status { align-self:center; color:var(--dim); font-size:12px; padding:2px 8px }
+  .msg.error { align-self:center; color:var(--accent); font-size:12px }
+  #input-row { display:flex; padding:8px 12px; background:var(--surface); border-top:1px solid var(--border); gap:8px }
+  #input-row textarea { flex:1; background:var(--bg); border:1px solid var(--border); color:var(--text); padding:8px; border-radius:4px; font:inherit; resize:none; min-height:36px; max-height:200px }
+  #input-row button { background:var(--accent); color:#fff; border:none; padding:8px 16px; border-radius:4px; cursor:pointer; font:inherit; align-self:flex-end }
+  #input-row button:disabled { opacity:.4 }
+  ::-webkit-scrollbar { width:6px } ::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px }
+</style>
+</head>
+<body>
+<div id="bar">
+  <span class="dot" id="dot"></span>
+  <span id="status">disconnected</span>
+  <input id="ws-url" value="ws://localhost:9020" placeholder="ws://host:port">
+  <button id="connect-btn" onclick="toggleConnect()">connect</button>
+  <button onclick="msgs.innerHTML=''">clear</button>
+</div>
+<div id="msgs"></div>
+<div id="input-row">
+  <textarea id="input" placeholder="Send a message…" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();send()}"></textarea>
+  <button id="send-btn" onclick="send()" disabled>send</button>
+</div>
+<script>
+let ws, threadId, reqId=0, currentAgentDiv=null;
+const msgs=document.getElementById('msgs'), input=document.getElementById('input'),
+      sendBtn=document.getElementById('send-btn'), dot=document.getElementById('dot'),
+      statusEl=document.getElementById('status'), urlEl=document.getElementById('ws-url'),
+      connBtn=document.getElementById('connect-btn');
+
+function M(cls, text) {
+  const d=document.createElement('div'); d.className='msg '+cls; d.textContent=text;
+  msgs.appendChild(d); msgs.scrollTop=msgs.scrollHeight; return d;
+}
+function setConnected(on) {
+  dot.className='dot'+(on?' on':''); statusEl.textContent=on?'connected':'disconnected';
+  connBtn.textContent=on?'disconnect':'connect'; sendBtn.disabled=!on||!threadId; urlEl.disabled=on;
+}
+function toggleConnect() { ws?ws.close():connect() }
+function connect() {
+  const url=urlEl.value.trim()||'ws://localhost:9020';
+  try { ws=new WebSocket(url) } catch(e) { M('error','WebSocket: '+e.message); return }
+  ws.onopen=()=>{
+    setConnected(true); M('status','connected to '+url);
+    sendRpc('initialize',{clientInfo:{name:'dsx-gui',version:'0.1.0'}});
+  };
+  ws.onclose=(e)=>{ setConnected(false); threadId=null; currentAgentDiv=null; M('status','disconnected ('+e.code+')') };
+  ws.onerror=()=>{ M('error','connection error') };
+  ws.onmessage=(e)=>{ try { handleMsg(JSON.parse(e.data)) } catch(_) {} };
+}
+function sendRpc(m, p) { const id=++reqId; ws.send(JSON.stringify({id,method:m,params:p})); return id }
+function send() {
+  const t=input.value.trim(); if(!t||!threadId) return;
+  input.value=''; sendBtn.disabled=true; currentAgentDiv=null;
+  M('user',t);
+  sendRpc('turn/start',{threadId,input:[{type:'text',text:t,textElements:[]}]});
+}
+function handleMsg(msg) {
+  if(msg.id&&!msg.method) {
+    const r=msg.result||{};
+    if(r.thread) { threadId=r.thread.id; M('status','thread '+threadId.slice(0,8)+'…'); sendBtn.disabled=false }
+    if(r.turn) M('status','thinking…');
+    return;
+  }
+  const m=msg.method, p=msg.params||{};
+  if(m==='turn/completed') { M('status','done'); sendBtn.disabled=false; currentAgentDiv=null }
+  else if(m==='item/started') handleItem(p.item, false);
+  else if(m==='item/completed') handleItem(p.item, true);
+  else if(m==='error') { M('error','error: '+(p.message||'unknown')); sendBtn.disabled=false }
+}
+function handleItem(item, done) {
+  if(!item) return;
+  const t=item.type;
+  if(t==='AgentMessage') {
+    const cs=(item.content||[]).filter(c=>c.type==='Text').map(c=>c.text);
+    if(cs.length) {
+      if(!currentAgentDiv) { currentAgentDiv=M('agent',''); currentAgentDiv.dataset.s='1' }
+      currentAgentDiv.textContent=cs.join('\n');
+      if(done) { delete currentAgentDiv.dataset.s; currentAgentDiv=null }
+    }
+  } else if(t==='Reasoning') {
+    const p=[];
+    if(item.summary_text) p.push(item.summary_text.join('\n'));
+    if(item.raw_content&&item.raw_content.length) p.push('---\n'+item.raw_content.join('\n'));
+    if(p.length) M('reasoning',p.join('\n\n'));
+  } else if(t==='Plan') {
+    M('status','plan: '+(item.text||'').slice(0,200));
+  } else if(t==='FileChange') {
+    const ns=Object.keys(item.changes||{}).join(', ');
+    if(ns) M('status','files: '+ns);
+  } else if(t==='WebSearch') {
+    M('status','search: '+item.query);
+  }
+  msgs.scrollTop=msgs.scrollHeight;
+}
+</script>
+</body>
+</html>
