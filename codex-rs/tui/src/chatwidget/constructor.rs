@@ -91,6 +91,7 @@ impl ChatWidget {
             frame_requester.clone(),
             app_event_tx.clone(),
         );
+        let animations = config.animations;
         let mut widget = Self {
             app_event_tx: app_event_tx.clone(),
             frame_requester: frame_requester.clone(),
@@ -180,6 +181,7 @@ impl ChatWidget {
             status_state: StatusState::default(),
             review: ReviewState::default(),
             active_hook_cell: None,
+            tool_grouper: crate::tool_grouper::ToolCallGrouper::new(animations),
             ambient_pet: None,
             pet_picker_preview_state: crate::pets::PetPickerPreviewState::default(),
             pet_picker_preview_pet: None,

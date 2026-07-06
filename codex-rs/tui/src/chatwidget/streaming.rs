@@ -18,6 +18,12 @@ impl ChatWidget {
 
     pub(super) fn flush_answer_stream_with_separator(&mut self) {
         let had_stream_controller = self.stream_controller.is_some();
+        // When non-tool content is about to be flushed (agent message, plan, etc.),
+        // mark a text break so subsequent tool calls start a new group.
+        if had_stream_controller {
+            self.grouper_mark_text_break();
+            self.grouper_flush_pending();
+        }
         if let Some(mut controller) = self.stream_controller.take() {
             let scrollback_reflow = if controller.has_live_tail() {
                 crate::app_event::ConsolidationScrollbackReflow::Required

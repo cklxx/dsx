@@ -356,6 +356,7 @@ mod pets;
 mod session_flow;
 mod session_header;
 use self::session_header::SessionHeader;
+mod grouper_helpers;
 mod hook_lifecycle;
 mod hooks;
 mod interaction;
@@ -627,6 +628,8 @@ pub(crate) struct ChatWidget {
     review: ReviewState,
     // Active hook runs render in a dedicated live cell so they can run alongside tools.
     active_hook_cell: Option<HookCell>,
+    // Tool call grouper for aggregating adjacent compatible calls into collapsible groups.
+    tool_grouper: crate::tool_grouper::ToolCallGrouper,
     // Ambient companion rendered over the transcript area, never inside the footer rows.
     ambient_pet: Option<crate::pets::AmbientPet>,
     pet_picker_preview_state: crate::pets::PetPickerPreviewState,
@@ -1206,6 +1209,15 @@ impl ChatWidget {
 
     fn flush_active_cell(&mut self) {
         if let Some(active) = self.transcript.active_cell.take() {
+            // Don't flush GroupedToolCallCell through this path — the grouper
+            // manages its own flush lifecycle.
+            if active
+                .as_any()
+                .is::<crate::tool_grouper::GroupedToolCallCell>()
+            {
+                self.transcript.active_cell = Some(active);
+                return;
+            }
             self.transcript.needs_final_message_separator = true;
             self.app_event_tx.send(AppEvent::InsertHistoryCell(active));
             self.request_pending_usage_output_insertion();
@@ -1416,11 +1428,17 @@ impl ChatWidget {
     /// Mark the active cell as failed (✗) and flush it into history.
     fn finalize_active_cell_as_failed(&mut self) {
         if let Some(mut cell) = self.transcript.active_cell.take() {
-            // Insert finalized cell into history and keep grouping consistent.
             if let Some(exec) = cell.as_any_mut().downcast_mut::<ExecCell>() {
                 exec.mark_failed();
             } else if let Some(tool) = cell.as_any_mut().downcast_mut::<McpToolCallCell>() {
                 tool.mark_failed();
+            } else if let Some(_grouped) = cell
+                .as_any_mut()
+                .downcast_mut::<crate::tool_grouper::GroupedToolCallCell>()
+            {
+                // GroupedToolCallCell: let the grouper handle lifecycle.
+                self.transcript.active_cell = Some(cell);
+                return;
             }
             self.add_boxed_history(cell);
             self.request_pending_usage_output_insertion();

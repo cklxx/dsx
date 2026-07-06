@@ -70,6 +70,16 @@ impl ChatWidget {
             self.bump_active_cell_revision();
             self.request_redraw();
         }
+
+        // Also feed output to grouped tool call cell if active
+        if let Some(cell) = self.transcript.active_cell.as_mut().and_then(|c| {
+            c.as_any_mut()
+                .downcast_mut::<crate::tool_grouper::GroupedToolCallCell>()
+        }) {
+            cell.append_output(call_id, delta);
+            self.bump_active_cell_revision();
+            self.request_redraw();
+        }
     }
 
     pub(super) fn on_terminal_interaction(&mut self, process_id: String, stdin: String) {
@@ -280,6 +290,13 @@ impl ChatWidget {
             self.suppressed_exec_calls.insert(id);
             return;
         }
+
+        // Try the tool call grouper first — if it handles this command, we skip
+        // the ExecCell path and let the grouper manage the active cell.
+        if self.grouper_try_handle_command_start(&id, &command, &parsed_cmd) {
+            return;
+        }
+
         if let Some(cell) = self
             .transcript
             .active_cell
@@ -358,6 +375,19 @@ impl ChatWidget {
         if self.suppressed_exec_calls.remove(&id) {
             return;
         }
+
+        // Try the grouper first — if it finds the call, skip ExecCell logic.
+        let grouper_handled =
+            self.grouper_try_handle_command_end(&id, duration, exit_code, Some(&aggregated_output));
+        if grouper_handled {
+            self.transcript.had_work_activity = true;
+            let is_user_shell = matches!(source, ExecCommandSource::UserShell);
+            if is_user_shell {
+                self.maybe_send_next_queued_input();
+            }
+            return;
+        }
+
         let (command, parsed, source) = match running {
             Some(rc) => (rc.command, rc.parsed_cmd, rc.source),
             None => (event_command, event_parsed, source),
