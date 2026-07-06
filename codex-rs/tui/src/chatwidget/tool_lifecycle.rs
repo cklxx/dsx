@@ -71,11 +71,6 @@ impl ChatWidget {
     pub(super) fn on_web_search_begin(&mut self, call_id: String) {
         self.record_visible_turn_activity();
 
-        // Try the grouper — note: query comes later in on_web_search_end
-        if self.grouper_try_handle_web_start(&call_id, "") {
-            return;
-        }
-
         self.flush_answer_stream_with_separator();
         // Don't disrupt an active ExecCell group — insert web search into history instead.
         let active_is_exec = self
@@ -108,13 +103,6 @@ impl ChatWidget {
         query: String,
         action: codex_app_server_protocol::WebSearchAction,
     ) {
-        // Try the grouper first
-        let grouper_duration = Duration::from_millis(0);
-        if self.grouper_try_handle_web_end(&call_id, grouper_duration) {
-            self.transcript.had_work_activity = true;
-            return;
-        }
-
         self.flush_answer_stream_with_separator();
         let mut handled = false;
         if let Some(cell) = self
@@ -208,8 +196,7 @@ impl ChatWidget {
             return;
         };
 
-        // Try the grouper first
-        if self.grouper_try_handle_mcp_start(&id, &server, &tool) {
+        if self.grouper_try_mcp(&id, &server, &tool) {
             return;
         }
 
@@ -264,10 +251,9 @@ impl ChatWidget {
             return;
         };
 
-        // Try the grouper first
         let grouper_duration = Duration::from_millis(duration_ms.unwrap_or_default().max(0) as u64);
-        let is_error = error.is_some();
-        if self.grouper_try_handle_mcp_end(&id, grouper_duration, is_error) {
+        let code = if error.is_some() { 1 } else { 0 };
+        if self.grouper_complete(&id, grouper_duration, code, None) {
             self.transcript.had_work_activity = true;
             return;
         }
