@@ -4,10 +4,6 @@
 //! exec-cell grouping and unified exec wait state.
 
 use super::*;
-use crate::tool_grouper::GroupedToolCallCell;
-use crate::tool_grouper::MAIN_AGENT_KEY;
-use crate::tool_grouper::ToolCallEntry;
-use crate::tool_grouper::infer_from_shell;
 
 impl ChatWidget {
     pub(super) fn flush_unified_exec_wait_streak(&mut self) {
@@ -61,34 +57,16 @@ impl ChatWidget {
             return;
         }
 
-        // Also feed to grouper
-        self.tool_grouper.append_main_output(call_id, delta);
-
-        // Update active grouped cell if present
-        let updated_grouped = if let Some(group_cell) = self
-            .transcript
-            .active_cell
-            .as_mut()
-            .and_then(|c| c.as_any_mut().downcast_mut::<GroupedToolCallCell>())
-        {
-            group_cell.append_output(call_id, delta);
-            true
-        } else {
-            false
-        };
-
-        let updated_exec = if let Some(cell) = self
+        let Some(cell) = self
             .transcript
             .active_cell
             .as_mut()
             .and_then(|c| c.as_any_mut().downcast_mut::<ExecCell>())
-        {
-            cell.append_output(call_id, delta)
-        } else {
-            false
+        else {
+            return;
         };
 
-        if updated_grouped || updated_exec {
+        if cell.append_output(call_id, delta) {
             self.bump_active_cell_revision();
             self.request_redraw();
         }
@@ -302,84 +280,33 @@ impl ChatWidget {
             self.suppressed_exec_calls.insert(id);
             return;
         }
-        // Feed to the tool grouper and use GroupedToolCallCell as active cell.
-        let cmd_name = command.first().map(|s| s.as_str()).unwrap_or("unknown");
-        let category = infer_from_shell(cmd_name, &command, &parsed_cmd);
-        let mut entry =
-            ToolCallEntry::new_running(id.clone(), cmd_name.to_string(), category.clone());
-        entry.input_preview = command.join(" ");
-
-        use crate::tool_grouper::GroupAction;
-        use crate::tool_grouper::GroupedToolCallCell;
-        match self
-            .tool_grouper
-            .on_call_started(MAIN_AGENT_KEY, entry.clone())
+        if let Some(cell) = self
+            .transcript
+            .active_cell
+            .as_mut()
+            .and_then(|c| c.as_any_mut().downcast_mut::<ExecCell>())
+            && let Some(new_exec) = cell.with_added_call(
+                id.clone(),
+                command.clone(),
+                parsed_cmd.clone(),
+                source,
+                /*interaction_input*/ None,
+            )
         {
-            GroupAction::Appended => {
-                // Update the existing grouped active cell.
-                if let Some(group_cell) = self
-                    .transcript
-                    .active_cell
-                    .as_mut()
-                    .and_then(|c| c.as_any_mut().downcast_mut::<GroupedToolCallCell>())
-                {
-                    group_cell.try_add_call(entry);
-                    self.bump_active_cell_revision();
-                } else {
-                    // No grouped active cell — create one.
-                    let group = GroupedToolCallCell::new(vec![entry], category);
-                    self.tool_grouper.set_main_active_group_meta(
-                        group.dominant_category.clone(),
-                        group.call_count(),
-                    );
-                    self.transcript.active_cell = Some(Box::new(group));
-                    self.bump_active_cell_revision();
-                }
-            }
-            GroupAction::NewStandalone(new_entry) => {
-                self.flush_active_cell();
-                let dominant = new_entry.category.clone();
-                let group = GroupedToolCallCell::new(vec![new_entry], dominant);
-                self.tool_grouper.set_main_active_group_meta(
-                    group.dominant_category.clone(),
-                    group.call_count(),
-                );
-                self.transcript.active_cell = Some(Box::new(group));
-                self.bump_active_cell_revision();
-            }
-            GroupAction::FlushAndNew { new_entry } => {
-                // Flush old grouped cell from transcript to history.
-                if let Some(old_cell) = self.transcript.active_cell.take() {
-                    if old_cell.as_any().is::<GroupedToolCallCell>() {
-                        self.app_event_tx
-                            .send(AppEvent::InsertHistoryCell(old_cell));
-                        self.transcript.needs_final_message_separator = true;
-                    } else {
-                        // Non-grouped cell: put it back and use normal flush.
-                        self.transcript.active_cell = Some(old_cell);
-                        self.flush_active_cell();
-                    }
-                }
-                if self
-                    .transcript
-                    .active_cell
-                    .as_ref()
-                    .is_some_and(|c| !c.as_any().is::<GroupedToolCallCell>())
-                {
-                    self.flush_active_cell();
-                } else {
-                    let _ = self.transcript.active_cell.take();
-                }
-                // Create new grouped cell.
-                let dominant = new_entry.category.clone();
-                let group = GroupedToolCallCell::new(vec![new_entry], dominant);
-                self.tool_grouper.set_main_active_group_meta(
-                    group.dominant_category.clone(),
-                    group.call_count(),
-                );
-                self.transcript.active_cell = Some(Box::new(group));
-                self.bump_active_cell_revision();
-            }
+            *cell = new_exec;
+            self.bump_active_cell_revision();
+        } else {
+            self.flush_active_cell();
+
+            self.transcript.active_cell = Some(Box::new(new_active_exec_command(
+                id,
+                command,
+                parsed_cmd,
+                source,
+                /*interaction_input*/ None,
+                self.config.animations,
+            )));
+            self.bump_active_cell_revision();
         }
 
         self.request_redraw();
@@ -439,35 +366,21 @@ impl ChatWidget {
         let is_unified_exec_interaction =
             matches!(source, ExecCommandSource::UnifiedExecInteraction);
         let is_user_shell = source == ExecCommandSource::UserShell;
-        // Check if active cell is a GroupedToolCallCell (new grouping path).
-        let active_is_grouped = self
-            .transcript
-            .active_cell
-            .as_ref()
-            .is_some_and(|c| c.as_any().is::<GroupedToolCallCell>());
-        let end_target = if active_is_grouped {
-            // GroupedToolCallCell handles completion via the grouper above.
-            // We still need to render output via the old path for transcript display.
-            ExecEndTarget::NewCell
-        } else {
-            match self.transcript.active_cell.as_ref() {
-                Some(cell) => match cell.as_any().downcast_ref::<ExecCell>() {
-                    Some(exec_cell) if exec_cell.iter_calls().any(|call| call.call_id == id) => {
-                        ExecEndTarget::ActiveTracked
-                    }
-                    Some(exec_cell) if exec_cell.is_active() => {
-                        ExecEndTarget::OrphanHistoryWhileActiveExec
-                    }
-                    Some(_) | None => ExecEndTarget::NewCell,
-                },
-                None => ExecEndTarget::NewCell,
-            }
+        let end_target = match self.transcript.active_cell.as_ref() {
+            Some(cell) => match cell.as_any().downcast_ref::<ExecCell>() {
+                Some(exec_cell) if exec_cell.iter_calls().any(|call| call.call_id == id) => {
+                    ExecEndTarget::ActiveTracked
+                }
+                Some(exec_cell) if exec_cell.is_active() => {
+                    ExecEndTarget::OrphanHistoryWhileActiveExec
+                }
+                Some(_) | None => ExecEndTarget::NewCell,
+            },
+            None => ExecEndTarget::NewCell,
         };
 
         // Unified exec interaction rows intentionally hide command output text in the exec cell and
         // instead render the interaction-specific content elsewhere in the UI.
-        // Clone for grouper before move
-        let grouper_output = aggregated_output.clone();
         let output = if is_unified_exec_interaction {
             CommandOutput {
                 exit_code,
@@ -482,83 +395,58 @@ impl ChatWidget {
             }
         };
 
-        // Also notify the grouper about completion and update active grouped cell.
-        self.tool_grouper.on_call_completed(
-            MAIN_AGENT_KEY,
-            &id,
-            grouper_output.clone(),
-            exit_code,
-            duration,
-        );
-        // Update the active GroupedToolCallCell if present.
-        // Don't flush on completion — keep it active so the next compatible
-        // call can be appended. Flush only on text break or incompatible category.
-        if let Some(group_cell) = self
-            .transcript
-            .active_cell
-            .as_mut()
-            .and_then(|c| c.as_any_mut().downcast_mut::<GroupedToolCallCell>())
-        {
-            group_cell.complete_call(&id, grouper_output.clone(), exit_code, duration);
-            self.bump_active_cell_revision();
-            self.request_redraw();
-        }
-
-        // If active cell is GroupedToolCallCell, the grouper already handled it above.
-        if !active_is_grouped {
-            match end_target {
-                ExecEndTarget::ActiveTracked => {
-                    if let Some(cell) = self
-                        .transcript
-                        .active_cell
-                        .as_mut()
-                        .and_then(|c| c.as_any_mut().downcast_mut::<ExecCell>())
-                    {
-                        let completed = cell.complete_call(&id, output, duration);
-                        debug_assert!(completed, "active exec cell should contain {id}");
-                        if cell.should_flush() {
-                            self.flush_active_cell();
-                        } else {
-                            self.bump_active_cell_revision();
-                            self.request_redraw();
-                        }
-                    }
-                }
-                ExecEndTarget::OrphanHistoryWhileActiveExec => {
-                    let mut orphan = new_active_exec_command(
-                        id.clone(),
-                        command,
-                        parsed,
-                        source,
-                        /*interaction_input*/ None,
-                        self.config.animations,
-                    );
-                    let completed = orphan.complete_call(&id, output, duration);
-                    debug_assert!(completed, "new orphan exec cell should contain {id}");
-                    self.transcript.needs_final_message_separator = true;
-                    self.app_event_tx
-                        .send(AppEvent::InsertHistoryCell(Box::new(orphan)));
-                    self.request_redraw();
-                }
-                ExecEndTarget::NewCell => {
-                    self.flush_active_cell();
-                    let mut cell = new_active_exec_command(
-                        id.clone(),
-                        command,
-                        parsed,
-                        source,
-                        /*interaction_input*/ None,
-                        self.config.animations,
-                    );
+        match end_target {
+            ExecEndTarget::ActiveTracked => {
+                if let Some(cell) = self
+                    .transcript
+                    .active_cell
+                    .as_mut()
+                    .and_then(|c| c.as_any_mut().downcast_mut::<ExecCell>())
+                {
                     let completed = cell.complete_call(&id, output, duration);
-                    debug_assert!(completed, "new exec cell should contain {id}");
+                    debug_assert!(completed, "active exec cell should contain {id}");
                     if cell.should_flush() {
-                        self.add_to_history(cell);
+                        self.flush_active_cell();
                     } else {
-                        self.transcript.active_cell = Some(Box::new(cell));
                         self.bump_active_cell_revision();
                         self.request_redraw();
                     }
+                }
+            }
+            ExecEndTarget::OrphanHistoryWhileActiveExec => {
+                let mut orphan = new_active_exec_command(
+                    id.clone(),
+                    command,
+                    parsed,
+                    source,
+                    /*interaction_input*/ None,
+                    self.config.animations,
+                );
+                let completed = orphan.complete_call(&id, output, duration);
+                debug_assert!(completed, "new orphan exec cell should contain {id}");
+                self.transcript.needs_final_message_separator = true;
+                self.app_event_tx
+                    .send(AppEvent::InsertHistoryCell(Box::new(orphan)));
+                self.request_redraw();
+            }
+            ExecEndTarget::NewCell => {
+                self.flush_active_cell();
+                let mut cell = new_active_exec_command(
+                    id.clone(),
+                    command,
+                    parsed,
+                    source,
+                    /*interaction_input*/ None,
+                    self.config.animations,
+                );
+                let completed = cell.complete_call(&id, output, duration);
+                debug_assert!(completed, "new exec cell should contain {id}");
+                if cell.should_flush() {
+                    self.add_to_history(cell);
+                } else {
+                    self.transcript.active_cell = Some(Box::new(cell));
+                    self.bump_active_cell_revision();
+                    self.request_redraw();
                 }
             }
         }

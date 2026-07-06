@@ -322,8 +322,6 @@ use crate::status::remote_connection::RemoteConnectionStatus;
 use crate::status_indicator_widget::STATUS_DETAILS_DEFAULT_MAX_LINES;
 use crate::status_indicator_widget::StatusDetailsCapitalization;
 use crate::text_formatting::truncate_text;
-use crate::tool_grouper::GroupedToolCallCell;
-use crate::tool_grouper::ToolCallGrouper;
 use crate::tui::FrameRequester;
 mod command_lifecycle;
 mod connectors;
@@ -580,7 +578,6 @@ pub(crate) struct ChatWidget {
     clipboard_lease: Option<crate::clipboard_copy::ClipboardLease>,
     copy_last_response_binding: Vec<KeyBinding>,
     running_commands: HashMap<String, RunningCommand>,
-    tool_grouper: ToolCallGrouper,
     collab_agent_metadata: HashMap<ThreadId, AgentMetadata>,
     pending_collab_spawn_requests: HashMap<String, multi_agents::SpawnRequestSummary>,
     suppressed_exec_calls: HashSet<String>,
@@ -1208,16 +1205,6 @@ impl ChatWidget {
     }
 
     fn flush_active_cell(&mut self) {
-        // Don't flush GroupedToolCallCell — the grouper manages its own lifecycle.
-        // Grouped cells are flushed on text break or incompatible category change.
-        let is_grouped = self
-            .transcript
-            .active_cell
-            .as_ref()
-            .is_some_and(|c| c.as_any().is::<GroupedToolCallCell>());
-        if is_grouped {
-            return;
-        }
         if let Some(active) = self.transcript.active_cell.take() {
             self.transcript.needs_final_message_separator = true;
             self.app_event_tx.send(AppEvent::InsertHistoryCell(active));
@@ -1428,24 +1415,8 @@ impl ChatWidget {
 
     /// Mark the active cell as failed (✗) and flush it into history.
     fn finalize_active_cell_as_failed(&mut self) {
-        let is_grouped = self
-            .transcript
-            .active_cell
-            .as_ref()
-            .is_some_and(|c| c.as_any().is::<GroupedToolCallCell>());
-        if is_grouped {
-            // GroupedToolCallCell: mark failed, then flush as one unit.
-            if let Some(mut cell) = self.transcript.active_cell.take() {
-                if let Some(gc) = cell.as_any_mut().downcast_mut::<GroupedToolCallCell>() {
-                    gc.mark_all_failed();
-                }
-                self.app_event_tx.send(AppEvent::InsertHistoryCell(cell));
-                self.transcript.needs_final_message_separator = true;
-            }
-            self.tool_grouper.clear_main_active_group();
-            self.request_pending_usage_output_insertion();
-        } else if let Some(mut cell) = self.transcript.active_cell.take() {
-            // Non-grouped cells: mark failed and insert.
+        if let Some(mut cell) = self.transcript.active_cell.take() {
+            // Insert finalized cell into history and keep grouping consistent.
             if let Some(exec) = cell.as_any_mut().downcast_mut::<ExecCell>() {
                 exec.mark_failed();
             } else if let Some(tool) = cell.as_any_mut().downcast_mut::<McpToolCallCell>() {

@@ -18,19 +18,6 @@ impl ChatWidget {
 
     pub(super) fn flush_answer_stream_with_separator(&mut self) {
         let had_stream_controller = self.stream_controller.is_some();
-        // Only mark text break if there was actual assistant text being flushed.
-        // Tool calls also call this function but should NOT break the group.
-        if had_stream_controller {
-            self.tool_grouper.mark_main_text_break();
-            // Flush the grouped cell when text is emitted between tool calls.
-            if self.tool_grouper.main_active_group_category().is_some() {
-                if let Some(cell) = self.transcript.active_cell.take() {
-                    self.app_event_tx.send(AppEvent::InsertHistoryCell(cell));
-                    self.transcript.needs_final_message_separator = true;
-                }
-                self.tool_grouper.clear_main_active_group();
-            }
-        }
         if let Some(mut controller) = self.stream_controller.take() {
             let scrollback_reflow = if controller.has_live_tail() {
                 crate::app_event::ConsolidationScrollbackReflow::Required
