@@ -271,10 +271,7 @@ fn test_merge_configured_model_providers_adds_custom_provider() {
     expected.insert("custom".to_string(), custom_provider);
 
     assert_eq!(
-        merge_configured_model_providers(
-            built_in_model_providers(),
-            configured_model_providers,
-        ),
+        merge_configured_model_providers(built_in_model_providers(), configured_model_providers,),
         Ok(expected)
     );
 }

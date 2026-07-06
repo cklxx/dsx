@@ -254,8 +254,7 @@ async fn non_openai_responses_requests_omit_item_passthrough_metadata() {
         sse(vec![ev_response_created("resp1"), ev_completed("resp1")]),
     )
     .await;
-    let mut provider =
-        built_in_model_providers()["deepseek"].clone();
+    let mut provider = built_in_model_providers()["deepseek"].clone();
     provider.name = "Test Responses".to_string();
     provider.base_url = Some(format!("{}/v1", server.uri()));
     provider.supports_websockets = false;
@@ -1432,8 +1431,7 @@ async fn chatgpt_auth_sends_correct_request() {
     )
     .await;
 
-    let mut model_provider =
-        built_in_model_providers()["deepseek"].clone();
+    let mut model_provider = built_in_model_providers()["deepseek"].clone();
     model_provider.base_url = Some(format!("{}/api/codex", server.uri()));
     model_provider.supports_websockets = false;
     let mut builder = test_codex()
@@ -3097,8 +3095,7 @@ async fn token_count_includes_rate_limits_snapshot() {
         .mount(&server)
         .await;
 
-    let mut provider =
-        built_in_model_providers()["deepseek"].clone();
+    let mut provider = built_in_model_providers()["deepseek"].clone();
     provider.base_url = Some(format!("{}/v1", server.uri()));
     provider.supports_websockets = false;
 

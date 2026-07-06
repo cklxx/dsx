@@ -30,15 +30,15 @@ use codex_api::AgentIdentityTelemetry;
 use codex_api::AnthropicClient as ApiAnthropicClient;
 use codex_api::AnthropicOptions as ApiAnthropicOptions;
 use codex_api::ApiError;
-use codex_api::DEFAULT_MAX_OUTPUT_TOKENS;
-use codex_api::MessagesApiRequest;
-use codex_api::MessagesRequestParams;
 use codex_api::AuthProvider;
 use codex_api::CompactClient as ApiCompactClient;
 use codex_api::CompactionInput as ApiCompactionInput;
+use codex_api::DEFAULT_MAX_OUTPUT_TOKENS;
 use codex_api::MemoriesClient as ApiMemoriesClient;
 use codex_api::MemorySummarizeInput as ApiMemorySummarizeInput;
 use codex_api::MemorySummarizeOutput as ApiMemorySummarizeOutput;
+use codex_api::MessagesApiRequest;
+use codex_api::MessagesRequestParams;
 use codex_api::Provider as ApiProvider;
 use codex_api::RawMemory as ApiRawMemory;
 use codex_api::RealtimeCallClient as ApiRealtimeCallClient;
@@ -839,12 +839,9 @@ impl ModelClientSession {
         let inference_trace_attempt = inference_trace.start_attempt();
         let mut options = ApiAnthropicOptions::default();
         inference_trace_attempt.add_request_headers(&mut options.extra_headers);
-        let client = ApiAnthropicClient::new(
-            transport,
-            client_setup.api_provider,
-            client_setup.api_auth,
-        )
-        .with_telemetry(Some(request_telemetry), Some(sse_telemetry));
+        let client =
+            ApiAnthropicClient::new(transport, client_setup.api_provider, client_setup.api_auth)
+                .with_telemetry(Some(request_telemetry), Some(sse_telemetry));
         match client.stream_request(request, options).await {
             Ok(stream) => {
                 let (stream, _) = map_response_stream(

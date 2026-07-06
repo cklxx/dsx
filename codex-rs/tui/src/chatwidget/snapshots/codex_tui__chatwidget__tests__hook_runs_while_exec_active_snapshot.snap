@@ -13,7 +13,7 @@ active hooks:
 
 history after exec:
 • Ran echo done
-  └ done
+  done
 
 hook running after exec:
 · Running PostToolUse hook: checking output policy

@@ -1337,11 +1337,8 @@ async fn guardian_request_model_for_auto_review(
         "outcome": "allow",
     })
     .to_string();
-    let request_log = mount_anthropic_sse_once(
-        &server,
-        sse_anthropic_message(&guardian_assessment),
-    )
-    .await;
+    let request_log =
+        mount_anthropic_sse_once(&server, sse_anthropic_message(&guardian_assessment)).await;
 
     let (mut session, mut turn) = guardian_test_session_and_turn(&server).await;
     match catalog {
@@ -1733,11 +1730,7 @@ async fn guardian_review_does_not_retry_missing_assessment_payload() -> anyhow::
     skip_if_no_network!(Ok(()));
 
     let server = start_mock_server().await;
-    let request_log = mount_anthropic_sse_sequence(
-        &server,
-        vec![sse_anthropic_no_message()],
-    )
-    .await;
+    let request_log = mount_anthropic_sse_sequence(&server, vec![sse_anthropic_no_message()]).await;
     let (session, turn) = guardian_test_session_and_turn(&server).await;
     seed_guardian_parent_history(&session, &turn).await;
 
@@ -1860,11 +1853,8 @@ async fn guardian_review_does_not_retry_valid_denial() -> anyhow::Result<()> {
         "rationale": "unsafe",
     })
     .to_string();
-    let request_log = mount_anthropic_sse_sequence(
-        &server,
-        vec![sse_anthropic_message(&denial)],
-    )
-    .await;
+    let request_log =
+        mount_anthropic_sse_sequence(&server, vec![sse_anthropic_message(&denial)]).await;
     let (session, turn) = guardian_test_session_and_turn(&server).await;
     seed_guardian_parent_history(&session, &turn).await;
 

@@ -728,10 +728,12 @@ switch ($architecture) {
     }
 }
 
-$codexHome = if ([string]::IsNullOrWhiteSpace($env:CODEX_HOME)) {
-    Join-Path $env:USERPROFILE ".codex"
+$codexHome = if (-not [string]::IsNullOrWhiteSpace($env:DSX_HOME)) {
+    $env:DSX_HOME
+} elseif (-not [string]::IsNullOrWhiteSpace($env:DSX_HOME)) {
+    $env:DSX_HOME
 } else {
-    $env:CODEX_HOME
+    Join-Path $env:USERPROFILE ".dsx"
 }
 $standaloneRoot = Join-Path $codexHome "packages\standalone"
 $releasesDir = Join-Path $standaloneRoot "releases"

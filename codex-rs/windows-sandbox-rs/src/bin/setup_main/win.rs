@@ -390,7 +390,7 @@ pub fn main() -> Result<()> {
     let ret = real_main();
     if let Err(e) = &ret {
         // Best-effort: log unexpected top-level errors.
-        if let Ok(codex_home) = std::env::var("CODEX_HOME") {
+        if let Ok(codex_home) = std::env::var("DSX_HOME").or_else(|_| std::env::var("CODEX_HOME")) {
             let sbx_dir = sandbox_dir(Path::new(&codex_home));
             let _ = std::fs::create_dir_all(&sbx_dir);
             if let Some(mut f) = log_writer(&sbx_dir) {
@@ -1168,7 +1168,7 @@ mod tests {
         let temp = tempfile::tempdir().expect("tempdir");
         let codex_home = temp.path().join("codex-home");
         let workspace = temp.path().join("workspace");
-        let protected_dir = workspace.join(".codex");
+        let protected_dir = workspace.join(".dsx");
         let nested_root = protected_dir.join("nested-root");
         fs::create_dir_all(&codex_home).expect("create codex home");
         fs::create_dir_all(&workspace).expect("create workspace");

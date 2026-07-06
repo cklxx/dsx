@@ -62,7 +62,7 @@ Opens a self-contained HTML page at `http://127.0.0.1:9021`. Just type and send.
 
 ## Configuration
 
-Config lives at `$CODEX_HOME/config.toml` (default `~/.dsx/config.toml`):
+Config lives at `$DSX_HOME/config.toml` (default `~/.dsx/config.toml`):
 
 ```toml
 model          = "deepseek-v4-pro"   # or deepseek-v4-flash

@@ -17,7 +17,9 @@ async fn offline_model_info_without_tool_output_override() {
     );
 
     // Unknown slug resolves to fallback metadata (bytes-mode truncation).
-    let model_info = manager.get_model_info("unknown-offline-model", &config).await;
+    let model_info = manager
+        .get_model_info("unknown-offline-model", &config)
+        .await;
 
     assert_eq!(
         model_info.truncation_policy,

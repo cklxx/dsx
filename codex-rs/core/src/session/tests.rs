@@ -3784,7 +3784,10 @@ async fn turn_context_with_model_updates_model_fields() {
     let (session, mut turn_context) = make_session_and_context().await;
     turn_context.reasoning_effort = Some(ReasoningEffortConfig::Minimal);
     let updated = turn_context
-        .with_model("deepseek-v4-pro".to_string(), &session.services.models_manager)
+        .with_model(
+            "deepseek-v4-pro".to_string(),
+            &session.services.models_manager,
+        )
         .await;
     let expected_model_info = session
         .services

@@ -124,13 +124,18 @@ async fn process_anthropic_sse(
                         response_id = id.to_string();
                     }
                     if let Some(usage) = msg.get("usage") {
-                        input_tokens = usage.get("input_tokens").and_then(Value::as_i64).unwrap_or(0);
+                        input_tokens = usage
+                            .get("input_tokens")
+                            .and_then(Value::as_i64)
+                            .unwrap_or(0);
                         cached_input_tokens = usage
                             .get("cache_read_input_tokens")
                             .and_then(Value::as_i64)
                             .unwrap_or(0);
-                        output_tokens =
-                            usage.get("output_tokens").and_then(Value::as_i64).unwrap_or(0);
+                        output_tokens = usage
+                            .get("output_tokens")
+                            .and_then(Value::as_i64)
+                            .unwrap_or(0);
                     }
                 }
                 if tx_event.send(Ok(ResponseEvent::Created)).await.is_err() {
@@ -187,7 +192,13 @@ async fn process_anthropic_sse(
                         internal_chat_message_metadata_passthrough: None,
                     },
                 };
-                blocks.insert(index, BlockState { kind, buf: String::new() });
+                blocks.insert(
+                    index,
+                    BlockState {
+                        kind,
+                        buf: String::new(),
+                    },
+                );
                 if tx_event
                     .send(Ok(ResponseEvent::OutputItemAdded(initial_item)))
                     .await
@@ -198,8 +209,14 @@ async fn process_anthropic_sse(
             }
             "content_block_delta" => {
                 let index = v.get("index").and_then(Value::as_i64).unwrap_or(0);
-                let Some(delta) = v.get("delta") else { continue };
-                match delta.get("type").and_then(Value::as_str).unwrap_or_default() {
+                let Some(delta) = v.get("delta") else {
+                    continue;
+                };
+                match delta
+                    .get("type")
+                    .and_then(Value::as_str)
+                    .unwrap_or_default()
+                {
                     "text_delta" => {
                         if let Some(text) = delta.get("text").and_then(Value::as_str) {
                             if let Some(b) = blocks.get_mut(&index) {
@@ -391,13 +408,29 @@ mod tests {
         );
         let events = run(body).await;
         assert!(matches!(events[0], ResponseEvent::Created));
-        assert!(matches!(&events[1], ResponseEvent::OutputItemAdded(ResponseItem::Message { .. })));
+        assert!(matches!(
+            &events[1],
+            ResponseEvent::OutputItemAdded(ResponseItem::Message { .. })
+        ));
         assert!(matches!(&events[2], ResponseEvent::OutputTextDelta(t) if t == "Hi"));
-        assert!(matches!(&events[3], ResponseEvent::OutputItemDone(ResponseItem::Message { .. })));
-        assert!(matches!(&events[4], ResponseEvent::OutputItemAdded(ResponseItem::FunctionCall { .. })));
-        assert!(matches!(&events[5], ResponseEvent::ToolCallInputDelta { item_id, .. } if item_id == "toolu_9"));
+        assert!(matches!(
+            &events[3],
+            ResponseEvent::OutputItemDone(ResponseItem::Message { .. })
+        ));
+        assert!(matches!(
+            &events[4],
+            ResponseEvent::OutputItemAdded(ResponseItem::FunctionCall { .. })
+        ));
+        assert!(
+            matches!(&events[5], ResponseEvent::ToolCallInputDelta { item_id, .. } if item_id == "toolu_9")
+        );
         match &events[6] {
-            ResponseEvent::OutputItemDone(ResponseItem::FunctionCall { name, arguments, call_id, .. }) => {
+            ResponseEvent::OutputItemDone(ResponseItem::FunctionCall {
+                name,
+                arguments,
+                call_id,
+                ..
+            }) => {
                 assert_eq!(name, "shell");
                 assert_eq!(arguments, "{\"cmd\":\"ls\"}");
                 assert_eq!(call_id, "toolu_9");
@@ -405,7 +438,11 @@ mod tests {
             other => panic!("expected function call, got {other:?}"),
         }
         match events.last().unwrap() {
-            ResponseEvent::Completed { response_id, token_usage, end_turn } => {
+            ResponseEvent::Completed {
+                response_id,
+                token_usage,
+                end_turn,
+            } => {
                 assert_eq!(response_id, "msg_1");
                 assert_eq!(token_usage.as_ref().unwrap().output_tokens, 7);
                 assert_eq!(*end_turn, Some(false));

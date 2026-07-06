@@ -110,7 +110,10 @@ fn messages_from_response_items(items: &[ResponseItem]) -> Vec<AnthropicMessage>
         }
         match messages.last_mut() {
             Some(last) if last.role == role => last.content.extend(blocks),
-            _ => messages.push(AnthropicMessage { role, content: blocks }),
+            _ => messages.push(AnthropicMessage {
+                role,
+                content: blocks,
+            }),
         }
     }
     messages
@@ -119,8 +122,16 @@ fn messages_from_response_items(items: &[ResponseItem]) -> Vec<AnthropicMessage>
 fn response_item_to_blocks(item: &ResponseItem) -> Option<(String, Vec<Value>)> {
     match item {
         ResponseItem::Message { role, content, .. } => {
-            let anth_role = if role == "assistant" { "assistant" } else { "user" }.to_string();
-            let blocks = content.iter().filter_map(content_item_to_block).collect::<Vec<_>>();
+            let anth_role = if role == "assistant" {
+                "assistant"
+            } else {
+                "user"
+            }
+            .to_string();
+            let blocks = content
+                .iter()
+                .filter_map(content_item_to_block)
+                .collect::<Vec<_>>();
             Some((anth_role, blocks))
         }
         ResponseItem::FunctionCall {
@@ -150,8 +161,12 @@ fn response_item_to_blocks(item: &ResponseItem) -> Option<(String, Vec<Value>)> 
                 vec![json!({ "type": "tool_use", "id": call_id, "name": name, "input": parsed })],
             ))
         }
-        ResponseItem::FunctionCallOutput { call_id, output, .. }
-        | ResponseItem::CustomToolCallOutput { call_id, output, .. } => {
+        ResponseItem::FunctionCallOutput {
+            call_id, output, ..
+        }
+        | ResponseItem::CustomToolCallOutput {
+            call_id, output, ..
+        } => {
             let text = output.body.to_text().unwrap_or_default();
             Some((
                 "user".to_string(),
@@ -198,7 +213,9 @@ mod tests {
         ResponseItem::Message {
             id: None,
             role: "user".to_string(),
-            content: vec![ContentItem::InputText { text: text.to_string() }],
+            content: vec![ContentItem::InputText {
+                text: text.to_string(),
+            }],
             phase: None,
             internal_chat_message_metadata_passthrough: None,
         }
@@ -248,7 +265,10 @@ mod tests {
         });
         assert_eq!(req.system.as_deref(), Some("be helpful"));
         assert_eq!(req.thinking.as_ref().unwrap()["type"], "enabled");
-        assert_eq!(req.tool_choice.as_ref().unwrap()["disable_parallel_tool_use"], true);
+        assert_eq!(
+            req.tool_choice.as_ref().unwrap()["disable_parallel_tool_use"],
+            true
+        );
         assert!(req.stream);
     }
 }

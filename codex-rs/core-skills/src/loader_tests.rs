@@ -19,7 +19,7 @@ use std::sync::Arc;
 use tempfile::TempDir;
 use toml::Value as TomlValue;
 
-const REPO_ROOT_CONFIG_DIR_NAME: &str = ".codex";
+const REPO_ROOT_CONFIG_DIR_NAME: &str = ".dsx";
 
 struct TestConfig {
     cwd: AbsolutePathBuf,
@@ -219,7 +219,7 @@ async fn skill_roots_from_layer_stack_includes_disabled_project_layers() -> anyh
     fs::create_dir_all(&user_folder)?;
 
     let project_root = tmp.path().join("repo");
-    let dot_codex = project_root.join(".codex");
+    let dot_codex = project_root.join(".dsx");
     fs::create_dir_all(&dot_codex)?;
 
     let user_file = user_folder.join("config.toml").abs();
@@ -1015,7 +1015,7 @@ async fn does_not_loop_on_symlink_cycle_for_user_scope() {
     let codex_home = tempfile::tempdir().expect("tempdir");
 
     // Create a cycle:
-    //   $CODEX_HOME/skills/cycle/loop -> $CODEX_HOME/skills/cycle
+    //   $DSX_HOME/skills/cycle/loop -> $DSX_HOME/skills/cycle
     let cycle_dir = codex_home.path().join("skills/cycle");
     fs::create_dir_all(&cycle_dir).unwrap();
     symlink_dir(&cycle_dir, &cycle_dir.join("loop"));

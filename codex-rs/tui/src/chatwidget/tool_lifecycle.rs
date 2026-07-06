@@ -71,6 +71,21 @@ impl ChatWidget {
     pub(super) fn on_web_search_begin(&mut self, call_id: String) {
         self.record_visible_turn_activity();
         self.flush_answer_stream_with_separator();
+        // Don't disrupt an active ExecCell group — insert web search into history instead.
+        let active_is_exec = self
+            .transcript
+            .active_cell
+            .as_ref()
+            .is_some_and(|c| c.as_any().is::<ExecCell>());
+        if active_is_exec {
+            self.add_to_history(history_cell::new_active_web_search_call(
+                call_id,
+                String::new(),
+                self.config.animations,
+            ));
+            self.request_redraw();
+            return;
+        }
         self.flush_active_cell();
         self.transcript.active_cell = Some(Box::new(history_cell::new_active_web_search_call(
             call_id,
@@ -180,6 +195,25 @@ impl ChatWidget {
             return;
         };
         self.flush_answer_stream_with_separator();
+        // Don't disrupt an active ExecCell group — insert MCP call into history instead.
+        let active_is_exec = self
+            .transcript
+            .active_cell
+            .as_ref()
+            .is_some_and(|c| c.as_any().is::<ExecCell>());
+        if active_is_exec {
+            self.add_to_history(history_cell::new_active_mcp_tool_call(
+                id,
+                McpInvocation {
+                    server,
+                    tool,
+                    arguments: Some(arguments),
+                },
+                self.config.animations,
+            ));
+            self.request_redraw();
+            return;
+        }
         self.flush_active_cell();
         self.transcript.active_cell = Some(Box::new(history_cell::new_active_mcp_tool_call(
             id,
@@ -229,6 +263,24 @@ impl ChatWidget {
             }
             (None, None) => Err("MCP tool call completed without a result".to_string()),
         };
+
+        // Don't disrupt an active ExecCell group — insert MCP result into history instead.
+        let active_is_exec = self
+            .transcript
+            .active_cell
+            .as_ref()
+            .is_some_and(|c| c.as_any().is::<ExecCell>());
+        if active_is_exec {
+            let mut cell =
+                history_cell::new_active_mcp_tool_call(id, invocation, self.config.animations);
+            let extra_cell = cell.complete(duration, result);
+            self.add_to_history(cell);
+            if let Some(extra) = extra_cell {
+                self.add_boxed_history(extra);
+            }
+            self.transcript.had_work_activity = true;
+            return;
+        }
 
         let extra_cell = match self
             .transcript

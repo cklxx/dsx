@@ -35,8 +35,7 @@ use codex_tools::ToolName;
 use codex_tools::ToolSpec;
 
 /// Pretend to be a normal browser; DDG HTML serves a degraded page to obvious bots.
-const USER_AGENT: &str =
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 \
+const USER_AGENT: &str = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 \
      (KHTML, like Gecko) Chrome/124.0 Safari/537.36";
 
 const DEFAULT_MAX_RESULTS: usize = 5;
@@ -56,11 +55,7 @@ pub struct SearchHit {
 /// Pluggable search backend. Swap the default DuckDuckGo HTML scraper for an API
 /// backend later without touching the tool handlers.
 pub trait SearchBackend: Send + Sync {
-    fn search<'a>(
-        &'a self,
-        query: &'a str,
-        max: usize,
-    ) -> BoxFuture<'a, Result<Vec<SearchHit>>>;
+    fn search<'a>(&'a self, query: &'a str, max: usize) -> BoxFuture<'a, Result<Vec<SearchHit>>>;
 }
 
 /// Keyless DuckDuckGo HTML backend.
@@ -85,11 +80,7 @@ impl Default for DuckDuckGoBackend {
 }
 
 impl SearchBackend for DuckDuckGoBackend {
-    fn search<'a>(
-        &'a self,
-        query: &'a str,
-        max: usize,
-    ) -> BoxFuture<'a, Result<Vec<SearchHit>>> {
+    fn search<'a>(&'a self, query: &'a str, max: usize) -> BoxFuture<'a, Result<Vec<SearchHit>>> {
         Box::pin(async move {
             let encoded: String = url::form_urlencoded::byte_serialize(query.as_bytes()).collect();
             let endpoint = format!("https://html.duckduckgo.com/html/?q={encoded}");
@@ -115,8 +106,9 @@ impl SearchBackend for DuckDuckGoBackend {
 /// anchors. They are zipped by index — fragile, but adequate for the HTML DDG
 /// currently serves.
 fn parse_ddg_results(html: &str, max: usize) -> Vec<SearchHit> {
-    let anchor_re = Regex::new(r#"(?is)<a[^>]*class="result__a"[^>]*href="([^"]*)"[^>]*>(.*?)</a>"#)
-        .expect("static regex compiles");
+    let anchor_re =
+        Regex::new(r#"(?is)<a[^>]*class="result__a"[^>]*href="([^"]*)"[^>]*>(.*?)</a>"#)
+            .expect("static regex compiles");
     let snippet_re = Regex::new(r#"(?is)<a[^>]*class="result__snippet"[^>]*>(.*?)</a>"#)
         .expect("static regex compiles");
 
@@ -271,11 +263,10 @@ impl ToolExecutor<ToolInvocation> for WebSearchHandler {
                     "web_search handler received unsupported payload".to_string(),
                 ));
             };
-            let WebSearchArgs {
-                query,
-                max_results,
-            } = parse_arguments(arguments)?;
-            let max = max_results.unwrap_or(DEFAULT_MAX_RESULTS).clamp(1, MAX_RESULTS_CAP);
+            let WebSearchArgs { query, max_results } = parse_arguments(arguments)?;
+            let max = max_results
+                .unwrap_or(DEFAULT_MAX_RESULTS)
+                .clamp(1, MAX_RESULTS_CAP);
 
             let hits = self.backend.search(&query, max).await.map_err(|err| {
                 FunctionCallError::RespondToModel(format!("web_search failed: {err:#}"))
@@ -287,13 +278,7 @@ impl ToolExecutor<ToolInvocation> for WebSearchHandler {
                 hits.iter()
                     .enumerate()
                     .map(|(idx, hit)| {
-                        format!(
-                            "{}. {}\n{}\n{}",
-                            idx + 1,
-                            hit.title,
-                            hit.url,
-                            hit.snippet
-                        )
+                        format!("{}. {}\n{}\n{}", idx + 1, hit.title, hit.url, hit.snippet)
                     })
                     .collect::<Vec<_>>()
                     .join("\n\n")
@@ -325,8 +310,9 @@ impl ToolExecutor<ToolInvocation> for ReadUrlHandler {
         )]);
         ToolSpec::Function(ResponsesApiTool {
             name: "read_url".to_string(),
-            description: "Fetch a URL and return its readable text content (HTML stripped, truncated)."
-                .to_string(),
+            description:
+                "Fetch a URL and return its readable text content (HTML stripped, truncated)."
+                    .to_string(),
             strict: false,
             defer_loading: None,
             parameters: JsonSchema::object(

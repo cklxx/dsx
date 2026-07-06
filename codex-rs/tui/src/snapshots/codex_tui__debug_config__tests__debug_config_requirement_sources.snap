@@ -5,7 +5,7 @@ expression: rendered.as_str()
 /debug-config
 
 Config layer stack (lowest precedence first):
-  1. user (/home/alice/.codex/config.toml) (enabled)
+  1. user (/home/alice/.dsx/config.toml) (enabled)
 
 Requirements:
   - allowed_approval_policies: on-request (source: MDM managed_config.toml (legacy))

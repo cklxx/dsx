@@ -5,7 +5,7 @@ expression: sanitized
 /status
 
 ╭──────────────────────────────────────────────────────────────────────────────╮
-│  >_ dsx (v0.0.0)                                                             │
+│  >_ dsx (v0.1.0)                                                             │
 │                                                                              │
 │  Model:                   gpt-5.1-codex-max                                  │
 │  Model provider:          DeepSeek                                           │

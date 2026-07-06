@@ -139,9 +139,9 @@ pub(crate) fn output_lines(
         let prefix = if !include_prefix {
             ""
         } else if i == 0 && include_angle_pipe {
-            "  └ "
+            "  "
         } else {
-            "    "
+            "  "
         };
         line.spans.insert(0, prefix.into());
         line.spans.iter_mut().for_each(|span| {
@@ -169,7 +169,7 @@ pub(crate) fn output_lines(
     for raw in lines[tail_start..].iter() {
         let mut line = ansi_escape_line(raw);
         if include_prefix {
-            line.spans.insert(0, "    ".into());
+            line.spans.insert(0, "  ".into());
         }
         line.spans.iter_mut().for_each(|span| {
             span.style = span.style.add_modifier(Modifier::DIM);
@@ -213,7 +213,7 @@ impl HistoryCell for ExecCell {
                 &highlighted_script,
                 RtOptions::new(width as usize)
                     .initial_indent("$ ".magenta().into())
-                    .subsequent_indent("    ".into()),
+                    .subsequent_indent("  ".into()),
             );
             lines.extend(cmd_display);
 
@@ -358,7 +358,7 @@ impl ExecCell {
             }
         }
 
-        out.extend(prefix_lines(out_indented, "  └ ".dim(), "    ".into()));
+        out.extend(prefix_lines(out_indented, "  ".dim(), "  ".into()));
         out
     }
 
@@ -704,9 +704,9 @@ impl ExecDisplayLayout {
 }
 
 const EXEC_DISPLAY_LAYOUT: ExecDisplayLayout = ExecDisplayLayout::new(
-    PrefixedBlock::new("  │ ", "  │ "),
+    PrefixedBlock::new("  ", "  "),
     /*command_continuation_max_lines*/ 2,
-    PrefixedBlock::new("  └ ", "    "),
+    PrefixedBlock::new("  ", "  "),
     /*output_max_lines*/ 5,
 );
 
@@ -831,7 +831,7 @@ mod tests {
     #[test]
     fn truncate_lines_middle_keeps_omitted_count_in_line_units() {
         let lines = vec![
-            Line::from("  └ short"),
+            Line::from("    short"),
             Line::from("    this-is-a-very-long-token-that-wraps-many-rows"),
             Line::from(format!(
                 "    {}",
@@ -845,7 +845,7 @@ mod tests {
             /*max_rows*/ 2,
             /*width*/ 80,
             Some(4),
-            Some(Line::from("    ".dim())),
+            Some(Line::from("  ".dim())),
         );
         let rendered: Vec<String> = truncated.iter().map(render_line_text).collect();
 
@@ -911,8 +911,8 @@ mod tests {
 
     #[test]
     fn truncate_lines_middle_does_not_truncate_blank_prefixed_output_lines() {
-        let mut lines = vec![Line::from("  └ start")];
-        lines.extend(std::iter::repeat_n(Line::from("    "), 26));
+        let mut lines = vec![Line::from("    start")];
+        lines.extend(std::iter::repeat_n(Line::from("  "), 26));
         lines.push(Line::from("    end"));
 
         let truncated = ExecCell::truncate_lines_middle(

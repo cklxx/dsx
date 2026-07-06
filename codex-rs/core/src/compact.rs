@@ -226,7 +226,10 @@ async fn run_compact_task_inner_impl(
 ) -> CodexResult<String> {
     // Compaction (auto and /compact) runs on the provider's fast model
     // (deepseek-v4-flash) to keep summarization cheap; main turns stay on pro.
-    let compaction_model = turn_context.provider.compaction_preferred_model().to_string();
+    let compaction_model = turn_context
+        .provider
+        .compaction_preferred_model()
+        .to_string();
     let turn_context = Arc::new(
         turn_context
             .with_model(compaction_model, &sess.services.models_manager)

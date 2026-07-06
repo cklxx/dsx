@@ -303,7 +303,10 @@ async fn accepted_model_migration_persists_target_default_reasoning_effort() {
 #[tokio::test]
 async fn model_migration_prompt_respects_hide_flag_and_self_target() {
     let mut seen = BTreeMap::new();
-    seen.insert("deepseek-v4-flash".to_string(), "deepseek-v4-pro".to_string());
+    seen.insert(
+        "deepseek-v4-flash".to_string(),
+        "deepseek-v4-pro".to_string(),
+    );
     assert!(!should_show_model_migration_prompt(
         "deepseek-v4-flash",
         "deepseek-v4-pro",
