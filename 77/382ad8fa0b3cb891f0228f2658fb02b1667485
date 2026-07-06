@@ -1,0 +1,23 @@
+codex-rs/tui/src/lib.rs
+  s_5e226a32c67abb::t_275fe186ff6168 185
+codex-rs/tui/src/tool_grouper/safety.rs
+  s_5e226a32c67abb::t_8aa3a377faac8b 1-105
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.5",
+  "base_commit_sha": "77382ad8fa0b3cb891f0228f2658fb02b1667485",
+  "prompts": {},
+  "sessions": {
+    "s_5e226a32c67abb": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f363a-3472-75e0-b6be-b539f129c89f",
+        "model": "unknown"
+      },
+      "human_author": "cklxx <q1293822641@gmail.com>"
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
