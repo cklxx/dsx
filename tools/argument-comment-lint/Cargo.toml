@@ -1,6 +1,6 @@
 [package]
 name = "argument_comment_lint"
-version = "0.1.0"
+version = "0.1.1"
 description = "Dylint lints for Rust /*param*/ argument comments"
 edition = "2024"
 publish = false

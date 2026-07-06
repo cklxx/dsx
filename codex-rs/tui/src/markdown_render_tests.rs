@@ -151,17 +151,17 @@ fn headings() {
     let md = "# Heading 1\n## Heading 2\n### Heading 3\n#### Heading 4\n##### Heading 5\n###### Heading 6\n";
     let text = render_markdown_text(md);
     let expected = Text::from_iter([
-        Line::from_iter(["# ".bold().underlined(), "Heading 1".bold().underlined()]),
+        Line::from_iter(["Heading 1".bold().underlined()]),
         Line::default(),
-        Line::from_iter(["## ".bold(), "Heading 2".bold()]),
+        Line::from_iter(["Heading 2".bold()]),
         Line::default(),
-        Line::from_iter(["### ".bold().italic(), "Heading 3".bold().italic()]),
+        Line::from_iter(["Heading 3".bold().italic()]),
         Line::default(),
-        Line::from_iter(["#### ".italic(), "Heading 4".italic()]),
+        Line::from_iter(["Heading 4".italic()]),
         Line::default(),
-        Line::from_iter(["##### ".italic(), "Heading 5".italic()]),
+        Line::from_iter(["Heading 5".italic()]),
         Line::default(),
-        Line::from_iter(["###### ".italic(), "Heading 6".italic()]),
+        Line::from_iter(["Heading 6".italic()]),
     ]);
     assert_eq!(text, expected);
 }
@@ -463,7 +463,7 @@ fn blockquote_with_heading_and_paragraph() {
     assert_eq!(
         lines,
         vec![
-            "> # Heading".to_string(),
+            "> Heading".to_string(),
             "> ".to_string(),
             "> paragraph text".to_string(),
         ]
@@ -478,7 +478,6 @@ fn blockquote_heading_inherits_heading_style() {
         [
             Line::from_iter([
                 "> ".into(),
-                "# ".bold().underlined(),
                 "test header".bold().underlined(),
             ])
             .green(),
@@ -1674,9 +1673,9 @@ fn table_wraps_file_paths_before_collapsing_narrative_columns_snapshot() {
 fn table_renders_stacked_key_value_records_when_path_column_becomes_too_narrow_snapshot() {
     let md = r#"| Session | Why useful | Detected table blocks |
 | --- | --- | --- |
-| [2026-05-25 current gallery](/Users/felipe.coury/.codex/sessions/2026/05/25/rollout-2026-05-25T18-13-09-019e60fc-0518-7c21-9596-980fe97225ba.jsonl) | The large gallery from this thread: emojis, links, emphasis, code, alignment, paragraphs, and a 30+ row table | 7 |
-| [2026-05-14 renderer testing](/Users/felipe.coury/.codex/sessions/2026/05/14/rollout-2026-05-14T12-57-18-019e2734-e500-7011-8278-975c94d06000.jsonl) | Explicit "markdown tables for testing" session with several successive assistant samples | 16 |
-| [2026-05-14 five-table test](/Users/felipe.coury/.codex/sessions/2026/05/14/rollout-2026-05-14T12-27-57-019e271a-064c-78c3-a5cd-a6f20a0c1ad5.jsonl) | Explicit request for five tables containing emojis, code, italics, and varied cell content | 10 |
+| [2026-05-25 current gallery](/Users/felipe.coury/.dsx/sessions/2026/05/25/rollout-2026-05-25T18-13-09-019e60fc-0518-7c21-9596-980fe97225ba.jsonl) | The large gallery from this thread: emojis, links, emphasis, code, alignment, paragraphs, and a 30+ row table | 7 |
+| [2026-05-14 renderer testing](/Users/felipe.coury/.dsx/sessions/2026/05/14/rollout-2026-05-14T12-57-18-019e2734-e500-7011-8278-975c94d06000.jsonl) | Explicit "markdown tables for testing" session with several successive assistant samples | 16 |
+| [2026-05-14 five-table test](/Users/felipe.coury/.dsx/sessions/2026/05/14/rollout-2026-05-14T12-27-57-019e271a-064c-78c3-a5cd-a6f20a0c1ad5.jsonl) | Explicit request for five tables containing emojis, code, italics, and varied cell content | 10 |
 "#;
     let text = render_markdown_text_with_width(md, Some(/*width*/ 42));
 
