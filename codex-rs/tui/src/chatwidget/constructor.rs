@@ -180,7 +180,7 @@ impl ChatWidget {
             status_state: StatusState::default(),
             review: ReviewState::default(),
             active_hook_cell: None,
-            tool_grouper: crate::tool_grouper::ToolCallGrouper::new(),
+            tool_grouper_enabled: true,
             ambient_pet: None,
             pet_picker_preview_state: crate::pets::PetPickerPreviewState::default(),
             pet_picker_preview_pet: None,

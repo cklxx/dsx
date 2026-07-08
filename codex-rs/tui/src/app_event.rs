@@ -249,7 +249,6 @@ pub(crate) enum AppEvent {
     Logout,
 
     /// Request to exit the application due to a fatal error.
-    #[allow(dead_code)]
     FatalExitRequest(String),
 
     /// Forward a command to the Agent. Using an `AppEvent` for this avoids

@@ -298,13 +298,6 @@ impl KeyboardHandler for OnboardingScreen {
             }
             self.is_done = true;
         } else {
-            if let Some(Step::Welcome(widget)) = self
-                .steps
-                .iter_mut()
-                .find(|step| matches!(step, Step::Welcome(_)))
-            {
-                widget.handle_key_event(key_event);
-            }
             if let Some(active_step) = self.current_steps_mut().into_iter().last() {
                 active_step.handle_key_event(key_event);
             }
@@ -430,7 +423,7 @@ impl WidgetRef for &OnboardingScreen {
 impl KeyboardHandler for Step {
     fn handle_key_event(&mut self, key_event: KeyEvent) {
         match self {
-            Step::Welcome(widget) => widget.handle_key_event(key_event),
+            Step::Welcome(_) => {}
             Step::Auth(widget) => widget.handle_key_event(key_event),
             Step::TrustDirectory(widget) => widget.handle_key_event(key_event),
         }

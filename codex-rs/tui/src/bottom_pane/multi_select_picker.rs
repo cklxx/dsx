@@ -779,7 +779,6 @@ impl MultiSelectPickerBuilder {
     /// Sets a callback invoked whenever an item's state changes.
     ///
     /// This includes both toggles and reordering operations.
-    #[allow(dead_code)]
     pub fn on_change<F>(mut self, callback: F) -> Self
     where
         F: Fn(&[MultiSelectItem], &AppEventSender) + Send + Sync + 'static,

@@ -628,8 +628,8 @@ pub(crate) struct ChatWidget {
     review: ReviewState,
     // Active hook runs render in a dedicated live cell so they can run alongside tools.
     active_hook_cell: Option<HookCell>,
-    // Tool call grouper for aggregating adjacent compatible calls into collapsible groups.
-    tool_grouper: crate::tool_grouper::ToolCallGrouper,
+    // Tool call grouper for aggregating adjacent compatible calls.
+    tool_grouper_enabled: bool,
     // Ambient companion rendered over the transcript area, never inside the footer rows.
     ambient_pet: Option<crate::pets::AmbientPet>,
     pet_picker_preview_state: crate::pets::PetPickerPreviewState,

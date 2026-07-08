@@ -18,7 +18,6 @@ use std::ffi::OsStr;
 use std::future::Future;
 use std::io::IsTerminal;
 use std::io::Read;
-use std::net::IpAddr;
 use std::path::Path;
 use std::path::PathBuf;
 use std::process::Command;
@@ -28,7 +27,6 @@ use std::time::Instant;
 
 use anyhow::Context;
 use clap::Parser;
-use codex_api::ApiError;
 use codex_api::is_azure_responses_provider;
 use codex_arg0::Arg0DispatchPaths;
 use codex_config::types::McpServerConfig;
@@ -46,12 +44,9 @@ use codex_login::AuthDotJson;
 use codex_login::AuthManager;
 use codex_login::CODEX_ACCESS_TOKEN_ENV_VAR;
 use codex_login::CODEX_API_KEY_ENV_VAR;
-use codex_login::CodexAuth;
 use codex_login::OPENAI_API_KEY_ENV_VAR;
 use codex_login::default_client::build_reqwest_client;
-use codex_login::default_client::default_headers;
 use codex_login::load_auth_dot_json;
-use codex_model_provider::create_model_provider;
 use codex_protocol::auth::AuthMode;
 use codex_protocol::protocol::AskForApproval;
 use codex_terminal_detection::Multiplexer;
@@ -60,8 +55,6 @@ use codex_terminal_detection::TerminalName;
 use codex_terminal_detection::terminal_info;
 use codex_tui::Cli as TuiCli;
 use codex_utils_cli::CliConfigOverrides;
-use http::HeaderMap;
-use http::HeaderValue;
 use serde::Serialize;
 use supports_color::Stream;
 
@@ -2306,44 +2299,6 @@ async fn websocket_reachability_check(
         "WebSocket transport is not used (HTTP-only)",
     )
     .details(details)
-}
-
-fn auth_mode_name(auth: &CodexAuth) -> &'static str {
-    match auth.auth_mode() {
-        AuthMode::ApiKey => "api_key",
-        AuthMode::Chatgpt => "chatgpt",
-        AuthMode::ChatgptAuthTokens => "chatgpt_auth_tokens",
-        AuthMode::AgentIdentity => "agent_identity",
-        AuthMode::PersonalAccessToken => "personal_access_token",
-        AuthMode::BedrockApiKey => "bedrock_api_key",
-    }
-}
-
-async fn dns_address_family_details(host: &str, port: u16) -> Vec<String> {
-    match tokio::net::lookup_host((host, port)).await {
-        Ok(addresses) => {
-            let addresses = addresses.collect::<Vec<_>>();
-            let ipv4_count = addresses
-                .iter()
-                .filter(|address| matches!(address.ip(), IpAddr::V4(_)))
-                .count();
-            let ipv6_count = addresses
-                .iter()
-                .filter(|address| matches!(address.ip(), IpAddr::V6(_)))
-                .count();
-            let first_family = addresses
-                .first()
-                .map(|address| match address.ip() {
-                    IpAddr::V4(_) => "IPv4",
-                    IpAddr::V6(_) => "IPv6",
-                })
-                .unwrap_or("none");
-            vec![format!(
-                "DNS: {ipv4_count} IPv4, {ipv6_count} IPv6, first {first_family}"
-            )]
-        }
-        Err(err) => vec![format!("DNS: lookup failed ({err})")],
-    }
 }
 
 fn fallback_state_check() -> DoctorCheck {

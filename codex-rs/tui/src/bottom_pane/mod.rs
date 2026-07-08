@@ -792,7 +792,6 @@ impl BottomPane {
         self.request_redraw();
     }
 
-    #[allow(dead_code)]
     pub(crate) fn set_composer_input_enabled(
         &mut self,
         enabled: bool,

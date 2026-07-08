@@ -78,7 +78,6 @@ mod headless_chatgpt_login;
 pub(crate) enum SignInState {
     PickMode,
     ChatGptContinueInBrowser(ContinueInBrowserState),
-    #[allow(dead_code)]
     ChatGptDeviceCode(ContinueWithDeviceCodeState),
     ChatGptSuccessMessage,
     ChatGptSuccess,
@@ -223,7 +222,6 @@ impl KeyboardHandler for AuthModeWidget {
 }
 
 #[derive(Clone)]
-#[allow(dead_code)]
 pub(crate) struct AuthModeWidget {
     pub request_frame: FrameRequester,
     pub highlighted_mode: SignInOption,
