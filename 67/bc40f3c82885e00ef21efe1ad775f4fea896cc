@@ -1,0 +1,31 @@
+codex-rs/tui/src/chatwidget.rs
+  s_25fd3206737bf4::t_2210f567fd7720 631-632
+codex-rs/tui/src/chatwidget/constructor.rs
+  s_25fd3206737bf4::t_c2e12ede1924c3 183
+codex-rs/tui/src/chatwidget/grouper_helpers.rs
+  s_25fd3206737bf4::t_c55da0a8a7ece1 2-5,9-11,13-15,17,23-30,36-39,46-49,55-68,70-72,75-78,81-83,88-90,95-100
+codex-rs/tui/src/onboarding/onboarding_screen.rs
+  s_25fd3206737bf4::t_eb148cba1e2fc2 426
+codex-rs/tui/src/onboarding/welcome.rs
+  s_25fd3206737bf4::t_59548ef9f33d42 57,59-66,74
+codex-rs/tui/src/tool_grouper.rs
+  s_25fd3206737bf4::t_41541f9e075995 1,5-8,21,43-51,67-70,74-82,89-93,98,100-102,105-107,111-139,141-144,146,148-150,152-156,158-173,176-196,198-203,205,209,213-217,220-222,225-232,238-244
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.5",
+  "base_commit_sha": "67bc40f3c82885e00ef21efe1ad775f4fea896cc",
+  "prompts": {},
+  "sessions": {
+    "s_25fd3206737bf4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "de564357-0a55-4030-9273-7c9804bf0517",
+        "model": "unknown"
+      },
+      "human_author": "cklxx <q1293822641@gmail.com>"
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
