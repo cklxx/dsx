@@ -749,6 +749,7 @@ impl ChatWidget {
             ),
             StatusLineItem::WorkspaceHeadline => self.status_line_workspace_headline.clone(),
             StatusLineItem::TaskProgress => self.terminal_title_task_progress(),
+            StatusLineItem::SessionCost => self.session_cost_display(),
         }
     }
 
@@ -792,6 +793,7 @@ impl ChatWidget {
             StatusSurfacePreviewItem::Model => StatusLineItem::ModelName,
             StatusSurfacePreviewItem::ModelWithReasoning => StatusLineItem::ModelWithReasoning,
             StatusSurfacePreviewItem::Reasoning => StatusLineItem::Reasoning,
+            StatusSurfacePreviewItem::SessionCost => StatusLineItem::SessionCost,
         };
         self.status_line_value_for_item(status_line_item)
     }

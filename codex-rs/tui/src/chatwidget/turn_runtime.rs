@@ -4,6 +4,7 @@
 //! and final-message separator handling.
 
 use super::*;
+use crate::token_usage::estimate_session_cost;
 
 const SAFETY_ACCESS_BLOCK_PREFIX: &str =
     "Invalid prompt: we've limited access to this content for safety reasons.";
@@ -154,10 +155,13 @@ impl ChatWidget {
                 } else {
                     None
                 };
-                self.add_to_history(history_cell::FinalMessageSeparator::new(
-                    elapsed_seconds,
-                    runtime_metrics,
-                ));
+                let usage = self.status_line_total_usage();
+                let tokens = (usage.total_tokens > 0).then_some(usage.total_tokens);
+                let cost = tokens.map(|_| estimate_session_cost(&usage, self.current_model()));
+                self.add_to_history(
+                    history_cell::FinalMessageSeparator::new(elapsed_seconds, runtime_metrics)
+                        .with_usage(cost, tokens),
+                );
             }
             self.turn_runtime_metrics = RuntimeMetricsSummary::default();
             self.transcript.needs_final_message_separator = false;

@@ -1,6 +1,5 @@
 [workspace]
 members = [
-    "aws-auth",
     "analytics",
     "agent-graph-store",
     "agent-identity",
@@ -142,7 +141,6 @@ codex-agent-graph-store = { path = "agent-graph-store" }
 codex-agent-identity = { path = "agent-identity" }
 codex-ansi-escape = { path = "ansi-escape" }
 codex-api = { path = "codex-api" }
-codex-aws-auth = { path = "aws-auth" }
 codex-app-server = { path = "app-server" }
 codex-app-server-transport = { path = "app-server-transport" }
 codex-app-server-daemon = { path = "app-server-daemon" }
@@ -422,7 +420,6 @@ time = "0.3.47"
 tiny_http = "0.12"
 tokio = "1"
 tokio-stream = "0.1.18"
-tokio-test = "0.4"
 tokio-tungstenite = { version = "0.28.0", features = [
     "proxy",
     "rustls-tls-native-roots",

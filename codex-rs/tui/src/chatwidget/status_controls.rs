@@ -5,6 +5,8 @@
 //! history-facing `/status` surface.
 
 use super::*;
+use crate::token_usage::estimate_session_cost;
+use crate::token_usage::format_cost;
 
 impl ChatWidget {
     /// Update the status indicator header and details.
@@ -400,5 +402,19 @@ impl ChatWidget {
             None | Some(ReasoningEffortConfig::None) => "default".to_string(),
             Some(effort) => effort.as_str().to_string(),
         }
+    }
+
+    /// Estimated $ cost for the current session based on token usage and model pricing.
+    ///
+    /// Returns `None` when no tokens have been used yet so the item can be hidden
+    /// until it carries real information.
+    pub(super) fn session_cost_display(&self) -> Option<String> {
+        let usage = self.status_line_total_usage();
+        if usage.total_tokens <= 0 {
+            return None;
+        }
+        let model = self.current_model();
+        let cost = estimate_session_cost(&usage, model);
+        Some(format_cost(cost))
     }
 }

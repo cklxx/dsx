@@ -142,6 +142,9 @@ pub(crate) enum StatusLineItem {
 
     /// Latest checklist task progress from `update_plan` (if available).
     TaskProgress,
+
+    /// Estimated $ cost of the current session based on token usage.
+    SessionCost,
 }
 
 impl StatusLineItem {
@@ -194,6 +197,7 @@ impl StatusLineItem {
             StatusLineItem::TaskProgress => {
                 "Latest task progress from update_plan (omitted until available)"
             }
+            StatusLineItem::SessionCost => "Estimated $ cost of this session (omitted when zero)",
         }
     }
 
@@ -225,6 +229,7 @@ impl StatusLineItem {
             StatusLineItem::ThreadTitle => StatusSurfacePreviewItem::ThreadTitle,
             StatusLineItem::WorkspaceHeadline => StatusSurfacePreviewItem::WorkspaceHeadline,
             StatusLineItem::TaskProgress => StatusSurfacePreviewItem::TaskProgress,
+            StatusLineItem::SessionCost => StatusSurfacePreviewItem::SessionCost,
         }
     }
 }

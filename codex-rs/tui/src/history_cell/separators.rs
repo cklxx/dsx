@@ -11,6 +11,8 @@ use super::*;
 pub struct FinalMessageSeparator {
     elapsed_seconds: Option<u64>,
     runtime_metrics: Option<RuntimeMetricsSummary>,
+    cost: Option<f64>,
+    tokens: Option<i64>,
 }
 impl FinalMessageSeparator {
     /// Creates a separator; completed turns should pass protocol turn duration when available.
@@ -21,7 +23,16 @@ impl FinalMessageSeparator {
         Self {
             elapsed_seconds,
             runtime_metrics,
+            cost: None,
+            tokens: None,
         }
+    }
+
+    /// Attaches session cost and token usage for display in the separator.
+    pub(crate) fn with_usage(mut self, cost: Option<f64>, tokens: Option<i64>) -> Self {
+        self.cost = cost;
+        self.tokens = tokens;
+        self
     }
 }
 impl HistoryCell for FinalMessageSeparator {
@@ -33,6 +44,12 @@ impl HistoryCell for FinalMessageSeparator {
             .map(crate::status_indicator_widget::fmt_elapsed_compact)
         {
             label_parts.push(format!("Worked for {elapsed_seconds}"));
+        }
+        if let Some(cost) = self.cost {
+            label_parts.push(crate::token_usage::format_cost(cost));
+        }
+        if let Some(tokens) = self.tokens.filter(|t| *t > 0) {
+            label_parts.push(crate::status::format_tokens_compact(tokens));
         }
         if let Some(metrics_label) = self.runtime_metrics.and_then(runtime_metrics_label) {
             label_parts.push(metrics_label);
@@ -61,6 +78,12 @@ impl HistoryCell for FinalMessageSeparator {
             .map(crate::status_indicator_widget::fmt_elapsed_compact)
         {
             label_parts.push(format!("Worked for {elapsed_seconds}"));
+        }
+        if let Some(cost) = self.cost {
+            label_parts.push(crate::token_usage::format_cost(cost));
+        }
+        if let Some(tokens) = self.tokens.filter(|t| *t > 0) {
+            label_parts.push(crate::status::format_tokens_compact(tokens));
         }
         if let Some(metrics_label) = self.runtime_metrics.and_then(runtime_metrics_label) {
             label_parts.push(metrics_label);

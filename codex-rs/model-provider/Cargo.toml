@@ -15,8 +15,6 @@ workspace = true
 [dependencies]
 codex-api = { workspace = true }
 codex-agent-identity = { workspace = true }
-codex-aws-auth = { workspace = true }
-codex-client = { workspace = true }
 codex-feedback = { workspace = true }
 codex-login = { workspace = true }
 codex-model-provider-info = { workspace = true }

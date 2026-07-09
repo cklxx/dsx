@@ -60,7 +60,6 @@ codex-tui = { workspace = true }
 codex-utils-absolute-path = { workspace = true }
 codex-utils-path = { workspace = true }
 crossterm = { workspace = true }
-http = { workspace = true }
 libc = { workspace = true }
 os_info = { workspace = true }
 owo-colors = { workspace = true }
