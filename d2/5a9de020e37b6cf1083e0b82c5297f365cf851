@@ -1,0 +1,21 @@
+test_app_server.py
+  s_769ec63a5e5018::t_387ac4688e272c 1-313
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.5",
+  "base_commit_sha": "d25a9de020e37b6cf1083e0b82c5297f365cf851",
+  "prompts": {},
+  "sessions": {
+    "s_769ec63a5e5018": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a6d6fc57b78ff7356",
+        "model": "unknown"
+      },
+      "human_author": "cklxx <q1293822641@gmail.com>"
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
