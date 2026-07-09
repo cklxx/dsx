@@ -1,0 +1,21 @@
+README.md
+  s_30f76bb0963039::t_1833edb8beed21 55,61-63
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.5",
+  "base_commit_sha": "1b1e9c0cdfc16200dda334f50ed46735aef66e75",
+  "prompts": {},
+  "sessions": {
+    "s_30f76bb0963039": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b87bba04-98c7-4edd-b6c7-5e706732c815",
+        "model": "unknown"
+      },
+      "human_author": "cklxx <q1293822641@gmail.com>"
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
