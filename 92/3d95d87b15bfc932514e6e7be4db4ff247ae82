@@ -1,0 +1,57 @@
+dsx-gui/README.md
+  s_30f76bb0963039::t_3dd4359c740253 1-69
+dsx-gui/gui.html
+  s_30f76bb0963039::t_f2154d37448fd6 7,9-835,839-932,934,936-938,940-963,965,967-1007,1009-1078,1081-1542,1544-1833,1835-1838
+dsx-gui/index.html
+  s_30f76bb0963039::t_27e9caddc7cde6 1-13
+dsx-gui/package-lock.json
+  s_30f76bb0963039::t_75991c49cabce8 1-1543
+dsx-gui/package.json
+  s_30f76bb0963039::t_7421d7a35686b2 1-21
+dsx-gui/server.py
+  s_30f76bb0963039::t_fce9df5bb4ecf1 1-258
+dsx-gui/src/App.vue
+  s_30f76bb0963039::t_abe57b30921715 1-289
+dsx-gui/src/components/ChatView.vue
+  s_30f76bb0963039::t_b770d0563bfed0 1-175
+dsx-gui/src/components/Composer.vue
+  s_30f76bb0963039::t_8446208d919dc1 1-262
+dsx-gui/src/components/MessageGroup.vue
+  s_30f76bb0963039::t_f4c6c9acc584e2 1-316
+dsx-gui/src/components/Sidebar.vue
+  s_30f76bb0963039::t_66c506c94c0126 1-291
+dsx-gui/src/components/ToolCallCard.vue
+  s_30f76bb0963039::t_c01f1b22bc88b5 1-293
+dsx-gui/src/components/ToolGroup.vue
+  s_30f76bb0963039::t_6edf67ca56f7a4 1-504
+dsx-gui/src/composables/useApp.js
+  s_30f76bb0963039::t_fe0f6cf29ee697 1-513
+dsx-gui/src/composables/useRpc.js
+  s_30f76bb0963039::t_470f56e3fbcd1a 1-150
+dsx-gui/src/main.js
+  s_30f76bb0963039::t_7420294e68c7e3 1-11
+dsx-gui/src/style.css
+  s_30f76bb0963039::t_89048301f9b4d0 1-64
+dsx-gui/start.sh
+  s_30f76bb0963039::t_247ea2e3412e11 2,9-13,17,20-30,33-34,38-40,42-47,53-58,60-68,70-75,77-82,84-86,89-94,97-105
+dsx-gui/vite.config.js
+  s_30f76bb0963039::t_49bbcb1849167e 1-20
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.5",
+  "base_commit_sha": "923d95d87b15bfc932514e6e7be4db4ff247ae82",
+  "prompts": {},
+  "sessions": {
+    "s_30f76bb0963039": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b87bba04-98c7-4edd-b6c7-5e706732c815",
+        "model": "unknown"
+      },
+      "human_author": "cklxx <q1293822641@gmail.com>"
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
