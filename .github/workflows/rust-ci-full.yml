@@ -110,7 +110,7 @@ jobs:
           - name: Linux
             runner: ubuntu-24.04
           - name: macOS
-            runner: macos-15-xlarge
+            runner: macos-latest
           - name: Windows
             runner: windows-latest
             runs_on: windows-latest
@@ -167,7 +167,7 @@ jobs:
       # Speed up repeated builds across CI runs by caching compiled objects, except on
       # arm64 macOS runners cross-targeting x86_64 where ring/cc-rs can produce
       # mixed-architecture archives under sccache.
-      USE_SCCACHE: ${{ (startsWith(matrix.runner, 'windows') || (matrix.runner == 'macos-15-xlarge' && matrix.target == 'x86_64-apple-darwin')) && 'false' || 'true' }}
+      USE_SCCACHE: ${{ (startsWith(matrix.runner, 'windows') || (matrix.runner == 'macos-latest' && matrix.target == 'x86_64-apple-darwin')) && 'false' || 'true' }}
       CARGO_INCREMENTAL: "0"
       SCCACHE_CACHE_SIZE: 10G
 
@@ -175,10 +175,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - runner: macos-15-xlarge
+          - runner: macos-latest
             target: aarch64-apple-darwin
             profile: dev
-          - runner: macos-15-xlarge
+          - runner: macos-latest
             target: x86_64-apple-darwin
             profile: dev
           - runner: ubuntu-24.04
@@ -189,11 +189,11 @@ jobs:
             target: x86_64-unknown-linux-gnu
             profile: dev
             runs_on: ubuntu-24.04
-          - runner: ubuntu-24.04-arm
+          - runner: ubuntu-24.04
             target: aarch64-unknown-linux-musl
             profile: dev
             runs_on: ubuntu-24.04
-          - runner: ubuntu-24.04-arm
+          - runner: ubuntu-24.04
             target: aarch64-unknown-linux-gnu
             profile: dev
             runs_on: ubuntu-24.04
@@ -210,14 +210,14 @@ jobs:
           # there could be release-only build errors we want to catch.
           # Hopefully this also pre-populates the build cache to speed up
           # releases.
-          - runner: macos-15-xlarge
+          - runner: macos-latest
             target: aarch64-apple-darwin
             profile: release
           - runner: ubuntu-24.04
             target: x86_64-unknown-linux-musl
             profile: release
             runs_on: ubuntu-24.04
-          - runner: ubuntu-24.04-arm
+          - runner: ubuntu-24.04
             target: aarch64-unknown-linux-musl
             profile: release
             runs_on: ubuntu-24.04
@@ -444,10 +444,10 @@ jobs:
           key: apt-${{ matrix.runner }}-${{ matrix.target }}-v1
 
   tests_macos_aarch64:
-    name: Tests — macos-15-xlarge - aarch64-apple-darwin
+    name: Tests — macos-latest - aarch64-apple-darwin
     uses: ./.github/workflows/rust-ci-full-nextest-platform.yml
     with:
-      runner: macos-15-xlarge
+      runner: macos-latest
       target: aarch64-apple-darwin
       profile: ci-test
       artifact_id: macos-aarch64
@@ -467,10 +467,10 @@ jobs:
     secrets: inherit
 
   tests_linux_arm64:
-    name: Tests — ubuntu-24.04-arm - aarch64-unknown-linux-gnu
+    name: Tests — ubuntu-24.04 - aarch64-unknown-linux-gnu
     uses: ./.github/workflows/rust-ci-full-nextest-platform.yml
     with:
-      runner: ubuntu-24.04-arm
+      runner: ubuntu-24.04
       target: aarch64-unknown-linux-gnu
       profile: ci-test
       artifact_id: linux-arm64
@@ -478,25 +478,25 @@ jobs:
     secrets: inherit
 
   tests_windows_x64:
-    name: Tests — windows-x64 - x86_64-pc-windows-msvc
+    name: Tests — windows-latest - x86_64-pc-windows-msvc
     uses: ./.github/workflows/rust-ci-full-nextest-platform.yml
     with:
       runner: windows-latest
       target: x86_64-pc-windows-msvc
       profile: ci-test
-      artifact_id: windows-x64
+      artifact_id: windows-latest
       test_threads: 8
     secrets: inherit
 
   tests_windows_arm64:
-    name: Tests — windows-arm64 - aarch64-pc-windows-msvc
+    name: Tests — windows-latest - aarch64-pc-windows-msvc
     uses: ./.github/workflows/rust-ci-full-nextest-platform.yml
     with:
       runner: windows-latest
       archive_runner: windows-latest
       target: aarch64-pc-windows-msvc
       profile: ci-test
-      artifact_id: windows-arm64
+      artifact_id: windows-latest
       test_threads: 8
       use_sccache: true
     secrets: inherit

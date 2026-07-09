@@ -105,42 +105,42 @@ jobs:
             target: x86_64-unknown-linux-gnu
             v8_cpu: x64
             variant: ptrcomp-sandbox
-          - runner: ubuntu-24.04-arm
+          - runner: ubuntu-24.04
             bazel_config: ci-v8
             platform: linux_arm64
             sandbox: false
             target: aarch64-unknown-linux-gnu
             v8_cpu: arm64
             variant: release
-          - runner: ubuntu-24.04-arm
+          - runner: ubuntu-24.04
             bazel_config: ci-v8
             platform: linux_arm64
             sandbox: true
             target: aarch64-unknown-linux-gnu
             v8_cpu: arm64
             variant: ptrcomp-sandbox
-          - runner: macos-15-xlarge
+          - runner: macos-latest
             bazel_config: ci-macos
             platform: macos_amd64
             sandbox: false
             target: x86_64-apple-darwin
             v8_cpu: x64
             variant: release
-          - runner: macos-15-xlarge
+          - runner: macos-latest
             bazel_config: ci-macos
             platform: macos_amd64
             sandbox: true
             target: x86_64-apple-darwin
             v8_cpu: x64
             variant: ptrcomp-sandbox
-          - runner: macos-15-xlarge
+          - runner: macos-latest
             bazel_config: ci-macos
             platform: macos_arm64
             sandbox: false
             target: aarch64-apple-darwin
             v8_cpu: arm64
             variant: release
-          - runner: macos-15-xlarge
+          - runner: macos-latest
             bazel_config: ci-macos
             platform: macos_arm64
             sandbox: true
@@ -161,14 +161,14 @@ jobs:
             target: x86_64-unknown-linux-musl
             v8_cpu: x64
             variant: ptrcomp-sandbox
-          - runner: ubuntu-24.04-arm
+          - runner: ubuntu-24.04
             bazel_config: ci-v8
             platform: linux_arm64_musl
             sandbox: false
             target: aarch64-unknown-linux-musl
             v8_cpu: arm64
             variant: release
-          - runner: ubuntu-24.04-arm
+          - runner: ubuntu-24.04
             bazel_config: ci-v8
             platform: linux_arm64_musl
             sandbox: true

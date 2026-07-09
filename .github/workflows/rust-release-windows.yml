@@ -25,32 +25,32 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - runner: windows-x64
+          - runner: windows-latest
             target: x86_64-pc-windows-msvc
             bundle: primary
             binaries: "codex codex-responses-api-proxy"
             runs_on: windows-latest
-          - runner: windows-arm64
+          - runner: windows-latest
             target: aarch64-pc-windows-msvc
             bundle: primary
             binaries: "codex codex-responses-api-proxy"
             runs_on: windows-latest
-          - runner: windows-x64
+          - runner: windows-latest
             target: x86_64-pc-windows-msvc
             bundle: helpers
             binaries: "codex-windows-sandbox-setup codex-command-runner"
             runs_on: windows-latest
-          - runner: windows-arm64
+          - runner: windows-latest
             target: aarch64-pc-windows-msvc
             bundle: helpers
             binaries: "codex-windows-sandbox-setup codex-command-runner"
             runs_on: windows-latest
-          - runner: windows-x64
+          - runner: windows-latest
             target: x86_64-pc-windows-msvc
             bundle: app-server
             binaries: "codex-app-server"
             runs_on: windows-latest
-          - runner: windows-arm64
+          - runner: windows-latest
             target: aarch64-pc-windows-msvc
             bundle: app-server
             binaries: "codex-app-server"
@@ -193,10 +193,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - runner: windows-x64
+          - runner: windows-latest
             target: x86_64-pc-windows-msvc
             runs_on: windows-latest
-          - runner: windows-x64
+          - runner: windows-latest
             target: aarch64-pc-windows-msvc
             runs_on: windows-latest
 
