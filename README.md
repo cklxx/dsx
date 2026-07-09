@@ -52,13 +52,15 @@ dsx exec "explain what this repo does"
 
 ## GUI
 
-dsx ships with a minimal browser GUI that talks to `dsx app-server` over WebSocket JSON-RPC:
+dsx ships with a Vue 3 + Naive UI browser GUI that talks to `dsx app-server` over WebSocket JSON-RPC:
 
 ```bash
 ./dsx-gui/start.sh
 ```
 
-Opens a self-contained HTML page at `http://127.0.0.1:9021`. Just type and send.
+Opens at **http://localhost:9021**. See [`dsx-gui/README.md`](dsx-gui/README.md) for details.
+
+![dsx-gui screenshot](dsx-gui/screenshot.png)
 
 ## Configuration
 
