@@ -1,0 +1,37 @@
+.github/workflows/bazel.yml
+  s_30f76bb0963039::t_aa3fb9e6d44502 151,268,357,455
+.github/workflows/rust-ci-full.yml
+  s_30f76bb0963039::t_c59e242512dc55 115-116,187,191,195,199-200,203-204,207,219,223-224,227-228,231,484,495-496
+.github/workflows/rust-ci.yml
+  s_30f76bb0963039::t_7ee2baaf415867 194
+.github/workflows/rust-release-argument-comment-lint.yml
+  s_30f76bb0963039::t_f5a0fe61a6c226 59
+.github/workflows/rust-release-windows.yml
+  s_30f76bb0963039::t_3ce92eca0bc9d4 32,37,42,47,52,57,198,201
+.github/workflows/rust-release.yml
+  s_30f76bb0963039::t_a6212b0755e7d2 107,113,119,125
+.github/workflows/sdk.yml
+  s_30f76bb0963039::t_777282d41c1c1d 8,45
+README.md
+  s_30f76bb0963039::t_836b66e019f521 1,9,15,74,78,80-82
+codex-rs/Cargo.lock
+  s_30f76bb0963039::t_2f83dce93bc34c 794,825,7248,7300,7369,10444,10856,10902,10973,12289,13206,13293
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.5",
+  "base_commit_sha": "7148354989e9bcf45dba193abca1005df4dbc6b9",
+  "prompts": {},
+  "sessions": {
+    "s_30f76bb0963039": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b87bba04-98c7-4edd-b6c7-5e706732c815",
+        "model": "unknown"
+      },
+      "human_author": "cklxx <q1293822641@gmail.com>"
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
