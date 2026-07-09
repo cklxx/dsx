@@ -1,71 +1,107 @@
 #!/bin/bash
-# dsx GUI launcher — starts app-server, serves GUI, opens browser
+# dsx GUI launcher — starts app-server, builds Vue app, serves GUI (with WS proxy), opens browser
 set -e
 
 APP_PORT="${DSX_GUI_APP_PORT:-9020}"
 GUI_PORT="${DSX_GUI_PORT:-9021}"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
-echo "=== dsx GUI ==="
-echo "  app-server:  ws://127.0.0.1:$APP_PORT"
-echo "  gui:         http://127.0.0.1:$GUI_PORT"
+echo "╭─────────────────────────────────────╮"
+echo "│  dsx GUI                            │"
+echo "│  app-server:  ws://127.0.0.1:$APP_PORT  │"
+echo "│  gui:         http://127.0.0.1:$GUI_PORT  │"
+echo "╰─────────────────────────────────────╯"
 echo ""
 
 # Kill old processes
+echo "→ 清理旧进程..."
 lsof -ti:"$APP_PORT" 2>/dev/null | xargs kill -9 2>/dev/null || true
 lsof -ti:"$GUI_PORT" 2>/dev/null | xargs kill -9 2>/dev/null || true
+sleep 0.3
+
+# Find binary
+if command -v dsx &>/dev/null; then
+  BIN=dsx
+elif command -v codex &>/dev/null; then
+  BIN=codex
+else
+  echo "✗ 找不到 codex/dsx 可执行文件"
+  exit 1
+fi
 
 # Start app-server
-echo "Starting app-server..."
-codex app-server --listen "ws://127.0.0.1:$APP_PORT" &
+echo "→ 启动 app-server ($BIN)..."
+$BIN app-server --listen "ws://127.0.0.1:$APP_PORT" &
 APP_PID=$!
 
 # Wait for app-server
-for i in $(seq 1 30); do
+echo "→ 等待 app-server..."
+READY=0
+for i in $(seq 1 40); do
   if curl -s -o /dev/null "http://127.0.0.1:$APP_PORT/readyz" 2>/dev/null; then
+    READY=1
+    break
+  fi
+  if lsof -ti:"$APP_PORT" &>/dev/null; then
+    sleep 0.5
+    READY=1
     break
   fi
   sleep 0.3
 done
-echo "App-server ready (pid $APP_PID)"
 
-# Update gui.html with the right port
-sed "s|ws://localhost:9020|ws://localhost:$APP_PORT|g" "$SCRIPT_DIR/gui.html" > /tmp/dsx-gui.html
+if [ "$READY" -eq 0 ]; then
+  echo "✗ app-server 启动失败"
+  kill $APP_PID 2>/dev/null || true
+  exit 1
+fi
+echo "✓ app-server 就绪 (pid $APP_PID)"
 
-# Serve the HTML (tiny Python HTTP server)
-echo "Serving GUI..."
-python3 -c "
-import http.server, os, urllib.parse, signal, sys
+# Build Vue app
+echo "→ 构建前端..."
+cd "$SCRIPT_DIR"
+if [ ! -d "node_modules" ]; then
+  echo "  安装依赖 (npm install)..."
+  npm install --silent 2>&1 | tail -3 || true
+fi
+npm run build 2>&1 | tail -5
+echo "✓ 前端构建完成 (dist/)"
 
-class Handler(http.server.SimpleHTTPRequestHandler):
-    def do_GET(self):
-        path = urllib.parse.urlparse(self.path).path
-        if path == '/' or path == '/index.html':
-            self.send_response(200)
-            self.send_header('Content-Type','text/html; charset=utf-8')
-            self.end_headers()
-            with open('/tmp/dsx-gui.html','rb') as f:
-                self.wfile.write(f.read())
-        else:
-            super().do_GET()
-
-    def log_message(self, fmt, *args):
-        pass  # silent
-
-signal.signal(signal.SIGINT, lambda *_: sys.exit(0))
-http.server.HTTPServer(('127.0.0.1',$GUI_PORT), Handler).serve_forever()
-" &
+# Start the combined HTTP + WebSocket proxy server
+echo "→ 启动 GUI + WS 代理服务器..."
+DSX_GUI_APP_PORT="$APP_PORT" DSX_GUI_PORT="$GUI_PORT" DSX_GUI_DIST="$SCRIPT_DIR/dist" \
+  python3 "$SCRIPT_DIR/server.py" &
 GUI_PID=$!
-sleep 0.5
+sleep 0.8
 
-# Open browser
-URL="http://127.0.0.1:$GUI_PORT"
-if command -v open &>/dev/null; then open "$URL"
-elif command -v xdg-open &>/dev/null; then xdg-open "$URL"
-elif command -v start &>/dev/null; then start "$URL"
+# Verify GUI is up
+if ! curl -s -o /dev/null "http://127.0.0.1:$GUI_PORT/" 2>/dev/null; then
+  echo "✗ GUI 服务器启动失败"
+  kill $APP_PID $GUI_PID 2>/dev/null || true
+  exit 1
 fi
 
-echo "Press Ctrl+C to stop"
-cleanup() { kill $APP_PID $GUI_PID 2>/dev/null; rm -f /tmp/dsx-gui.html; exit 0; }
+URL="http://127.0.0.1:$GUI_PORT"
+echo "✓ 全部就绪: $URL"
+echo ""
+
+# Open browser
+if command -v open &>/dev/null; then
+  open "$URL"
+elif command -v xdg-open &>/dev/null; then
+  xdg-open "$URL"
+elif command -v start &>/dev/null; then
+  start "$URL"
+fi
+
+echo "按 Ctrl+C 停止所有服务"
+echo ""
+
+cleanup() {
+  echo ""
+  echo "→ 停止服务..."
+  kill $APP_PID $GUI_PID 2>/dev/null || true
+  exit 0
+}
 trap cleanup INT TERM
 wait
