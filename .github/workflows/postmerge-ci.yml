@@ -6,6 +6,6 @@ on:
   workflow_dispatch:
 
 jobs:
-  test-if-needs:
-    name: test-job-if-needs
-    uses: ./.github/workflows/test-job-if-needs.yml
+  test-no-env:
+    name: test-no-env
+    uses: ./.github/workflows/test-no-env.yml
