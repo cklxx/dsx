@@ -1,30 +1,11 @@
 name: postmerge-ci
 
-# This is the single entrypoint for main-only CI that is intentionally outside
-# the merge-blocking suite. It keeps the broader postmerge signal in one run.
 on:
   push:
     branches: [main]
   workflow_dispatch:
 
 jobs:
-  v8-canary:
-    name: v8-canary
-    uses: ./.github/workflows/v8-canary.yml
-    secrets: inherit
-
-  results:
-    name: Postmerge CI results
-    needs: [v8-canary]
-    if: ${{ always() }}
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          ref: ${{ github.sha }}
-          persist-credentials: false
-
-      - name: Require successful dependencies
-        env:
-          NEEDS: ${{ toJSON(needs) }}
-        run: python3 .github/scripts/check_ci_results.py
+  test-env:
+    name: test-env-workflow
+    uses: ./.github/workflows/test-env-workflow.yml

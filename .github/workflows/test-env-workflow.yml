@@ -1,0 +1,13 @@
+name: test-env-workflow
+on:
+  workflow_call: {}
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    environment:
+      name: bazel
+      deployment: false
+    steps:
+      - run: echo "hello from env workflow"
