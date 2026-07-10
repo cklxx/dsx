@@ -6,6 +6,6 @@ on:
   workflow_dispatch:
 
 jobs:
-  test-no-env:
-    name: test-no-env
-    uses: ./.github/workflows/test-no-env.yml
+  test-no-perms:
+    name: test-no-perms
+    uses: ./.github/workflows/test-no-perms.yml
