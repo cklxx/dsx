@@ -6,6 +6,6 @@ on:
   workflow_dispatch:
 
 jobs:
-  test-env:
-    name: test-env-workflow
-    uses: ./.github/workflows/test-env-workflow.yml
+  test-concurrency:
+    name: test-concurrency-workflow
+    uses: ./.github/workflows/test-concurrency-workflow.yml
