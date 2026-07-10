@@ -6,6 +6,6 @@ on:
   workflow_dispatch:
 
 jobs:
-  test-concur:
-    name: test-concur-pr-expr
-    uses: ./.github/workflows/test-concur-pr-expr.yml
+  test-if-needs:
+    name: test-job-if-needs
+    uses: ./.github/workflows/test-job-if-needs.yml
