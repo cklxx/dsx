@@ -6,6 +6,6 @@ on:
   workflow_dispatch:
 
 jobs:
-  test-concurrency:
-    name: test-concurrency-workflow
-    uses: ./.github/workflows/test-concurrency-workflow.yml
+  test-pullreq:
+    name: test-pullreq-workflow
+    uses: ./.github/workflows/test-pullreq-workflow.yml

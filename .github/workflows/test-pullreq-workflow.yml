@@ -1,0 +1,11 @@
+name: test-pullreq-workflow
+on:
+  workflow_call: {}
+  pull_request: {}
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    steps:
+      - run: echo "hello from pull_request + workflow_call workflow"
