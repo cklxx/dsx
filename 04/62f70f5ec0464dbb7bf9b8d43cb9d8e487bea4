@@ -1,0 +1,133 @@
+.github/ISSUE_TEMPLATE/1-codex-app.yml
+  s_113f964d376106::t_a7743276b4eabe 1-2,15
+.github/ISSUE_TEMPLATE/3-cli.yml
+  s_113f964d376106::t_8735c58f9ff78f 2,12,14,19,51,56
+.github/ISSUE_TEMPLATE/4-bug-report.yml
+  s_113f964d376106::t_ab805bc34191d8 2,12
+.github/ISSUE_TEMPLATE/5-feature-request.yml
+  s_113f964d376106::t_97319dd155eaf9 2,9,13,18
+.github/ISSUE_TEMPLATE/6-docs-issue.yml
+  s_113f964d376106::t_881b246d4df1d1 8
+.github/actions/setup-bazel-ci/action.yml
+  s_113f964d376106::t_af7308b86e51c0 20
+.github/actions/setup-rusty-v8/action.yml
+  s_113f964d376106::t_0caacf0a43ead7 2,5,20
+.github/scripts/archive-release-symbols-and-strip-binaries.sh
+  s_113f964d376106::t_b3eb090e08089b 60-61,119
+.github/scripts/build-codex-package-archive.sh
+  s_113f964d376106::t_85c50a6422120f 105
+.github/scripts/build-zsh-release-artifact.sh
+  s_113f964d376106::t_efac3e87958d54 15
+.github/scripts/install-musl-build-tools.sh
+  s_113f964d376106::t_719776aa489a80 52
+.github/scripts/run_bazel_with_buildbuddy.py
+  s_113f964d376106::t_8f1c91aa4f935f 12,16,67,71,74,77,96,112,170
+.github/scripts/setup-dev-drive.ps1
+  s_113f964d376106::t_1c4935db26268c 29,41,55
+.github/scripts/test_run_bazel_with_buildbuddy.py
+  s_113f964d376106::t_75d99f08d11175 19,65,127,136,147,149,164
+.github/workflows/Dockerfile.bazel
+  s_113f964d376106::t_5cb9b83fd56c71 3,7
+.github/workflows/cla.yml
+  s_113f964d376106::t_ebb35d1c87adac 16,18,46
+.github/workflows/close-stale-contributor-prs.yml
+  s_113f964d376106::t_dd94dd5a2588c6 16
+.github/workflows/issue-deduplicator.yml
+  s_113f964d376106::t_794005bcf3fe9c 12-13,21,157,167,376,396,405,414
+.github/workflows/issue-labeler.yml
+  s_113f964d376106::t_ab16050e665acc 12-13,35,40,42-45,51,57,73,110,127,132,138,149
+.github/workflows/issue-translator.yml
+  s_113f964d376106::t_a80ae47608aeef 11-12,20,83,89,101,125
+.github/workflows/python-runtime-build.yml
+  s_113f964d376106::t_aa9bc0495767c1 13
+.github/workflows/python-runtime-release.yml
+  s_113f964d376106::t_0043a33e4f6dc2 26
+.github/workflows/python-sdk-release.yml
+  s_113f964d376106::t_c9b00682daa5fb 14,77,156,182,185
+.github/workflows/repo-checks.yml
+  s_113f964d376106::t_8f3b8045c60086 19,22,25
+.github/workflows/rust-release-prepare.yml
+  s_113f964d376106::t_44e3d89322d0c3 18
+.github/workflows/rust-release-windows.yml
+  s_113f964d376106::t_d8aed7b05bca09 260
+.github/workflows/rust-release-zsh.yml
+  s_113f964d376106::t_ab8506f9a10108 173
+.github/workflows/rust-release.yml
+  s_113f964d376106::t_b01b62eab545d5 1,230,248,269,369,666,721,1136,1152,1327,1425,1428,1443,1449,1477,1480
+.github/workflows/rusty-v8-release.yml
+  s_113f964d376106::t_8b73c60c0f6f7a 326,464,475
+.github/workflows/sdk.yml
+  s_113f964d376106::t_22df294f2ab2fa 26,81,89,123,128,136
+.github/workflows/v8-canary.yml
+  s_113f964d376106::t_49c28811db6ff4 341
+codex-rs/analytics/src/analytics_client_tests.rs
+  s_f6445e4005b15a::t_eec835213608fb 999,3940
+codex-rs/codex-api/src/lib.rs
+  s_30f76bb0963039::t_9cd5b893deb368 10
+codex-rs/config/src/thread_config/remote.rs
+  s_30f76bb0963039::t_462b399df51208 161,292
+codex-rs/core-plugins/src/manifest.rs
+  s_2812a478ba5292::t_27b0cadd95b911 121,288
+codex-rs/core/src/client.rs
+  s_2812a478ba5292::t_33a550ded94cae 124,160,186,188,267,269,1152,1166,1217
+codex-rs/core/src/guardian/review_session.rs
+  s_2812a478ba5292::t_4d65c13fd9c4fd 535,547
+codex-rs/core/src/tools/web.rs
+  s_2812a478ba5292::t_bfa1f2d8a483c6 14,109,111-113,115-120,143,159,161-169
+codex-rs/core/src/util.rs
+  s_113f964d376106::t_66630c21f14f52 36,45,61
+codex-rs/tui/src/chatwidget/grouper_helpers.rs
+  s_30f76bb0963039::t_888690797f585d 12
+codex-rs/tui/src/exec_cell/render.rs
+  s_f6445e4005b15a::t_c37feeb5d34004 135,137
+codex-rs/tui/src/motion.rs
+  s_f6445e4005b15a::t_49384dc6c10306 72-73,77
+codex-rs/tui/src/onboarding/welcome.rs
+  s_f6445e4005b15a::t_a7a5b197a06745 60
+codex-rs/tui/src/token_usage.rs
+  s_f6445e4005b15a::t_fae00f1ef48c3a 145,147,149
+codex-rs/tui/src/tool_grouper.rs
+  s_f6445e4005b15a::t_eb95d53eccdafa 188-189,191
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.5",
+  "base_commit_sha": "0462f70f5ec0464dbb7bf9b8d43cb9d8e487bea4",
+  "prompts": {},
+  "sessions": {
+    "s_113f964d376106": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a4b7feee6751ebb49",
+        "model": "unknown"
+      },
+      "human_author": "cklxx <q1293822641@gmail.com>"
+    },
+    "s_2812a478ba5292": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a0c41cb0141f4a136",
+        "model": "unknown"
+      },
+      "human_author": "cklxx <q1293822641@gmail.com>"
+    },
+    "s_30f76bb0963039": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b87bba04-98c7-4edd-b6c7-5e706732c815",
+        "model": "unknown"
+      },
+      "human_author": "cklxx <q1293822641@gmail.com>"
+    },
+    "s_f6445e4005b15a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ad13f8cf9e23dfd55",
+        "model": "unknown"
+      },
+      "human_author": "cklxx <q1293822641@gmail.com>"
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
