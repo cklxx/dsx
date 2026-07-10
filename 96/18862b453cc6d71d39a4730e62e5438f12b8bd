@@ -1,0 +1,25 @@
+.github/workflows/postmerge-ci.yml
+  s_30f76bb0963039::t_cb47e01a2779dd 9-11
+.github/workflows/test-no-env.yml
+  s_30f76bb0963039::t_ba30d4b3e7bf32 1-28
+.github/workflows/test-no-perms.yml
+  s_30f76bb0963039::t_1582e8bebf727b 1-28
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.5",
+  "base_commit_sha": "9618862b453cc6d71d39a4730e62e5438f12b8bd",
+  "prompts": {},
+  "sessions": {
+    "s_30f76bb0963039": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b87bba04-98c7-4edd-b6c7-5e706732c815",
+        "model": "unknown"
+      },
+      "human_author": "cklxx <q1293822641@gmail.com>"
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
