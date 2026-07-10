@@ -8,14 +8,14 @@ on:
   workflow_dispatch:
 
 jobs:
-  rust-ci-full:
-    name: rust-ci-full
-    uses: ./.github/workflows/rust-ci-full.yml
+  v8-canary:
+    name: v8-canary
+    uses: ./.github/workflows/v8-canary.yml
     secrets: inherit
 
   results:
     name: Postmerge CI results
-    needs: [rust-ci-full]
+    needs: [v8-canary]
     if: ${{ always() }}
     runs-on: ubuntu-24.04
     steps:
