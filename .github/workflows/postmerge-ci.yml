@@ -6,6 +6,6 @@ on:
   workflow_dispatch:
 
 jobs:
-  test-v8:
-    name: test-v8-minimal
-    uses: ./.github/workflows/test-v8-minimal.yml
+  test-concur:
+    name: test-concur-pr-expr
+    uses: ./.github/workflows/test-concur-pr-expr.yml
