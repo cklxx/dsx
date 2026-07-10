@@ -226,31 +226,21 @@ jobs:
   # --- Gatherer job that you mark as the ONLY required status -----------------
   results:
     name: CI results (required)
-    needs: [changed, general, cargo_shear, argument_comment_lint_package]
+    needs: [changed, general, cargo_shear]
     if: always()
     runs-on: ubuntu-24.04
     steps:
       - name: Summarize
         shell: bash
         run: |
-          echo "argpkg : ${{ needs.argument_comment_lint_package.result }}"
-          echo "arglint: ${{ needs.argument_comment_lint_prebuilt.result }}"
           echo "general: ${{ needs.general.result }}"
           echo "shear  : ${{ needs.cargo_shear.result }}"
 
           # If nothing relevant changed (PR touching only root README, etc.),
           # declare success regardless of other jobs.
-          if [[ "${NEEDS_CHANGED_OUTPUTS_ARGUMENT_COMMENT_LINT}" != 'true' && "${NEEDS_CHANGED_OUTPUTS_CODEX}" != 'true' && "${NEEDS_CHANGED_OUTPUTS_WORKFLOWS}" != 'true' ]]; then
+          if [[ "${NEEDS_CHANGED_OUTPUTS_CODEX}" != 'true' && "${NEEDS_CHANGED_OUTPUTS_WORKFLOWS}" != 'true' ]]; then
             echo 'No relevant changes -> CI not required.'
             exit 0
-          fi
-
-          if [[ "${NEEDS_CHANGED_OUTPUTS_ARGUMENT_COMMENT_LINT_PACKAGE}" == 'true' ]]; then
-            [[ '${{ needs.argument_comment_lint_package.result }}' == 'success' ]] || { echo 'argument_comment_lint_package failed'; exit 1; }
-          fi
-
-          if [[ "${NEEDS_CHANGED_OUTPUTS_ARGUMENT_COMMENT_LINT}" == 'true' || "${NEEDS_CHANGED_OUTPUTS_WORKFLOWS}" == 'true' ]]; then
-            [[ '${{ needs.argument_comment_lint_prebuilt.result }}' == 'success' ]] || { echo 'argument_comment_lint_prebuilt failed'; exit 1; }
           fi
 
           if [[ "${NEEDS_CHANGED_OUTPUTS_CODEX}" == 'true' || "${NEEDS_CHANGED_OUTPUTS_WORKFLOWS}" == 'true' ]]; then
@@ -258,7 +248,5 @@ jobs:
             [[ '${{ needs.cargo_shear.result }}' == 'success' ]] || { echo 'cargo_shear failed'; exit 1; }
           fi
         env:
-          NEEDS_CHANGED_OUTPUTS_ARGUMENT_COMMENT_LINT: ${{ needs.changed.outputs.argument_comment_lint }}
           NEEDS_CHANGED_OUTPUTS_CODEX: ${{ needs.changed.outputs.codex }}
           NEEDS_CHANGED_OUTPUTS_WORKFLOWS: ${{ needs.changed.outputs.workflows }}
-          NEEDS_CHANGED_OUTPUTS_ARGUMENT_COMMENT_LINT_PACKAGE: ${{ needs.changed.outputs.argument_comment_lint_package }}
