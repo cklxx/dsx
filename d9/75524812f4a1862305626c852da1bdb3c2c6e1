@@ -1,0 +1,23 @@
+.github/workflows/postmerge-ci.yml
+  s_30f76bb0963039::t_5209c8d9c7f6d6 9-11
+.github/workflows/test-env-workflow.yml
+  s_30f76bb0963039::t_9cf0cea418aa78 1-13
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.5",
+  "base_commit_sha": "d975524812f4a1862305626c852da1bdb3c2c6e1",
+  "prompts": {},
+  "sessions": {
+    "s_30f76bb0963039": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b87bba04-98c7-4edd-b6c7-5e706732c815",
+        "model": "unknown"
+      },
+      "human_author": "cklxx <q1293822641@gmail.com>"
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
