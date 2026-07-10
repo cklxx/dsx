@@ -1,0 +1,21 @@
+.github/workflows/test-concur-pr-expr.yml
+  s_30f76bb0963039::t_02eec7697a478b 1-14
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.5",
+  "base_commit_sha": "ac2c8d0cdf3cba51f6c25b89b37aac12a39869c6",
+  "prompts": {},
+  "sessions": {
+    "s_30f76bb0963039": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b87bba04-98c7-4edd-b6c7-5e706732c815",
+        "model": "unknown"
+      },
+      "human_author": "cklxx <q1293822641@gmail.com>"
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
