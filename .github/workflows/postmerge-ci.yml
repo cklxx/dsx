@@ -5,6 +5,7 @@ name: postmerge-ci
 on:
   push:
     branches: [main]
+  workflow_dispatch:
 
 jobs:
   # Keep reusable workflow calls alphabetized. Each child retains its own

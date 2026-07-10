@@ -5,7 +5,7 @@ name: v8-canary
 # workflow_call. v8_canary_changes.py is the single source of truth instead;
 # unrelated events run only the cheap metadata job below.
 on:
-  workflow_call:
+  workflow_call: {}
   pull_request: {}
   workflow_dispatch:
 
