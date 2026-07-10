@@ -1,0 +1,23 @@
+codex-rs/.cargo/audit.toml
+  s_30f76bb0963039::t_5dbb74a88d50a7 13-16
+codex-rs/deny.toml
+  s_30f76bb0963039::t_4f517644cf1e2b 85-88
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.5",
+  "base_commit_sha": "128c6277df0647cfd6c9ca13ffb3417957a80afb",
+  "prompts": {},
+  "sessions": {
+    "s_30f76bb0963039": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b87bba04-98c7-4edd-b6c7-5e706732c815",
+        "model": "unknown"
+      },
+      "human_author": "cklxx <q1293822641@gmail.com>"
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
