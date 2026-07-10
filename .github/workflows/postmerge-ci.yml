@@ -6,6 +6,6 @@ on:
   workflow_dispatch:
 
 jobs:
-  test-pullreq:
-    name: test-pullreq-workflow
-    uses: ./.github/workflows/test-pullreq-workflow.yml
+  test-v8:
+    name: test-v8-minimal
+    uses: ./.github/workflows/test-v8-minimal.yml

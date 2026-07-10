@@ -1,0 +1,47 @@
+name: test-v8-minimal
+on:
+  workflow_call: {}
+  pull_request: {}
+  workflow_dispatch:
+
+env:
+  CARGO_NET_GIT_FETCH_WITH_CLI: "true"
+
+concurrency:
+  group: ${{ github.workflow }}::${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.ref_name }}
+  cancel-in-progress: ${{ github.ref_name != 'main' }}
+
+jobs:
+  metadata:
+    runs-on: ubuntu-latest
+    outputs:
+      canary_required: ${{ steps.changes.outputs.canary_required || 'true' }}
+      v8_version: "1.0.0"
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Detect changes
+        id: changes
+        run: echo "canary_required=false" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: metadata
+    if: ${{ needs.metadata.outputs.canary_required == 'true' }}
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      actions: read
+    environment:
+      name: bazel
+      deployment: false
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-24.04
+            target: x86_64-unknown-linux-gnu
+    steps:
+      - run: echo "build step"
