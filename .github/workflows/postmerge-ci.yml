@@ -6,6 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  test-no-matrix:
-    name: test-no-matrix
-    uses: ./.github/workflows/test-no-matrix.yml
+  v8-canary:
+    name: v8-canary
+    uses: ./.github/workflows/v8-canary.yml
+    secrets: inherit
