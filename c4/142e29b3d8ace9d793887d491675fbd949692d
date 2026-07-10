@@ -1,0 +1,21 @@
+codex-rs/app-server/src/config/external_agent_config_tests.rs
+  s_f6445e4005b15a::t_d429025593be76 17,204,243,298,376,393,408,441,469,542,573,609,637,657,700,705,712,735,755,757,766,782,1220,1294,1347,1380,1387,1394,1422,1426,1472,1499,1549,1559,1596,1606,1636,1661,1807,1871,1914,1969,1973,1990,2088,2620,2702
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.5",
+  "base_commit_sha": "c4142e29b3d8ace9d793887d491675fbd949692d",
+  "prompts": {},
+  "sessions": {
+    "s_f6445e4005b15a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ad13f8cf9e23dfd55",
+        "model": "unknown"
+      },
+      "human_author": "cklxx <q1293822641@gmail.com>"
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
