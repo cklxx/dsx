@@ -1,11 +1,8 @@
-use codex_protocol::account::PlanType;
 use codex_protocol::protocol::CreditsSnapshot;
 use codex_protocol::protocol::RateLimitReachedType;
 use codex_protocol::protocol::RateLimitSnapshot;
 use codex_protocol::protocol::RateLimitWindow;
 use http::HeaderMap;
-use serde::Deserialize;
-use std::collections::BTreeSet;
 use std::fmt::Display;
 
 #[derive(Debug)]
@@ -17,37 +14,6 @@ impl Display for RateLimitError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.message)
     }
-}
-
-/// Parses the default Codex rate-limit header family into a `RateLimitSnapshot`.
-pub fn parse_default_rate_limit(headers: &HeaderMap) -> Option<RateLimitSnapshot> {
-    parse_rate_limit_for_limit(headers, /*limit_id*/ None)
-}
-
-/// Parses all known rate-limit header families into update records keyed by limit id.
-pub fn parse_all_rate_limits(headers: &HeaderMap) -> Vec<RateLimitSnapshot> {
-    let mut snapshots = Vec::new();
-    if let Some(snapshot) = parse_default_rate_limit(headers) {
-        snapshots.push(snapshot);
-    }
-
-    let mut limit_ids: BTreeSet<String> = BTreeSet::new();
-
-    for name in headers.keys() {
-        let header_name = name.as_str().to_ascii_lowercase();
-        if let Some(limit_id) = header_name_to_limit_id(&header_name)
-            && limit_id != "codex"
-        {
-            limit_ids.insert(limit_id);
-        }
-    }
-
-    snapshots.extend(limit_ids.into_iter().filter_map(|limit_id| {
-        let snapshot = parse_rate_limit_for_limit(headers, Some(limit_id.as_str()))?;
-        has_rate_limit_data(&snapshot).then_some(snapshot)
-    }));
-
-    snapshots
 }
 
 /// Parses rate-limit headers for the provided limit id.
@@ -96,80 +62,6 @@ pub fn parse_rate_limit_for_limit(
         individual_limit: None,
         plan_type: None,
         rate_limit_reached_type: None,
-    })
-}
-
-#[derive(Debug, Deserialize)]
-struct RateLimitEventWindow {
-    used_percent: f64,
-    window_minutes: Option<i64>,
-    reset_at: Option<i64>,
-}
-
-#[derive(Debug, Deserialize)]
-struct RateLimitEventDetails {
-    primary: Option<RateLimitEventWindow>,
-    secondary: Option<RateLimitEventWindow>,
-}
-
-#[derive(Debug, Deserialize)]
-struct RateLimitEventCredits {
-    has_credits: bool,
-    unlimited: bool,
-    balance: Option<String>,
-}
-
-#[derive(Debug, Deserialize)]
-struct RateLimitEvent {
-    #[serde(rename = "type")]
-    kind: String,
-    plan_type: Option<PlanType>,
-    rate_limits: Option<RateLimitEventDetails>,
-    credits: Option<RateLimitEventCredits>,
-    metered_limit_name: Option<String>,
-    limit_name: Option<String>,
-}
-
-pub fn parse_rate_limit_event(payload: &str) -> Option<RateLimitSnapshot> {
-    let event: RateLimitEvent = serde_json::from_str(payload).ok()?;
-    if event.kind != "codex.rate_limits" {
-        return None;
-    }
-    let (primary, secondary) = if let Some(details) = event.rate_limits.as_ref() {
-        (
-            map_event_window(details.primary.as_ref()),
-            map_event_window(details.secondary.as_ref()),
-        )
-    } else {
-        (None, None)
-    };
-    let credits = event.credits.map(|credits| CreditsSnapshot {
-        has_credits: credits.has_credits,
-        unlimited: credits.unlimited,
-        balance: credits.balance,
-    });
-    let limit_id = event
-        .metered_limit_name
-        .or(event.limit_name)
-        .map(normalize_limit_id);
-    Some(RateLimitSnapshot {
-        limit_id: Some(limit_id.unwrap_or_else(|| "codex".to_string())),
-        limit_name: None,
-        primary,
-        secondary,
-        credits,
-        individual_limit: None,
-        plan_type: event.plan_type,
-        rate_limit_reached_type: None,
-    })
-}
-
-fn map_event_window(window: Option<&RateLimitEventWindow>) -> Option<RateLimitWindow> {
-    let window = window?;
-    Some(RateLimitWindow {
-        used_percent: window.used_percent,
-        window_minutes: window.window_minutes,
-        resets_at: window.reset_at,
     })
 }
 
@@ -252,17 +144,6 @@ fn parse_header_str<'a>(headers: &'a HeaderMap, name: &str) -> Option<&'a str> {
     headers.get(name)?.to_str().ok()
 }
 
-fn has_rate_limit_data(snapshot: &RateLimitSnapshot) -> bool {
-    snapshot.primary.is_some() || snapshot.secondary.is_some() || snapshot.credits.is_some()
-}
-
-fn header_name_to_limit_id(header_name: &str) -> Option<String> {
-    let suffix = "-primary-used-percent";
-    let prefix = header_name.strip_suffix(suffix)?;
-    let limit = prefix.strip_prefix("x-")?;
-    Some(normalize_limit_id(limit.to_string()))
-}
-
 fn normalize_limit_id(name: impl Into<String>) -> String {
     name.into().trim().to_ascii_lowercase().replace('-', "_")
 }
@@ -341,38 +222,5 @@ mod tests {
             parse_rate_limit_for_limit(&headers, Some("codex_bengalfox")).expect("snapshot");
         assert_eq!(snapshot.limit_id.as_deref(), Some("codex_bengalfox"));
         assert_eq!(snapshot.limit_name.as_deref(), Some("gpt-5.2-codex-sonic"));
-    }
-
-    #[test]
-    fn parse_all_rate_limits_reads_all_limit_families() {
-        let mut headers = HeaderMap::new();
-        headers.insert(
-            "x-codex-primary-used-percent",
-            HeaderValue::from_static("12.5"),
-        );
-        headers.insert(
-            "x-codex-secondary-primary-used-percent",
-            HeaderValue::from_static("80"),
-        );
-
-        let updates = parse_all_rate_limits(&headers);
-        assert_eq!(updates.len(), 2);
-        assert_eq!(updates[0].limit_id.as_deref(), Some("codex"));
-        assert_eq!(updates[1].limit_id.as_deref(), Some("codex_secondary"));
-        assert_eq!(updates[0].limit_name, None);
-        assert_eq!(updates[1].limit_name, None);
-    }
-
-    #[test]
-    fn parse_all_rate_limits_includes_default_codex_snapshot() {
-        let headers = HeaderMap::new();
-
-        let updates = parse_all_rate_limits(&headers);
-        assert_eq!(updates.len(), 1);
-        assert_eq!(updates[0].limit_id.as_deref(), Some("codex"));
-        assert_eq!(updates[0].limit_name, None);
-        assert_eq!(updates[0].primary, None);
-        assert_eq!(updates[0].secondary, None);
-        assert_eq!(updates[0].credits, None);
     }
 }

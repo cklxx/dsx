@@ -57,8 +57,8 @@ if [[ -z "$target" || -z "$artifact_name" || -z "$release_dir" || -z "$archive_d
   exit 1
 fi
 
-symbols_root="${RUNNER_TEMP:-/tmp}/codex-symbols-${artifact_name}"
-symbols_dir="${symbols_root}/codex-symbols-${artifact_name}"
+symbols_root="${RUNNER_TEMP:-/tmp}/dsx-symbols-${artifact_name}"
+symbols_dir="${symbols_root}/dsx-symbols-${artifact_name}"
 archive_path="${archive_dir%/}/codex-symbols-${artifact_name}.tar.gz"
 rm -rf "$symbols_root"
 mkdir -p "$symbols_dir" "$archive_dir"
@@ -116,4 +116,4 @@ case "$target" in
 esac
 
 rm -f "$archive_path"
-tar -C "$symbols_root" -czf "$archive_path" "codex-symbols-${artifact_name}"
+tar -C "$symbols_root" -czf "$archive_path" "dsx-symbols-${artifact_name}"

@@ -9,7 +9,7 @@ impl ChatWidget {
         if !self.tool_grouper_enabled {
             return false;
         }
-        let first = command.first().map(|s| s.as_str()).unwrap_or("");
+        let first = command.first().map_or("", String::as_str);
         if !is_read_like(first) {
             return false;
         }

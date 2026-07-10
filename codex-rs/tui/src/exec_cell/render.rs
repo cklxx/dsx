@@ -37,7 +37,6 @@ const TRANSCRIPT_HINT: &str = "ctrl + t to view transcript";
 pub(crate) struct OutputLinesParams {
     pub(crate) line_limit: usize,
     pub(crate) only_err: bool,
-    pub(crate) include_angle_pipe: bool,
     pub(crate) include_prefix: bool,
 }
 
@@ -107,7 +106,6 @@ pub(crate) fn output_lines(
     let OutputLinesParams {
         line_limit,
         only_err,
-        include_angle_pipe,
         include_prefix,
     } = params;
     let CommandOutput {
@@ -134,15 +132,9 @@ pub(crate) fn output_lines(
     let mut out: Vec<Line<'static>> = Vec::new();
 
     let head_end = total.min(line_limit);
-    for (i, raw) in lines[..head_end].iter().enumerate() {
+    for raw in lines[..head_end].iter() {
         let mut line = ansi_escape_line(raw);
-        let prefix = if !include_prefix {
-            ""
-        } else if i == 0 && include_angle_pipe {
-            "  "
-        } else {
-            "  "
-        };
+        let prefix = if !include_prefix { "" } else { "  " };
         line.spans.insert(0, prefix.into());
         line.spans.iter_mut().for_each(|span| {
             span.style = span.style.add_modifier(Modifier::DIM);
@@ -450,7 +442,6 @@ impl ExecCell {
                 OutputLinesParams {
                     line_limit,
                     only_err: false,
-                    include_angle_pipe: false,
                     include_prefix: false,
                 },
             );
@@ -747,7 +738,6 @@ mod tests {
                 // triggering the ellipsis in `output_lines`.
                 line_limit: 100,
                 only_err: false,
-                include_angle_pipe: false,
                 include_prefix: false,
             },
         );
@@ -870,7 +860,6 @@ mod tests {
             OutputLinesParams {
                 line_limit: 2,
                 only_err: false,
-                include_angle_pipe: false,
                 include_prefix: false,
             },
         )

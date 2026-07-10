@@ -532,6 +532,7 @@ impl GuardianReviewSessionManager {
     }
 
     #[cfg(test)]
+    #[allow(dead_code)]
     pub(crate) async fn committed_fork_rollout_items_for_test(&self) -> Option<Vec<RolloutItem>> {
         let trunk = self.state.lock().await.trunk.clone()?;
         let state = trunk.state.lock().await;
@@ -543,6 +544,7 @@ impl GuardianReviewSessionManager {
     }
 
     #[cfg(test)]
+    #[allow(dead_code)]
     pub(crate) async fn send_trunk_event_raw_for_test(&self, event: Event) {
         let trunk = self
             .state

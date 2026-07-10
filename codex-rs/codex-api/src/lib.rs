@@ -7,9 +7,9 @@ pub(crate) mod error;
 pub(crate) mod files;
 pub(crate) mod images;
 pub(crate) mod provider;
+#[allow(dead_code)]
 pub(crate) mod rate_limits;
 pub(crate) mod requests;
-pub(crate) mod safety_buffering;
 pub(crate) mod sse;
 pub(crate) mod telemetry;
 

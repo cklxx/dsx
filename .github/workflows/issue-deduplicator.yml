@@ -9,8 +9,8 @@ on:
 jobs:
   gather-duplicates-all:
     name: Identify potential duplicates (all issues)
-    # Prevent runs on forks (requires OpenAI API key, wastes Actions minutes)
-    if: github.repository == 'openai/codex' && (github.event.action == 'opened' || (github.event.action == 'labeled' && github.event.label.name == 'codex-deduplicate'))
+    # Prevent runs on forks (requires API key, wastes Actions minutes)
+    if: github.repository == 'deepseek/dsx' && (github.event.action == 'opened' || (github.event.action == 'labeled' && github.event.label.name == 'codex-deduplicate'))
     runs-on: ubuntu-latest
     environment: issue-triage
     permissions:
@@ -18,7 +18,7 @@ jobs:
     outputs:
       codex_output: ${{ steps.codex-all.outputs.final-message }}
     steps:
-      - name: Prepare Codex inputs
+      - name: Prepare dsx inputs
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
@@ -154,7 +154,7 @@ jobs:
 
   gather-duplicates-open:
     name: Identify potential duplicates (open issues fallback)
-    # Pass 1 Codex execution drops sudo on its runner, so run the fallback in a fresh job.
+    # Pass 1 dsx execution drops sudo on its runner, so run the fallback in a fresh job.
     needs: normalize-duplicates-all
     if: ${{ needs.normalize-duplicates-all.result == 'success' && needs.normalize-duplicates-all.outputs.has_matches != 'true' }}
     runs-on: ubuntu-latest
@@ -164,7 +164,7 @@ jobs:
     outputs:
       codex_output: ${{ steps.codex-open.outputs.final-message }}
     steps:
-      - name: Prepare Codex inputs
+      - name: Prepare dsx inputs
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
@@ -373,7 +373,7 @@ jobs:
             try {
               parsed = JSON.parse(raw);
             } catch (error) {
-              core.info(`Codex output was not valid JSON. Raw output: ${raw}`);
+              core.info(`dsx output was not valid JSON. Raw output: ${raw}`);
               core.info(`Parse error: ${error.message}`);
               return;
             }
@@ -393,7 +393,7 @@ jobs:
             const filteredIssues = [...new Set(issues.map((value) => String(value)))].filter((value) => value !== currentIssueNumber).slice(0, 5);
 
             if (filteredIssues.length === 0) {
-              core.info('Codex reported no potential duplicates.');
+              core.info('dsx reported no potential duplicates.');
               return;
             }
 
@@ -402,7 +402,7 @@ jobs:
               '',
               ...filteredIssues.map((value) => `- #${String(value)}`),
               '',
-              '*Powered by [Codex Action](https://github.com/openai/codex-action)*'];
+              '*Powered by dsx*'];
 
             await github.rest.issues.createComment({
               owner: context.repo.owner,
@@ -411,7 +411,7 @@ jobs:
               body: lines.join("\n"),
             });
 
-      - name: Remove codex-deduplicate label
+      - name: Remove deduplicate label
         if: ${{ always() && github.event.action == 'labeled' && github.event.label.name == 'codex-deduplicate' }}
         env:
           GH_TOKEN: ${{ github.token }}

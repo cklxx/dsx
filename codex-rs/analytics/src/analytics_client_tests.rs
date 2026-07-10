@@ -996,7 +996,7 @@ fn normalize_path_for_skill_id_repo_scoped_uses_relative_path() {
         skill_path.as_path(),
     );
 
-    assert_eq!(path, ".codex/skills/doc/SKILL.md");
+    assert_eq!(path, ".dsx/skills/doc/SKILL.md");
 }
 
 #[test]
@@ -3937,7 +3937,7 @@ fn turn_event_serializes_expected_shape() {
                 "turn_id": "turn-2",
                 "submission_type": null,
                 "app_server_client": {
-                    "product_client_id": "codex_cli_rs",
+                    "product_client_id": "dsx_cli",
                     "client_name": "codex-tui",
                     "client_version": "1.0.0",
                     "rpc_transport": "stdio",

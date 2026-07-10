@@ -23,7 +23,7 @@ jobs:
           # the pinned manylinux runtime wheel that users install.
           docker run --rm \
             --user "$(id -u):$(id -g)" \
-            -e HOME=/tmp/codex-python-sdk-home \
+            -e HOME=/tmp/dsx-python-sdk-home \
             -e UV_LINK_MODE=copy \
             -v "${GITHUB_WORKSPACE}:${GITHUB_WORKSPACE}" \
             -w "${GITHUB_WORKSPACE}/sdk/python" \
@@ -78,7 +78,7 @@ jobs:
         with:
           target: x86_64-unknown-linux-gnu
 
-      - name: Build codex with Bazel
+      - name: Build dsx with Bazel
         env:
           BUILDBUDDY_API_KEY: ${{ secrets.BUILDBUDDY_API_KEY }}
         shell: bash
@@ -86,7 +86,7 @@ jobs:
           set -euo pipefail
           # Use the shared CI wrapper so fork PRs fall back cleanly when
           # BuildBuddy credentials are unavailable. This workflow needs the
-          # built `codex` binary on disk afterwards, so ask the wrapper to
+          # built `dsx` binary on disk afterwards, so ask the wrapper to
           # override CI's default remote_download_minimal behavior.
           ./.github/scripts/run-bazel-ci.sh \
             --remote-download-toplevel \
@@ -120,12 +120,12 @@ jobs:
             exit 1
           fi
           if [[ ! -e "${codex_bazel_output_path}" ]]; then
-            echo "Unable to locate the Bazel-built codex binary at ${codex_bazel_output_path}." >&2
+            echo "Unable to locate the Bazel-built dsx binary at ${codex_bazel_output_path}." >&2
             exit 1
           fi
 
           # Stage the binary into the workspace and point the SDK tests at that
-          # stable path. The tests spawn `codex` directly many times, so using a
+          # stable path. The tests spawn `dsx` directly many times, so using a
           # normal executable path is more reliable than invoking Bazel for each
           # test process.
           install_dir="${GITHUB_WORKSPACE}/.tmp/sdk-ci"
@@ -133,7 +133,7 @@ jobs:
           install -m 755 "${codex_bazel_output_path}" "${install_dir}/codex"
           echo "CODEX_EXEC_PATH=${install_dir}/codex" >> "$GITHUB_ENV"
 
-      - name: Warm up Bazel-built codex
+      - name: Warm up Bazel-built dsx
         shell: bash
         run: |
           set -euo pipefail

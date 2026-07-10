@@ -12,7 +12,7 @@ workspace="${GITHUB_WORKSPACE:?missing GITHUB_WORKSPACE}"
 zsh_commit="${ZSH_COMMIT:?missing ZSH_COMMIT}"
 zsh_patch="${ZSH_PATCH:?missing ZSH_PATCH}"
 temp_root="${RUNNER_TEMP:-/tmp}"
-work_root="$(mktemp -d "${temp_root%/}/codex-zsh-release.XXXXXX")"
+work_root="$(mktemp -d "${temp_root%/}/dsx-zsh-release.XXXXXX")"
 trap 'rm -rf "$work_root"' EXIT
 
 source_root="${work_root}/zsh"

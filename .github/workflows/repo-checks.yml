@@ -16,13 +16,13 @@ jobs:
           ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
           persist-credentials: false
 
-      - name: Verify codex-rs Cargo manifests inherit workspace settings
+      - name: Verify dsx-rs Cargo manifests inherit workspace settings
         run: python3 .github/scripts/verify_cargo_workspace_manifests.py
 
-      - name: Verify codex-tui does not import codex-core directly
+      - name: Verify tui does not import core directly
         run: python3 .github/scripts/verify_tui_core_boundary.py
 
-      - name: Test Codex package builder
+      - name: Test dsx package builder
         run: python3 -m unittest discover -s scripts/codex_package -p 'test_*.py'
 
       - name: Setup pnpm

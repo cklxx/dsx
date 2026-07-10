@@ -16,7 +16,7 @@ class RunBazelWithBuildBuddyTest(unittest.TestCase):
         self,
         temp_dir: str,
         *,
-        repository: str = "openai/codex",
+        repository: str = "deepseek/dsx",
         fork: bool = False,
         event_name: str = "pull_request",
     ) -> dict[str, str]:
@@ -62,7 +62,7 @@ class RunBazelWithBuildBuddyTest(unittest.TestCase):
             "buildbuddy-generic",
         )
 
-    def test_upstream_push_selects_openai_rbe_before_target_separator(self) -> None:
+    def test_upstream_push_selects_deepseek_rbe_before_target_separator(self) -> None:
         with TemporaryDirectory() as temp_dir:
             env = self.github_env(temp_dir, event_name="push")
 
@@ -124,7 +124,7 @@ class RunBazelWithBuildBuddyTest(unittest.TestCase):
                     ],
                 )
 
-    def test_same_repository_pull_request_selects_openai_host(self) -> None:
+    def test_same_repository_pull_request_selects_deepseek_host(self) -> None:
         with TemporaryDirectory() as temp_dir:
             self.assertEqual(
                 run_bazel_with_buildbuddy.remote_config(
@@ -133,7 +133,7 @@ class RunBazelWithBuildBuddyTest(unittest.TestCase):
                 "buildbuddy-openai-rbe",
             )
 
-    def test_fork_pull_request_cannot_select_openai_host(self) -> None:
+    def test_fork_pull_request_cannot_select_deepseek_host(self) -> None:
         with TemporaryDirectory() as temp_dir:
             env = self.github_env(temp_dir, fork=True)
 
@@ -144,9 +144,9 @@ class RunBazelWithBuildBuddyTest(unittest.TestCase):
                 "buildbuddy-generic-rbe",
             )
 
-    def test_run_in_fork_repository_cannot_select_openai_host(self) -> None:
+    def test_run_in_fork_repository_cannot_select_deepseek_host(self) -> None:
         with TemporaryDirectory() as temp_dir:
-            env = self.github_env(temp_dir, repository="contributor/codex")
+            env = self.github_env(temp_dir, repository="contributor/dsx")
 
             self.assertEqual(
                 run_bazel_with_buildbuddy.remote_config(
@@ -161,7 +161,7 @@ class RunBazelWithBuildBuddyTest(unittest.TestCase):
                 "BUILDBUDDY_API_KEY": "token",
                 "GITHUB_ACTIONS": "true",
                 "GITHUB_EVENT_NAME": "pull_request",
-                "GITHUB_REPOSITORY": "openai/codex",
+                "GITHUB_REPOSITORY": "deepseek/dsx",
             }
             if event_path is not None:
                 env["GITHUB_EVENT_PATH"] = event_path

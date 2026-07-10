@@ -170,7 +170,7 @@ jobs:
           tag_name: ${{ needs.metadata.outputs.release_tag }}
           name: ${{ needs.metadata.outputs.release_tag }}
           files: dist/**
-          # Keep zsh artifact releases out of Codex's normal "latest release" channel.
+          # Keep zsh artifact releases out of dsx's normal "latest release" channel.
           prerelease: true
 
       - name: Publish DotSlash manifest

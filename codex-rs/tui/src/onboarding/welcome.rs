@@ -57,7 +57,7 @@ impl WidgetRef for &WelcomeWidget {
         let suppressed = self.animations_suppressed.get();
         let show_animation = self.animations_enabled
             && !suppressed
-            && self.layout_area.get().map_or(true, |a| {
+            && self.layout_area.get().is_none_or(|a| {
                 a.height >= MIN_ANIMATION_HEIGHT && a.width >= MIN_ANIMATION_WIDTH
             });
 

@@ -185,12 +185,12 @@ impl HistoryCell for GroupedToolCallCell {
             String::new()
         };
 
+        let summary_text = format!("{}{}", names.join(", "), extra);
+        let total_text = fmt_dur(self.entries.iter().filter_map(|e| e.duration).sum());
         let mut lines = vec![Line::from(format!(
-            "{m} {ic} {n} calls · {summary} {total}",
+            "{m} {ic} {n} calls · {summary_text} {total_text}",
             m = marker(all_done, any_failed),
             ic = icon(&self.entries[0].category),
-            summary = format!("{}{}", names.join(", "), extra),
-            total = fmt_dur(self.entries.iter().filter_map(|e| e.duration).sum()),
         ))];
 
         if any_failed {

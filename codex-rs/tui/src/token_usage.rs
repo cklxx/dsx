@@ -142,10 +142,10 @@ pub(crate) fn estimate_session_cost(usage: &TokenUsage, model: &str) -> f64 {
 /// Formats a dollar amount for human-readable display in the status line.
 pub(crate) fn format_cost(amount: f64) -> String {
     if amount < 0.01 {
-        format!("${:.4}", amount)
+        format!("${amount:.4}")
     } else if amount < 1.0 {
-        format!("${:.3}", amount)
+        format!("${amount:.3}")
     } else {
-        format!("${:.2}", amount)
+        format!("${amount:.2}")
     }
 }

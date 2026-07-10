@@ -33,6 +33,7 @@ macro_rules! feedback_tags {
     };
 }
 
+#[allow(dead_code)]
 struct Auth401FeedbackSnapshot<'a> {
     request_id: &'a str,
     cf_ray: &'a str,
@@ -41,6 +42,7 @@ struct Auth401FeedbackSnapshot<'a> {
 }
 
 impl<'a> Auth401FeedbackSnapshot<'a> {
+    #[allow(dead_code)]
     fn from_optional_fields(
         request_id: Option<&'a str>,
         cf_ray: Option<&'a str>,
@@ -56,6 +58,7 @@ impl<'a> Auth401FeedbackSnapshot<'a> {
     }
 }
 
+#[allow(dead_code)]
 pub(crate) fn emit_feedback_auth_recovery_tags(
     auth_recovery_mode: &str,
     auth_recovery_phase: &str,

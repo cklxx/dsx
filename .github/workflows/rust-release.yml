@@ -1,4 +1,4 @@
-# Release workflow for codex-rs.
+# Release workflow for dsx-rs (codex-rs).
 # To release, follow a workflow like:
 # ```
 # git tag -a rust-v0.1.0 -m "Release 0.1.0"
@@ -227,7 +227,7 @@ jobs:
             exit 1
           fi
 
-          # Codex embeds this digest at build time and verifies the bundled
+          # dsx embeds this digest at build time and verifies the bundled
           # bwrap resource before use. Strip bwrap before hashing so the digest
           # covers the exact bytes that the release packages.
           strip --strip-debug --strip-unneeded "$bwrap_path"
@@ -245,7 +245,7 @@ jobs:
           build_args=()
           for binary in ${{ matrix.binaries }}; do
             # bwrap was built, finalized, and hashed before this build so
-            # Codex can embed the digest of the bytes that will be packaged.
+            # dsx can embed the digest of the bytes that will be packaged.
             if [[ "$binary" == "bwrap" ]]; then
               continue
             fi
@@ -266,7 +266,7 @@ jobs:
           binaries=()
           for binary in ${{ matrix.binaries }}; do
             # bwrap is already stripped before hashing. Its symbols are not
-            # useful enough to justify a separate pre-Codex symbols pass.
+            # useful enough to justify a separate pre-dsx symbols pass.
             if [[ "$binary" == "bwrap" ]]; then
               continue
             fi
@@ -366,7 +366,7 @@ jobs:
             "https://github.com/${GITHUB_REPOSITORY}/releases/download/${CODEX_ZSH_RELEASE_TAG}/codex-zsh" \
             -o "${RUNNER_TEMP}/codex-zsh"
 
-      - name: Build Codex package archive
+      - name: Build dsx package archive
         if: ${{ runner.os != 'macOS' }}
         shell: bash
         env:
@@ -663,7 +663,7 @@ jobs:
           target="${{ matrix.target }}"
           release_dir="target/${target}/release"
           dmg_root="${RUNNER_TEMP}/codex-dmg-root-${target}"
-          volname="Codex (${target})"
+          volname="dsx (${target})"
           dmg_path="${release_dir}/codex-${target}.dmg"
 
           rm -rf "$dmg_root"
@@ -718,7 +718,7 @@ jobs:
             "https://github.com/${GITHUB_REPOSITORY}/releases/download/${CODEX_ZSH_RELEASE_TAG}/codex-zsh" \
             -o "${RUNNER_TEMP}/codex-zsh"
 
-      - name: Build Codex package archive
+      - name: Build dsx package archive
         shell: bash
         env:
           TARGET: ${{ matrix.target }}
@@ -1133,7 +1133,7 @@ jobs:
       - name: List
         run: ls -R dist/
 
-      - name: Add Codex package checksum manifest
+      - name: Add dsx package checksum manifest
         run: |
           set -euo pipefail
 
@@ -1149,7 +1149,7 @@ jobs:
             done > "$tmp_manifest"
 
           if [[ ! -s "$tmp_manifest" ]]; then
-            echo "No Codex package archives found for checksum manifest"
+            echo "No dsx package archives found for checksum manifest"
             exit 1
           fi
 
@@ -1324,7 +1324,7 @@ jobs:
 
           root_tarball="dist/npm/codex-npm-${VERSION}.tgz"
           sdk_tarball="dist/npm/codex-sdk-npm-${VERSION}.tgz"
-          # Keep this list in sync with CODEX_PLATFORM_PACKAGES in
+          # Keep this list in sync with DSX_PLATFORM_PACKAGES in
           # codex-cli/scripts/build_npm_package.py. The root wrapper advances
           # @openai/codex@latest as soon as it publishes, so every platform
           # package it aliases must already exist in the registry first.
@@ -1422,10 +1422,10 @@ jobs:
           done
 
   deploy-dev-website:
-    name: Trigger developers.openai.com deploy
+    name: Trigger developers.deepseek.com deploy
     needs: release
     # Only trigger the deploy for a stable release.
-    # The deploy updates developers.openai.com with the new config schema json file.
+    # The deploy updates developers.deepseek.com with the new config schema json file.
     if: >-
       ${{
         !cancelled() &&
@@ -1440,13 +1440,13 @@ jobs:
       deployment: false
 
     steps:
-      - name: Trigger developers.openai.com deploy
+      - name: Trigger developers.deepseek.com deploy
         continue-on-error: true
         env:
           DEV_WEBSITE_VERCEL_DEPLOY_HOOK_URL: ${{ secrets.DEV_WEBSITE_VERCEL_DEPLOY_HOOK_URL }}
         run: |
           if ! curl -sS -f -o /dev/null -X POST "$DEV_WEBSITE_VERCEL_DEPLOY_HOOK_URL"; then
-            echo "::warning title=developers.openai.com deploy hook failed::Vercel deploy hook POST failed for ${GITHUB_REF_NAME}"
+            echo "::warning title=developers.deepseek.com deploy hook failed::Vercel deploy hook POST failed for ${GITHUB_REF_NAME}"
             exit 1
           fi
 
@@ -1474,10 +1474,10 @@ jobs:
       - name: Publish to WinGet
         uses: vedantmgoyal9/winget-releaser@7bd472be23763def6e16bd06cc8b1cdfab0e2fd5
         with:
-          identifier: OpenAI.Codex
+          identifier: DeepSeek.dsx
           version: ${{ needs.release.outputs.version }}
           release-tag: ${{ needs.release.outputs.tag }}
-          fork-user: openai-oss-forks
+          fork-user: deepseek-oss-forks
           installers-regex: '^codex-(?:x86_64|aarch64)-pc-windows-msvc\.exe\.zip$'
           token: ${{ secrets.WINGET_PUBLISH_PAT }}
 

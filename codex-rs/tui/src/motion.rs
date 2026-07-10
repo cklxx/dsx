@@ -69,10 +69,12 @@ fn animated_activity_indicator(start_time: Option<Instant>) -> Span<'static> {
     const BUBBLE: [&str; 6] = ["·", "∘", "○", "●", "○", "∘"];
     let elapsed = start_time.map(|st| st.elapsed()).unwrap_or_default();
     let idx = ((elapsed.as_millis() / 140) as usize) % BUBBLE.len();
+    #[allow(clippy::disallowed_methods)]
+    let fg = Color::Rgb(130, 160, 255);
     Span::styled(
         BUBBLE[idx],
         Style::default()
-            .fg(Color::Rgb(130, 160, 255))
+            .fg(fg)
             .add_modifier(Modifier::BOLD),
     )
 }

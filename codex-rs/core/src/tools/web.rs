@@ -11,6 +11,7 @@
 
 use std::collections::BTreeMap;
 use std::sync::Arc;
+use std::sync::OnceLock;
 use std::time::Duration;
 
 use anyhow::Context as _;
@@ -105,12 +106,18 @@ impl SearchBackend for DuckDuckGoBackend {
 /// Title/URL come from `result__a` anchors; snippets from `result__snippet`
 /// anchors. They are zipped by index — fragile, but adequate for the HTML DDG
 /// currently serves.
+#[allow(clippy::expect_used, clippy::unwrap_used)]
 fn parse_ddg_results(html: &str, max: usize) -> Vec<SearchHit> {
-    let anchor_re =
+    static ANCHOR_RE: OnceLock<Regex> = OnceLock::new();
+    static SNIPPET_RE: OnceLock<Regex> = OnceLock::new();
+    let anchor_re = ANCHOR_RE.get_or_init(|| {
         Regex::new(r#"(?is)<a[^>]*class="result__a"[^>]*href="([^"]*)"[^>]*>(.*?)</a>"#)
-            .expect("static regex compiles");
-    let snippet_re = Regex::new(r#"(?is)<a[^>]*class="result__snippet"[^>]*>(.*?)</a>"#)
-        .expect("static regex compiles");
+            .expect("static regex compiles")
+    });
+    let snippet_re = SNIPPET_RE.get_or_init(|| {
+        Regex::new(r#"(?is)<a[^>]*class="result__snippet"[^>]*>(.*?)</a>"#)
+            .expect("static regex compiles")
+    });
 
     let snippets: Vec<String> = snippet_re
         .captures_iter(html)
@@ -133,7 +140,7 @@ fn parse_ddg_results(html: &str, max: usize) -> Vec<SearchHit> {
 /// Pull out and decode the real target; fall back to the raw href otherwise.
 fn decode_ddg_href(href: &str) -> String {
     let href = href.replace("&amp;", "&");
-    let query = href.splitn(2, '?').nth(1).unwrap_or("");
+    let query = href.split_once('?').map_or("", |(_, q)| q);
     if let Some(target) = url::form_urlencoded::parse(query.as_bytes())
         .find(|(key, _)| key == "uddg")
         .map(|(_, value)| value.into_owned())
@@ -149,10 +156,17 @@ fn decode_ddg_href(href: &str) -> String {
 
 /// Strip HTML to readable text: drop `<script>`/`<style>`, remove remaining
 /// tags, decode a few common entities, and collapse whitespace.
+#[allow(clippy::expect_used, clippy::unwrap_used)]
 pub fn html_to_text(html: &str) -> String {
-    let script_style_re = Regex::new(r"(?is)<(script|style)[^>]*>.*?</(script|style)>")
-        .expect("static regex compiles");
-    let tag_re = Regex::new(r"(?s)<[^>]+>").expect("static regex compiles");
+    static SCRIPT_STYLE_RE: OnceLock<Regex> = OnceLock::new();
+    static TAG_RE: OnceLock<Regex> = OnceLock::new();
+    let script_style_re = SCRIPT_STYLE_RE.get_or_init(|| {
+        Regex::new(r"(?is)<(script|style)[^>]*>.*?</(script|style)>")
+            .expect("static regex compiles")
+    });
+    let tag_re = TAG_RE.get_or_init(|| {
+        Regex::new(r"(?s)<[^>]+>").expect("static regex compiles")
+    });
 
     let without_blocks = script_style_re.replace_all(html, " ");
     let without_tags = tag_re.replace_all(&without_blocks, " ");

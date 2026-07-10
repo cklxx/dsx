@@ -121,6 +121,7 @@ use codex_response_debug_context::extract_response_debug_context_from_api_error;
 use codex_response_debug_context::telemetry_api_error_message;
 use codex_response_debug_context::telemetry_transport_error_message;
 
+#[allow(dead_code)]
 pub const OPENAI_BETA_HEADER: &str = "OpenAI-Beta";
 pub const X_CODEX_INSTALLATION_ID_HEADER: &str = "x-codex-installation-id";
 pub const X_CODEX_TURN_STATE_HEADER: &str = "x-codex-turn-state";
@@ -156,6 +157,7 @@ fn reasoning_effort_for_request(effort: ReasoningEffortConfig) -> ReasoningEffor
     }
 }
 
+#[allow(dead_code)]
 fn session_telemetry_for_request(
     session_telemetry: &SessionTelemetry,
     request: &ResponsesApiRequest,
@@ -181,7 +183,9 @@ struct ModelClientState {
     session_source: SessionSource,
     originator: String,
     model_verbosity: Option<VerbosityConfig>,
+    #[allow(dead_code)]
     enable_request_compression: bool,
+    #[allow(dead_code)]
     include_timing_metrics: bool,
     beta_features_header: Option<String>,
     item_ids_enabled: bool,
@@ -260,7 +264,9 @@ pub struct ModelClientSession {
 
 #[derive(Debug, Clone)]
 struct LastResponse {
+    #[allow(dead_code)]
     response_id: String,
+    #[allow(dead_code)]
     items_added: Vec<ResponseItem>,
 }
 
@@ -1143,6 +1149,7 @@ where
 /// When refresh succeeds, the caller should retry the API call; otherwise
 /// the mapped `CodexErr` is returned to the caller.
 #[derive(Clone, Copy, Debug)]
+#[allow(dead_code)]
 struct UnauthorizedRecoveryExecution {
     mode: &'static str,
     phase: &'static str,
@@ -1156,6 +1163,7 @@ struct PendingUnauthorizedRetry {
 }
 
 impl PendingUnauthorizedRetry {
+    #[allow(dead_code)]
     fn from_recovery(recovery: UnauthorizedRecoveryExecution) -> Self {
         Self {
             retry_after_unauthorized: true,
@@ -1206,6 +1214,7 @@ impl AuthRequestTelemetryContext {
     }
 }
 
+#[allow(dead_code)]
 async fn handle_unauthorized(
     transport: TransportError,
     auth_recovery: &mut Option<UnauthorizedRecovery>,
