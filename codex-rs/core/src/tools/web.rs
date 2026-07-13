@@ -11,6 +11,7 @@
 
 use std::collections::BTreeMap;
 use std::sync::Arc;
+use std::net::IpAddr;
 use std::sync::OnceLock;
 use std::time::Duration;
 
@@ -184,7 +185,75 @@ fn decode_entities(text: &str) -> String {
         .replace("&#x27;", "'")
 }
 
+/// Returns true if the IP is in a private/loopback/link-local/unspecified range.
+fn is_blocked_ip(ip: IpAddr) -> bool {
+    match ip {
+        IpAddr::V4(v4) => {
+            v4.is_loopback()
+                || v4.is_private()
+                || v4.is_link_local()
+                || v4.is_unspecified()
+                || v4.is_broadcast()
+                || v4.is_documentation()
+        }
+        IpAddr::V6(v6) => {
+            v6.is_loopback()
+                || v6.is_unspecified()
+                || v6.is_multicast()
+                || v6.is_unicast_link_local() // fe80::/10
+                || (v6.segments()[0] & 0xfe00) == 0xfc00 // fc00::/7 unique local
+        }
+    }
+}
+
+/// Resolve the URL's hostname and reject it if any resolved IP is in a blocked
+/// range. This prevents SSRF to cloud metadata endpoints, localhost services, etc.
+///
+/// ponytail: this is a best-effort pre-check. It does not prevent DNS rebinding
+/// (the IP checked here may differ from the one reqwest connects to). For full
+/// protection, pair with a reqwest DNS resolver that enforces the same policy.
+async fn validate_url_safety(url: &str) -> Result<()> {
+    let parsed = url::Url::parse(url)
+        .with_context(|| format!("failed to parse URL: {url}"))?;
+
+    let host = parsed
+        .host_str()
+        .ok_or_else(|| anyhow::anyhow!("URL has no host: {url}"))?;
+
+    // Fast path: IP literal.
+    if let Ok(ip) = host.parse::<IpAddr>() {
+        if is_blocked_ip(ip) {
+            anyhow::bail!("URL resolves to a blocked internal address: {ip}");
+        }
+        return Ok(());
+    }
+
+    // Resolve hostname and check all results.
+    let addrs: Vec<_> = tokio::net::lookup_host(format!("{host}:443"))
+        .await
+        .with_context(|| format!("failed to resolve host: {host}"))?
+        .collect();
+
+    if addrs.is_empty() {
+        anyhow::bail!("DNS resolution returned no results for {host}");
+    }
+
+    for addr in &addrs {
+        if is_blocked_ip(addr.ip()) {
+            anyhow::bail!(
+                "URL resolves to a blocked internal address: {} ({})",
+                addr.ip(),
+                host
+            );
+        }
+    }
+
+    Ok(())
+}
+
 async fn fetch_url_as_text(url: &str) -> Result<String> {
+    validate_url_safety(url).await?;
+
     let client = reqwest::Client::builder()
         .user_agent(USER_AGENT)
         .timeout(HTTP_TIMEOUT)
@@ -426,5 +495,62 @@ mod tests {
         let html = "<html><head><style>p{color:red}</style></head><body>\
             <script>alert('x')</script><p>Hello &amp; welcome to   Rust&#39;s world</p></body></html>";
         assert_eq!(html_to_text(html), "Hello & welcome to Rust's world");
+    }
+
+    #[test]
+    fn blocked_ip_detects_private_ranges() {
+        use std::net::Ipv4Addr;
+        use std::net::Ipv6Addr;
+
+        // IPv4 blocked
+        assert!(is_blocked_ip(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1))));
+        assert!(is_blocked_ip(IpAddr::V4(Ipv4Addr::new(10, 0, 0, 1))));
+        assert!(is_blocked_ip(IpAddr::V4(Ipv4Addr::new(172, 16, 0, 1))));
+        assert!(is_blocked_ip(IpAddr::V4(Ipv4Addr::new(192, 168, 1, 1))));
+        assert!(is_blocked_ip(IpAddr::V4(Ipv4Addr::new(169, 254, 169, 254))));
+        assert!(is_blocked_ip(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0))));
+
+        // IPv6 blocked
+        assert!(is_blocked_ip(IpAddr::V6(Ipv6Addr::LOCALHOST)));
+        assert!(is_blocked_ip(IpAddr::V6(Ipv6Addr::UNSPECIFIED)));
+        assert!(is_blocked_ip(IpAddr::V6(
+            "fc00::1".parse().unwrap()
+        )));
+        assert!(is_blocked_ip(IpAddr::V6(
+            "fe80::1".parse().unwrap()
+        )));
+
+        // Public IPs — not blocked
+        assert!(!is_blocked_ip(IpAddr::V4(Ipv4Addr::new(8, 8, 8, 8))));
+        assert!(!is_blocked_ip(IpAddr::V4(Ipv4Addr::new(1, 1, 1, 1))));
+        assert!(!is_blocked_ip(IpAddr::V6(
+            "2001:4860:4860::8888".parse().unwrap()
+        )));
+    }
+
+    #[tokio::test]
+    async fn validate_url_safety_rejects_internal_ips() {
+        // IP literal in URL
+        assert!(validate_url_safety("http://127.0.0.1/admin")
+            .await
+            .is_err());
+        assert!(validate_url_safety("http://169.254.169.254/latest/meta-data/")
+            .await
+            .is_err());
+        assert!(validate_url_safety("http://10.0.0.1/internal")
+            .await
+            .is_err());
+        assert!(validate_url_safety("http://[::1]/admin").await.is_err());
+    }
+
+    #[tokio::test]
+    async fn validate_url_safety_allows_public_urls() {
+        // These should pass DNS resolution and not hit blocked ranges.
+        // Using well-known public hostnames.
+        let result = validate_url_safety("https://www.rust-lang.org/").await;
+        assert!(result.is_ok(), "rust-lang.org should be allowed: {result:?}");
+
+        let result = validate_url_safety("https://example.com/").await;
+        assert!(result.is_ok(), "example.com should be allowed: {result:?}");
     }
 }

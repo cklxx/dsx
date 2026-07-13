@@ -485,7 +485,9 @@ impl ToolRegistry {
                 &tool_result_tags,
                 &extra_trace_fields,
             );
-            let err = FunctionCallError::Fatal(message);
+            // ponytail: surface as RespondToModel so the model can self-correct
+            // instead of killing the entire turn on a payload-format hallucination.
+            let err = FunctionCallError::RespondToModel(message);
             dispatch_trace.record_failed(&err);
             return Err(err);
         }

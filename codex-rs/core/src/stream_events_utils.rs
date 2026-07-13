@@ -485,11 +485,39 @@ pub(crate) async fn handle_output_item_done(
         }
         // The tool request should be answered directly (or was denied); push that response into the transcript.
         Err(FunctionCallError::RespondToModel(message)) => {
-            let response = ResponseInputItem::FunctionCallOutput {
-                call_id: String::new(),
-                output: FunctionCallOutputPayload {
-                    body: FunctionCallOutputBody::Text(message),
-                    ..Default::default()
+            // Extract the real call_id from the original item so history
+            // normalization (remove_orphan_outputs) doesn't drop the error
+            // message — an empty call_id would be treated as orphan and deleted,
+            // leaving the model without feedback on what went wrong.
+            let text_out = |body: String| FunctionCallOutputPayload {
+                body: FunctionCallOutputBody::Text(body),
+                ..Default::default()
+            };
+            let response = match &item {
+                ResponseItem::FunctionCall { call_id, .. } => {
+                    ResponseInputItem::FunctionCallOutput {
+                        call_id: call_id.clone(),
+                        output: text_out(message),
+                    }
+                }
+                ResponseItem::ToolSearchCall { call_id, .. } => {
+                    ResponseInputItem::ToolSearchOutput {
+                        call_id: call_id.clone().unwrap_or_default(),
+                        status: "completed".to_string(),
+                        execution: "client".to_string(),
+                        tools: Vec::new(),
+                    }
+                }
+                ResponseItem::CustomToolCall {
+                    call_id, name, ..
+                } => ResponseInputItem::CustomToolCallOutput {
+                    call_id: call_id.clone(),
+                    name: Some(name.clone()),
+                    output: text_out(message),
+                },
+                _ => ResponseInputItem::FunctionCallOutput {
+                    call_id: String::new(),
+                    output: text_out(message),
                 },
             };
             record_completed_response_item(ctx.sess.as_ref(), ctx.turn_context.as_ref(), &item)

@@ -235,22 +235,11 @@ impl HistoryCell for GroupedToolCallCell {
 
 // ── Public helpers ────────────────────────────────────────────────
 
+const READ_LIKE_CMDS: &[&str] = &[
+    "cat", "head", "tail", "bat", "less", "grep", "rg", "find", "fd", "ag", "ls", "dir", "tree",
+    "du",
+];
+
 pub(crate) fn is_read_like(first_word: &str) -> bool {
-    matches!(
-        first_word,
-        "cat"
-            | "head"
-            | "tail"
-            | "bat"
-            | "less"
-            | "grep"
-            | "rg"
-            | "find"
-            | "fd"
-            | "ag"
-            | "ls"
-            | "dir"
-            | "tree"
-            | "du"
-    )
+    READ_LIKE_CMDS.contains(&first_word)
 }
