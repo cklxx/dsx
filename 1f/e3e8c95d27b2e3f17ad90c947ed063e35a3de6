@@ -1,0 +1,25 @@
+codex-rs/exec/src/event_processor_with_human_output.rs
+  s_30f76bb0963039::t_36f03ba4e1d8cc 444-446
+codex-rs/tui/src/status/card.rs
+  s_30f76bb0963039::t_2cfe71f73ec593 288-290
+codex-rs/utils/sandbox-summary/src/config_summary.rs
+  s_30f76bb0963039::t_9cc23c547cccfc 25-27
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.5",
+  "base_commit_sha": "1fe3e8c95d27b2e3f17ad90c947ed063e35a3de6",
+  "prompts": {},
+  "sessions": {
+    "s_30f76bb0963039": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b87bba04-98c7-4edd-b6c7-5e706732c815",
+        "model": "unknown"
+      },
+      "human_author": "cklxx <q1293822641@gmail.com>"
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
