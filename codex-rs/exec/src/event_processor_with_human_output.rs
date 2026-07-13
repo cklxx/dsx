@@ -441,7 +441,9 @@ fn config_summary_entries(
             ),
         ),
     ];
-    if config.model_provider.wire_api == WireApi::Responses {
+    // dsx: reasoning effort/summaries apply to both Responses and Anthropic
+    // wires — DeepSeek-V4 supports thinking mode over the Anthropic Messages API.
+    if matches!(config.model_provider.wire_api, WireApi::Responses | WireApi::Anthropic) {
         entries.push((
             "reasoning effort",
             config
