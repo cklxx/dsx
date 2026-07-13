@@ -1,0 +1,27 @@
+codex-rs/core/src/stream_events_utils.rs
+  s_30f76bb0963039::t_d1cc54ede6d233 488-520
+codex-rs/core/src/tools/registry.rs
+  s_30f76bb0963039::t_d166391d145abf 488-490
+codex-rs/core/src/tools/web.rs
+  s_30f76bb0963039::t_248bfc4762a359 14,188-253,255-256,499-555
+codex-rs/tui/src/tool_grouper.rs
+  s_30f76bb0963039::t_eebf92398db112 238-242,244
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.5",
+  "base_commit_sha": "8a931ba477edc36d0e8396d778a7e85f37f8a426",
+  "prompts": {},
+  "sessions": {
+    "s_30f76bb0963039": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b87bba04-98c7-4edd-b6c7-5e706732c815",
+        "model": "unknown"
+      },
+      "human_author": "cklxx <q1293822641@gmail.com>"
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
