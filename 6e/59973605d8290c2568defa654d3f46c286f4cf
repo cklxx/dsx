@@ -1,0 +1,75 @@
+codex-rs/app-server/src/request_processors/thread_processor_tests.rs
+  s_10963c9509f80a::t_6c0357a9df959b 689
+codex-rs/app-server/tests/suite/v2/model_provider_capabilities_read.rs
+  s_10963c9509f80a::t_7e21773ca8369c 33-34
+codex-rs/config/src/thread_config.rs
+  s_10963c9509f80a::t_6f790c4f765018 319
+codex-rs/config/src/thread_config/remote.rs
+  s_10963c9509f80a::t_bdf7ac71107a45 193-194,222,480,544
+codex-rs/core/config.schema.json
+  s_10963c9509f80a::t_7cdd129e7a26e2 249,1703-1709,5542
+codex-rs/core/src/compact_tests.rs
+  s_10963c9509f80a::t_2d8b38876e1070 279
+codex-rs/core/src/tools/handlers/mcp_search_tests.rs
+  s_10963c9509f80a::t_8f0ad4da4ddfee 14-16
+codex-rs/core/src/tools/mod.rs
+  s_10963c9509f80a::t_d6dcd7fad0aa5c 37,40-42,44
+codex-rs/core/src/tools/registry.rs
+  s_10963c9509f80a::t_5f0e5cf20dfa4f 32,325-327,332-335,338,341-348,358-363,381-411,493-499
+codex-rs/core/src/tools/registry_tests.rs
+  s_10963c9509f80a::t_ead76a3e24e49c 201-203,210,457-478
+codex-rs/core/src/tools/router_tests.rs
+  s_10963c9509f80a::t_edfe86fe3e015a 106-115,302-303,383-384
+codex-rs/core/src/tools/spec_plan.rs
+  s_10963c9509f80a::t_2928f1072c0989 63,76,92,267-283,286-293,295,335-336,350-357,418,639-644,819-821
+codex-rs/core/src/tools/spec_plan_tests.rs
+  s_10963c9509f80a::t_6b42eb2a999507 246-247,255-265,670,677,696-698,1004-1010,1022,1049,1127,1181,1236,1262,1353,1409-1410,1420-1425,1440
+codex-rs/core/src/tools/web.rs
+  s_10963c9509f80a::t_bd2bbcdc5ce921 14,168,214,513-514,527-537,546-549
+codex-rs/core/tests/common/test_codex.rs
+  s_10963c9509f80a::t_fc50123d4f9c87 700
+codex-rs/core/tests/responses_headers.rs
+  s_10963c9509f80a::t_96162e5ae926d2 91,226,342
+codex-rs/core/tests/suite/client.rs
+  s_10963c9509f80a::t_8b5dbb7e0052e3 1296,1530,2910,3531,3621
+codex-rs/core/tests/suite/stream_error_allows_next_turn.rs
+  s_10963c9509f80a::t_a2602dac602342 84
+codex-rs/core/tests/suite/stream_no_completed.rs
+  s_10963c9509f80a::t_31c35209704bff 67
+codex-rs/login/src/auth_env_telemetry.rs
+  s_10963c9509f80a::t_4f34a3e71ac675 79
+codex-rs/model-provider-info/src/lib.rs
+  s_10963c9509f80a::t_9a8f0eca06d420 143-149,353-354
+codex-rs/model-provider-info/src/model_provider_info_tests.rs
+  s_10963c9509f80a::t_1e914ac0eed29c 32,67,105,158,184,294,313
+codex-rs/model-provider/src/provider.rs
+  s_10963c9509f80a::t_b84551c51420de 10,50-61,273-279,427,484-523
+codex-rs/protocol/src/tool_name.rs
+  s_10963c9509f80a::t_011697ea1e3d36 3,7-8,38-52,95-118
+codex-rs/tools/src/lib.rs
+  s_10963c9509f80a::t_bb9c689811a165 56,63,66,110
+codex-rs/tools/src/responses_api.rs
+  s_10963c9509f80a::t_ddf7274964246e 51-60,117-154
+codex-rs/tools/src/tool_spec.rs
+  s_10963c9509f80a::t_e072fefb199430 4,7,32-51,91-96,101-103,108-109
+codex-rs/tools/src/tool_spec_tests.rs
+  s_10963c9509f80a::t_7fda423428e57a 7,10,12,189-267
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "6e59973605d8290c2568defa654d3f46c286f4cf",
+  "prompts": {},
+  "sessions": {
+    "s_10963c9509f80a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "82ecda95-c49f-4c0b-814e-e84510a44062",
+        "model": "unknown"
+      },
+      "human_author": "cklxx <q1293822641@gmail.com>"
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
