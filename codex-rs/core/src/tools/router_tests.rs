@@ -103,6 +103,16 @@ fn extension_tool_test_registry() -> Arc<ExtensionRegistry<Config>> {
     Arc::new(builder.build())
 }
 
+fn enable_namespace_tools(turn: &mut crate::session::turn_context::TurnContext) {
+    let mut provider_info = turn.config.model_provider.clone();
+    provider_info.namespace_tools = Some(true);
+    let mut config = (*turn.config).clone();
+    config.model_provider = provider_info.clone();
+    turn.config = std::sync::Arc::new(config);
+    turn.provider =
+        codex_model_provider::create_model_provider(provider_info, turn.auth_manager.clone());
+}
+
 #[tokio::test]
 async fn parallel_support_does_not_match_namespaced_local_tool_names() -> anyhow::Result<()> {
     let (session, turn) = make_session_and_context().await;
@@ -289,7 +299,8 @@ async fn tools_without_handlers_do_not_support_parallel() -> anyhow::Result<()> 
 
 #[tokio::test]
 async fn specs_filter_deferred_dynamic_tools() -> anyhow::Result<()> {
-    let (_, turn) = make_session_and_context().await;
+    let (_, mut turn) = make_session_and_context().await;
+    enable_namespace_tools(&mut turn);
     let turn = Arc::new(turn);
     let step_context = StepContext::for_test(Arc::clone(&turn));
     let hidden_tool = "hidden_dynamic_tool";
@@ -369,7 +380,8 @@ fn mcp_tool_info(
 
 #[tokio::test]
 async fn extension_tool_executors_are_model_visible_and_dispatchable() -> anyhow::Result<()> {
-    let (mut session, turn) = make_session_and_context().await;
+    let (mut session, mut turn) = make_session_and_context().await;
+    enable_namespace_tools(&mut turn);
     session.services.extensions = extension_tool_test_registry();
     let turn = Arc::new(turn);
     let step_context = StepContext::for_test(Arc::clone(&turn));

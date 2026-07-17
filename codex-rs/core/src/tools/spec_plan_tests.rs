@@ -243,8 +243,21 @@ fn use_bedrock_provider(turn: &mut TurnContext) {
     provider_info.name = "Custom".to_string();
     provider_info.requires_openai_auth = false;
     provider_info.http_headers = None;
+    // Explicit None → infer: non-OpenAI flattens namespaces.
+    provider_info.namespace_tools = None;
     update_config(turn, |config| {
         config.model_provider_id = "custom".to_string();
+        config.model_provider = provider_info.clone();
+    });
+    turn.provider = create_model_provider(provider_info, turn.auth_manager.clone());
+}
+
+/// Force Responses-style `type: "namespace"` wrappers for tests that assert
+/// that wire shape. DeepSeek defaults to Flatten.
+fn enable_namespace_tools(turn: &mut TurnContext) {
+    let mut provider_info = turn.config.model_provider.clone();
+    provider_info.namespace_tools = Some(true);
+    update_config(turn, |config| {
         config.model_provider = provider_info.clone();
     });
     turn.provider = create_model_provider(provider_info, turn.auth_manager.clone());
@@ -654,12 +667,14 @@ async fn host_context_gates_agent_job_tools() {
 #[tokio::test]
 async fn sleep_tool_follows_current_time_config() {
     let disabled = probe(|turn| {
+        enable_namespace_tools(turn);
         set_feature(turn, Feature::CurrentTimeReminder, /*enabled*/ true);
     })
     .await;
     assert_eq!(disabled.namespace_function_names("clock"), ["curr_time"]);
 
     let enabled = probe(|turn| {
+        enable_namespace_tools(turn);
         set_feature(turn, Feature::CurrentTimeReminder, /*enabled*/ true);
         let mut config = (*turn.config).clone();
         config.current_time_reminder = Some(CurrentTimeReminderConfig {
@@ -678,7 +693,9 @@ async fn sleep_tool_follows_current_time_config() {
 #[tokio::test]
 async fn mcp_and_tool_search_follow_direct_and_deferred_tool_exposure() {
     let direct_mcp = probe_with(
-        |_| {},
+        |turn| {
+            enable_namespace_tools(turn);
+        },
         ToolPlanInputs {
             mcp_tools: Some(vec![mcp_tool("direct", "mcp__direct", "lookup")]),
             ..ToolPlanInputs::default()
@@ -984,7 +1001,13 @@ async fn code_mode_only_exposes_code_executor_and_hides_nested_tools() {
         )],
         ..ToolPlanInputs::default()
     };
-    let plain = probe_with(|_| {}, input).await;
+    let plain = probe_with(
+        |turn| {
+            enable_namespace_tools(turn);
+        },
+        input,
+    )
+    .await;
     assert_eq!(
         plain.namespace_function_names("codex_app"),
         &["lookup".to_string()]
@@ -996,6 +1019,7 @@ async fn code_mode_only_exposes_code_executor_and_hides_nested_tools() {
 
     let code_mode_only = probe_with(
         |turn| {
+            enable_namespace_tools(turn);
             set_features(turn, &[Feature::CodeMode, Feature::CodeModeOnly]);
         },
         ToolPlanInputs {
@@ -1022,6 +1046,7 @@ async fn code_mode_only_exposes_code_executor_and_hides_nested_tools() {
 async fn code_mode_only_exposes_configured_dynamic_namespace_directly() {
     let plan = probe_with(
         |turn| {
+            enable_namespace_tools(turn);
             set_features(turn, &[Feature::CodeMode, Feature::CodeModeOnly]);
             turn.model_info.supports_search_tool = true;
             update_config(turn, |config| {
@@ -1099,6 +1124,7 @@ async fn excluded_deferred_namespaces_do_not_enable_nested_tool_guidance() {
 #[tokio::test]
 async fn multi_agent_feature_selects_one_agent_tool_family() {
     let v1 = probe(|turn| {
+        enable_namespace_tools(turn);
         set_feature(turn, Feature::Collab, /*enabled*/ true);
         set_feature(turn, Feature::MultiAgentV2, /*enabled*/ false);
     })
@@ -1152,6 +1178,7 @@ async fn multi_agent_feature_selects_one_agent_tool_family() {
     }
 
     let v2 = probe(|turn| {
+        enable_namespace_tools(turn);
         set_feature(turn, Feature::MultiAgentV2, /*enabled*/ true);
         update_config(turn, |config| {
             config.multi_agent_v2.max_concurrent_threads_per_session = 17;
@@ -1206,6 +1233,7 @@ async fn multi_agent_feature_selects_one_agent_tool_family() {
     ));
 
     let direct_model_only = probe(|turn| {
+        enable_namespace_tools(turn);
         set_features(
             turn,
             &[
@@ -1231,6 +1259,7 @@ async fn multi_agent_feature_selects_one_agent_tool_family() {
 #[tokio::test]
 async fn multi_agent_v2_message_schemas_are_encrypted() {
     let plan = probe(|turn| {
+        enable_namespace_tools(turn);
         set_feature(turn, Feature::MultiAgentV2, /*enabled*/ true);
     })
     .await;
@@ -1321,6 +1350,7 @@ async fn v1_multi_agent_tools_defer_when_tool_search_available() {
 #[tokio::test]
 async fn multi_agent_v2_can_use_configured_tool_namespace() {
     let namespaced = probe(|turn| {
+        enable_namespace_tools(turn);
         set_feature(turn, Feature::MultiAgentV2, /*enabled*/ true);
         update_config(turn, |config| {
             config.multi_agent_v2.tool_namespace = Some("agents".to_string());
@@ -1376,6 +1406,8 @@ async fn multi_agent_v2_can_use_configured_tool_namespace() {
 
 #[tokio::test]
 async fn multi_agent_v2_namespace_is_supported_by_bedrock_provider() {
+    // Non-OpenAI providers flatten namespaces: model sees agents__spawn_agent,
+    // while the runtime remains namespaced for dispatch/hooks.
     let plan = probe(|turn| {
         set_feature(turn, Feature::MultiAgentV2, /*enabled*/ true);
         update_config(turn, |config| {
@@ -1385,8 +1417,12 @@ async fn multi_agent_v2_namespace_is_supported_by_bedrock_provider() {
     })
     .await;
 
-    plan.assert_visible_contains(&["agents"]);
-    plan.assert_visible_lacks(&["spawn_agent", "send_message", "list_agents"]);
+    plan.assert_visible_contains(&[
+        "agents__spawn_agent",
+        "agents__send_message",
+        "agents__list_agents",
+    ]);
+    plan.assert_visible_lacks(&["agents", "spawn_agent", "send_message", "list_agents"]);
     assert!(
         !plan
             .registered_names
@@ -1401,6 +1437,7 @@ async fn multi_agent_v2_namespace_is_supported_by_bedrock_provider() {
 #[tokio::test]
 async fn code_mode_only_can_expose_namespaced_multi_agent_v2_as_normal_tools() {
     let plan = probe(|turn| {
+        enable_namespace_tools(turn);
         set_features(
             turn,
             &[

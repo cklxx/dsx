@@ -198,14 +198,16 @@ async fn function_tools_expose_default_hook_payloads_and_rewrites() -> anyhow::R
     assert_eq!(
         handler.pre_tool_use_payload(&invocation),
         Some(PreToolUsePayload {
-            tool_name: HookToolName::new("functions.echo"),
+            // flat_tool_name uses canonical_flat_name: trims trailing `_` from
+            // namespace and leading `_` from name, then joins with `__`.
+            tool_name: HookToolName::new("functions.__echo"),
             tool_input: serde_json::json!({ "message": "hello" }),
         })
     );
     assert_eq!(
         handler.post_tool_use_payload(&invocation, &output),
         Some(PostToolUsePayload {
-            tool_name: HookToolName::new("functions.echo"),
+            tool_name: HookToolName::new("functions.__echo"),
             tool_use_id: "call-1".to_string(),
             tool_input: serde_json::json!({ "message": "hello" }),
             tool_response: serde_json::json!("echoed"),
@@ -449,6 +451,28 @@ async fn dispatch_notifies_tool_lifecycle_contributors() -> anyhow::Result<()> {
         .collect::<Vec<_>>();
     assert_eq!(expected, actual);
 
+    Ok(())
+}
+
+#[tokio::test]
+async fn flat_alias_dispatches_namespaced_tool() -> anyhow::Result<()> {
+    let (session, turn) = crate::session::tests::make_session_and_context().await;
+    let logical = codex_tools::ToolName::namespaced("mcp__orders__", "lookup");
+    let handler = Arc::new(TestHandler {
+        tool_name: logical.clone(),
+    }) as Arc<dyn CoreToolRuntime>;
+    let registry = ToolRegistry::from_tools_with_namespace_tool_spec_mode(
+        [handler],
+        codex_tools::NamespaceToolSpecMode::Flatten,
+    );
+
+    let flat = codex_tools::ToolName::plain("mcp__orders__lookup");
+    let invocation = test_invocation(Arc::new(session), Arc::new(turn), "call-flat", flat);
+    let result = registry
+        .dispatch_any(invocation)
+        .await
+        .expect("flat alias should resolve");
+    assert_eq!(result.call_id, "call-flat");
     Ok(())
 }
 

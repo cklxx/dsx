@@ -4,9 +4,12 @@ use crate::AdditionalProperties;
 use crate::FreeformTool;
 use crate::FreeformToolFormat;
 use crate::JsonSchema;
+use crate::NamespaceToolSpecMode;
 use crate::ResponsesApiNamespaceTool;
 use crate::ResponsesApiTool;
+use crate::create_tools_json_for_anthropic;
 use crate::create_tools_json_for_responses_api;
+use crate::serialize_tool_specs;
 use pretty_assertions::assert_eq;
 use serde_json::json;
 use std::collections::BTreeMap;
@@ -181,5 +184,84 @@ fn tool_search_tool_spec_serializes_expected_wire_shape() {
                 "additionalProperties": false,
             },
         })
+    );
+}
+
+#[test]
+fn namespace_tool_specs_flatten_to_canonical_function_names() {
+    let specs = serialize_tool_specs(
+        [ToolSpec::Namespace(ResponsesApiNamespace {
+            name: "mcp__demo__".to_string(),
+            description: "Demo tools".to_string(),
+            tools: vec![ResponsesApiNamespaceTool::Function(ResponsesApiTool {
+                name: "__lookup_order".to_string(),
+                description: "Look up an order".to_string(),
+                strict: false,
+                defer_loading: None,
+                parameters: JsonSchema::default(),
+                output_schema: None,
+            })],
+        })],
+        NamespaceToolSpecMode::Flatten,
+    );
+
+    assert_eq!(
+        specs,
+        vec![ToolSpec::Function(ResponsesApiTool {
+            name: "mcp__demo__lookup_order".to_string(),
+            description: "Look up an order".to_string(),
+            strict: false,
+            defer_loading: None,
+            parameters: JsonSchema::default(),
+            output_schema: None,
+        })]
+    );
+}
+
+#[test]
+fn create_tools_json_for_anthropic_flattens_namespaces_with_stable_names() {
+    let tools = create_tools_json_for_anthropic(&[
+        ToolSpec::Function(ResponsesApiTool {
+            name: "shell".to_string(),
+            description: "Run a command".to_string(),
+            strict: false,
+            defer_loading: None,
+            parameters: JsonSchema::default(),
+            output_schema: None,
+        }),
+        ToolSpec::Namespace(ResponsesApiNamespace {
+            name: "mcp__orders__".to_string(),
+            description: "Orders".to_string(),
+            tools: vec![ResponsesApiNamespaceTool::Function(ResponsesApiTool {
+                name: "lookup".to_string(),
+                description: "Look up an order".to_string(),
+                strict: false,
+                defer_loading: None,
+                parameters: JsonSchema::default(),
+                output_schema: None,
+            })],
+        }),
+        ToolSpec::Namespace(ResponsesApiNamespace {
+            name: "mcp__users__".to_string(),
+            description: "Users".to_string(),
+            tools: vec![ResponsesApiNamespaceTool::Function(ResponsesApiTool {
+                name: "lookup".to_string(),
+                description: "Look up a user".to_string(),
+                strict: false,
+                defer_loading: None,
+                parameters: JsonSchema::default(),
+                output_schema: None,
+            })],
+        }),
+    ])
+    .expect("serialize anthropic tools");
+
+    let names: Vec<&str> = tools
+        .iter()
+        .filter_map(|tool| tool.get("name").and_then(|value| value.as_str()))
+        .collect();
+    assert_eq!(
+        names,
+        vec!["shell", "mcp__orders__lookup", "mcp__users__lookup",]
     );
 }

@@ -10,8 +10,8 @@
 //! and `read_url` function-tool calls, not by parsing those tags.
 
 use std::collections::BTreeMap;
-use std::sync::Arc;
 use std::net::IpAddr;
+use std::sync::Arc;
 use std::sync::OnceLock;
 use std::time::Duration;
 
@@ -165,9 +165,7 @@ pub fn html_to_text(html: &str) -> String {
         Regex::new(r"(?is)<(script|style)[^>]*>.*?</(script|style)>")
             .expect("static regex compiles")
     });
-    let tag_re = TAG_RE.get_or_init(|| {
-        Regex::new(r"(?s)<[^>]+>").expect("static regex compiles")
-    });
+    let tag_re = TAG_RE.get_or_init(|| Regex::new(r"(?s)<[^>]+>").expect("static regex compiles"));
 
     let without_blocks = script_style_re.replace_all(html, " ");
     let without_tags = tag_re.replace_all(&without_blocks, " ");
@@ -213,8 +211,7 @@ fn is_blocked_ip(ip: IpAddr) -> bool {
 /// (the IP checked here may differ from the one reqwest connects to). For full
 /// protection, pair with a reqwest DNS resolver that enforces the same policy.
 async fn validate_url_safety(url: &str) -> Result<()> {
-    let parsed = url::Url::parse(url)
-        .with_context(|| format!("failed to parse URL: {url}"))?;
+    let parsed = url::Url::parse(url).with_context(|| format!("failed to parse URL: {url}"))?;
 
     let host = parsed
         .host_str()
@@ -513,12 +510,8 @@ mod tests {
         // IPv6 blocked
         assert!(is_blocked_ip(IpAddr::V6(Ipv6Addr::LOCALHOST)));
         assert!(is_blocked_ip(IpAddr::V6(Ipv6Addr::UNSPECIFIED)));
-        assert!(is_blocked_ip(IpAddr::V6(
-            "fc00::1".parse().unwrap()
-        )));
-        assert!(is_blocked_ip(IpAddr::V6(
-            "fe80::1".parse().unwrap()
-        )));
+        assert!(is_blocked_ip(IpAddr::V6("fc00::1".parse().unwrap())));
+        assert!(is_blocked_ip(IpAddr::V6("fe80::1".parse().unwrap())));
 
         // Public IPs — not blocked
         assert!(!is_blocked_ip(IpAddr::V4(Ipv4Addr::new(8, 8, 8, 8))));
@@ -531,15 +524,17 @@ mod tests {
     #[tokio::test]
     async fn validate_url_safety_rejects_internal_ips() {
         // IP literal in URL
-        assert!(validate_url_safety("http://127.0.0.1/admin")
-            .await
-            .is_err());
-        assert!(validate_url_safety("http://169.254.169.254/latest/meta-data/")
-            .await
-            .is_err());
-        assert!(validate_url_safety("http://10.0.0.1/internal")
-            .await
-            .is_err());
+        assert!(validate_url_safety("http://127.0.0.1/admin").await.is_err());
+        assert!(
+            validate_url_safety("http://169.254.169.254/latest/meta-data/")
+                .await
+                .is_err()
+        );
+        assert!(
+            validate_url_safety("http://10.0.0.1/internal")
+                .await
+                .is_err()
+        );
         assert!(validate_url_safety("http://[::1]/admin").await.is_err());
     }
 
@@ -548,7 +543,10 @@ mod tests {
         // These should pass DNS resolution and not hit blocked ranges.
         // Using well-known public hostnames.
         let result = validate_url_safety("https://www.rust-lang.org/").await;
-        assert!(result.is_ok(), "rust-lang.org should be allowed: {result:?}");
+        assert!(
+            result.is_ok(),
+            "rust-lang.org should be allowed: {result:?}"
+        );
 
         let result = validate_url_safety("https://example.com/").await;
         assert!(result.is_ok(), "example.com should be allowed: {result:?}");

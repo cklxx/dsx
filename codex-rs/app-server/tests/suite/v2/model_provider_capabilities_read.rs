@@ -30,7 +30,8 @@ async fn read_default_provider_capabilities() -> Result<()> {
     let received: ModelProviderCapabilitiesReadResponse = to_response(response)?;
 
     let expected = ModelProviderCapabilitiesReadResponse {
-        namespace_tools: true,
+        // Default built-in is DeepSeek Anthropic — no namespace wrappers.
+        namespace_tools: false,
         image_generation: true,
         web_search: true,
     };

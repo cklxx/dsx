@@ -697,6 +697,7 @@ impl TestCodexBuilder {
             // Most core tests use SSE-only mock servers, so keep websocket transport off unless
             // a test explicitly opts into websocket coverage.
             supports_websockets: false,
+            namespace_tools: None,
             ..built_in_model_providers()["deepseek"].clone()
         };
         let cwd = Arc::new(TempDir::new()?);

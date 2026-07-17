@@ -246,7 +246,7 @@
       "description": "Determines the conditions under which the user is consulted to approve running the command proposed by Codex.",
       "oneOf": [
         {
-          "description": "Under this policy, only \"known safe\" commands—as determined by `is_safe_command()`—that **only read files** are auto‑approved. Everything else will ask the user to approve.",
+          "description": "Under this policy, only \"known safe\" commands\u2014as determined by `is_safe_command()`\u2014that **only read files** are auto\u2011approved. Everything else will ask the user to approve.",
           "enum": [
             "untrusted"
           ],
@@ -1699,6 +1699,13 @@
           "default": false,
           "description": "Whether this provider supports the Responses API WebSocket transport.",
           "type": "boolean"
+        },
+        "namespace_tools": {
+          "description": "Whether this provider accepts Codex's `type: \"namespace\"` tool wrapper. `None` means infer from provider type: OpenAI-auth / Azure-style Responses providers keep namespaces; everyone else (including DeepSeek Anthropic) flattens. Set explicitly to override.",
+          "type": [
+            "boolean",
+            "null"
+          ]
         },
         "websocket_connect_timeout_ms": {
           "description": "Maximum time (in milliseconds) to wait for a websocket connection attempt before treating it as failed.",

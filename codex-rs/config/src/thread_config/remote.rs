@@ -190,6 +190,8 @@ fn model_provider_from_proto(
         websocket_connect_timeout_ms: provider.websocket_connect_timeout_ms,
         requires_openai_auth: provider.requires_openai_auth,
         supports_websockets: provider.supports_websockets,
+        // Thread-config proto has no namespace_tools field yet; infer at runtime.
+        namespace_tools: None,
     };
     Ok((id, info))
 }
@@ -217,6 +219,7 @@ fn model_provider_to_proto(
         websocket_connect_timeout_ms,
         requires_openai_auth,
         supports_websockets,
+        namespace_tools: _,
     } = provider;
 
     proto::ModelProvider {
@@ -474,6 +477,7 @@ mod tests {
                             websocket_connect_timeout_ms: Some(10_000),
                             requires_openai_auth: false,
                             supports_websockets: true,
+                            namespace_tools: None,
                         }],
                         features: HashMap::from([
                             ("plugins".to_string(), false),
@@ -537,6 +541,7 @@ mod tests {
             websocket_connect_timeout_ms: Some(10_000),
             requires_openai_auth: false,
             supports_websockets: true,
+            namespace_tools: None,
             aws: None,
         }
     }

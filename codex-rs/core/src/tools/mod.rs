@@ -34,19 +34,14 @@ pub(crate) const TELEMETRY_PREVIEW_MAX_LINES: usize = 64; // lines
 pub(crate) const TELEMETRY_PREVIEW_TRUNCATION_NOTICE: &str =
     "[... telemetry preview truncated ...]";
 
-/// Legacy boundaries such as hook payloads, telemetry tags, and Responses tool
+/// Legacy boundaries such as hook payloads, telemetry tags, and wire tool
 /// names still require a single flattened string. Keep comparisons and sorting
 /// on `ToolName` itself; use this only when crossing those boundaries.
+///
+/// Delegates to [`ToolName::canonical_flat_name`] so Anthropic/DeepSeek wire
+/// names, registry aliases, and hook matchers agree.
 pub(crate) fn flat_tool_name(tool_name: &ToolName) -> Cow<'_, str> {
-    match tool_name.namespace.as_deref() {
-        Some(namespace) => {
-            let mut name = String::with_capacity(namespace.len() + tool_name.name.len());
-            name.push_str(namespace);
-            name.push_str(&tool_name.name);
-            Cow::Owned(name)
-        }
-        None => Cow::Borrowed(tool_name.name.as_str()),
-    }
+    tool_name.canonical_flat_name()
 }
 
 pub(crate) fn tool_user_shell_type(

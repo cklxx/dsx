@@ -7,6 +7,7 @@ use std::sync::Arc;
 use codex_api::ApiError;
 use codex_api::Provider;
 use codex_api::SharedAuthProvider;
+use codex_api::is_azure_responses_provider;
 use codex_login::AuthManager;
 use codex_login::CodexAuth;
 use codex_model_provider_info::ModelProviderInfo;
@@ -44,6 +45,18 @@ impl Default for ProviderCapabilities {
             web_search: true,
         }
     }
+}
+
+/// Resolve whether a provider wire can carry `type: "namespace"` tools.
+///
+/// Explicit `ModelProviderInfo.namespace_tools` wins. Otherwise: OpenAI-auth
+/// Responses providers keep namespaces; Anthropic/DeepSeek and other
+/// non-OpenAI providers flatten.
+fn resolve_namespace_tools(info: &ModelProviderInfo) -> bool {
+    info.namespace_tools.unwrap_or_else(|| {
+        info.requires_openai_auth
+            || is_azure_responses_provider(&info.name, info.base_url.as_deref())
+    })
 }
 
 /// Current app-visible account state for a model provider.
@@ -257,6 +270,13 @@ impl ModelProvider for ConfiguredModelProvider {
         &self.info
     }
 
+    fn capabilities(&self) -> ProviderCapabilities {
+        ProviderCapabilities {
+            namespace_tools: resolve_namespace_tools(&self.info),
+            ..ProviderCapabilities::default()
+        }
+    }
+
     fn auth_manager(&self) -> Option<Arc<AuthManager>> {
         self.auth_manager.clone()
     }
@@ -404,6 +424,7 @@ mod tests {
             websocket_connect_timeout_ms: None,
             requires_openai_auth: false,
             supports_websockets: false,
+            namespace_tools: None,
         }
     }
 
@@ -460,7 +481,46 @@ mod tests {
             /*auth_manager*/ None,
         );
 
-        assert_eq!(provider.capabilities(), ProviderCapabilities::default());
+        // Non-OpenAI providers flatten namespaces by default.
+        assert_eq!(
+            provider.capabilities(),
+            ProviderCapabilities {
+                namespace_tools: false,
+                ..ProviderCapabilities::default()
+            }
+        );
+    }
+
+    #[test]
+    fn configured_non_openai_provider_flattens_namespace_tools() {
+        let provider = create_model_provider(
+            provider_for("https://example.test/v1".to_string()),
+            /*auth_manager*/ None,
+        );
+
+        assert!(!provider.capabilities().namespace_tools);
+    }
+
+    #[test]
+    fn deepseek_provider_flattens_namespace_tools() {
+        let provider = create_model_provider(
+            ModelProviderInfo::create_deepseek_provider(),
+            /*auth_manager*/ None,
+        );
+        assert!(!provider.capabilities().namespace_tools);
+    }
+
+    #[test]
+    fn configured_provider_namespace_tools_honors_explicit_override() {
+        let mut non_openai = provider_for("https://example.test/v1".to_string());
+        non_openai.namespace_tools = Some(true);
+        let provider = create_model_provider(non_openai, /*auth_manager*/ None);
+        assert!(provider.capabilities().namespace_tools);
+
+        let mut deepseek = ModelProviderInfo::create_deepseek_provider();
+        deepseek.namespace_tools = Some(true);
+        let provider = create_model_provider(deepseek, /*auth_manager*/ None);
+        assert!(provider.capabilities().namespace_tools);
     }
 
     #[test]

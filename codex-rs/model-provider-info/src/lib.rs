@@ -140,6 +140,13 @@ pub struct ModelProviderInfo {
     /// Whether this provider supports the Responses API WebSocket transport.
     #[serde(default)]
     pub supports_websockets: bool,
+    /// Whether this provider accepts Codex's `type: "namespace"` tool wrapper.
+    ///
+    /// `None` means "infer from provider type": OpenAI-auth / Azure-style
+    /// Responses providers keep namespaces; everyone else (including DeepSeek
+    /// Anthropic) flattens. Set explicitly to override.
+    #[serde(default)]
+    pub namespace_tools: Option<bool>,
 }
 
 /// AWS SigV4 auth configuration for a model provider.
@@ -343,6 +350,8 @@ impl ModelProviderInfo {
             websocket_connect_timeout_ms: None,
             requires_openai_auth: false,
             supports_websockets: false,
+            // DeepSeek's Anthropic Messages wire has no namespace wrapper.
+            namespace_tools: Some(false),
         }
     }
 
