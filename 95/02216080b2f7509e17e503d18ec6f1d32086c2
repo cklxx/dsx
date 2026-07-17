@@ -1,0 +1,25 @@
+README.md
+  s_10963c9509f80a::t_309761a17530c2 25
+codex-rs/Cargo.toml
+  s_10963c9509f80a::t_c10cd0dc6076c2 128
+tools/argument-comment-lint/Cargo.toml
+  s_10963c9509f80a::t_202b6973e40a59 3
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "9502216080b2f7509e17e503d18ec6f1d32086c2",
+  "prompts": {},
+  "sessions": {
+    "s_10963c9509f80a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "82ecda95-c49f-4c0b-814e-e84510a44062",
+        "model": "unknown"
+      },
+      "human_author": "cklxx <q1293822641@gmail.com>"
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
