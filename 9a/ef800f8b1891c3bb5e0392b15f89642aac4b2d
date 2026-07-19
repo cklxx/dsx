@@ -1,0 +1,425 @@
+.github/actions/linux-code-sign/action.yml
+  s_b6860bfd5f68ab::t_b64110ceecda34 12
+.github/actions/windows-code-sign/action.yml
+  s_b6860bfd5f68ab::t_59dbab53412b28 9
+.github/dotslash-config.json
+  s_3e4e9d27684922::t_5b77861d07a629 3,7,11,15,19,23,27
+.github/dsx-identity-policy.json
+  s_36dcb490221138::t_3f97273b739fd9 2-4
+.github/scripts/build-codex-package-archive.sh
+  s_3e4e9d27684922::t_9d0e3f9b24df53 96
+.github/scripts/check_dsx_identity.py
+  s_36dcb490221138::t_8ff7cb70c538e6 1,3,5,7-30,33-178,180-189,191-196,198-217,219-224,227-247,249-253,256-267,270-364,366-375,379-400
+.github/scripts/test_check_dsx_identity.py
+  s_36dcb490221138::t_542c0255a86d83 1-49,52-65,67-136
+.github/workflows/blocking-ci.yml
+  s_36dcb490221138::t_12990d0623ce14 31-32
+.github/workflows/repo-checks.yml
+  s_36dcb490221138::t_a075b6d4716e54 5-10,23,26-38
+.github/workflows/rust-release-windows.yml
+  s_e6dc4add1ab0c6::t_63dbe0ff121290 10,31,36,361,363
+.github/workflows/rust-release.yml
+  s_e6dc4add1ab0c6::t_14e2343002b241 86,98,111,123,349,351-353,500,508,618,628,914,924,1000,1213,1297-1300,1321,1324,1327-1332,1345,1364,1376-1377,1381
+MODULE.bazel.lock
+  s_23bee13e97233c::t_e1a230ee67052a 636,642,689,715-716,722,829-831,858,878,891,894,909,917,961,1107,1145,1147,1151,1159,1176,1180,1182-1183,1192,1198,1219,1284,1329,1337,1339,1343,1355,1386,1429,1432,1435,1464,1493,1505,1507,1509,1514,1518,1537,1549,1590-1591,1602,1622,1626,1656,1658,1831,1845,1858,1867,1869,1881
+README.md
+  s_e6dc4add1ab0c6::t_0bc78d62f396ac 55,61,76-86
+codex-cli/bin/dsx.js
+  s_adda4c08301cec::t_7da4faf77088d2 2,16-21,78,87,93-94,100-101,103,107,116
+codex-cli/scripts/README.md
+  s_b6860bfd5f68ab::t_a911eae044ddbc 4,9,15-16
+codex-cli/scripts/build_npm_package.py
+  s_b6860bfd5f68ab::t_842ff43939673a 2,17,20-22,28-29,35-36,42-43,49-50,56-57,66,70-76,82,88,92-93,173,180,215,223,233-234,243,246,248,252,255,259,273,276-279,281-282,293
+codex-rs/app-server-daemon/README.md
+  s_5975113cc9da18::t_35e800e9590a81 1,3,5,7-11,14,16-17,20
+codex-rs/app-server-daemon/src/backend/mod.rs
+  s_5975113cc9da18::t_58512d0f9164d1 23
+codex-rs/app-server-daemon/src/backend/pid.rs
+  s_5975113cc9da18::t_699d3f1dedf86e 68,381,386,390,394
+codex-rs/app-server-daemon/src/backend/pid_tests.rs
+  s_e6dc4add1ab0c6::t_57c98f18565d84 21,45,61,89,102
+codex-rs/app-server-daemon/src/lib.rs
+  s_e6dc4add1ab0c6::t_43879cfa39b72f 131,138,151,164,172,176,189,222,267,269,274-275,282-283,291,302-303,317-318,321
+codex-rs/app-server-daemon/src/managed_install.rs
+  s_5975113cc9da18::t_44994b76793a33 29,35,41-42,47,56
+codex-rs/app-server-daemon/src/managed_install_tests.rs
+  s_9ceb2ac563b451::t_baba53effa1d56 3,6-10
+codex-rs/app-server-protocol/schema/typescript/ClientRequest.ts
+  s_5975113cc9da18::t_a1958401123834 89
+codex-rs/app-server-protocol/schema/typescript/ServerNotification.ts
+  s_5975113cc9da18::t_6eb90e6db15f5b 75
+codex-rs/app-server-protocol/schema/typescript/ServerRequest.ts
+  s_5975113cc9da18::t_643f292e63866b 18
+codex-rs/app-server-protocol/schema/typescript/v2/ConfigRequirements.ts
+  s_5975113cc9da18::t_f73b224e00e92f 12
+codex-rs/app-server-protocol/schema/typescript/v2/GetAccountParams.ts
+  s_5975113cc9da18::t_53ea2742422cc5 5
+codex-rs/app-server-protocol/src/protocol/common.rs
+  s_e6dc4add1ab0c6::t_0f0e4c9612c190 1892,2472
+codex-rs/app-server-protocol/src/protocol/v2/account.rs
+  s_5975113cc9da18::t_75aabb6e3977d3 206
+codex-rs/app-server-transport/src/transport/mod.rs
+  s_5975113cc9da18::t_d9edeeb747dfa9 101-103,107
+codex-rs/app-server-transport/src/transport/unix_socket.rs
+  s_b6860bfd5f68ab::t_a1d81f818bb99c 6-8,26-27,100,139-176,185
+codex-rs/app-server-transport/src/transport/unix_socket_tests.rs
+  s_b6860bfd5f68ab::t_bb0a1e4f23b84b 6,194-236
+codex-rs/app-server-transport/src/transport/websocket.rs
+  s_b6860bfd5f68ab::t_ed141caaec7355 58
+codex-rs/app-server/README.md
+  s_e6dc4add1ab0c6::t_516431f7e35cdd 1,3,22,26-27,31-34,43,61,64-65,1907,1909,1911,1913-1916,1918,1921,1924,1927,1930,1941,1945-1946,1949-1950
+codex-rs/app-server/src/config/external_agent_config_tests.rs
+  s_626f4dee4de287::t_f7f813becb21e0 704
+codex-rs/app-server/src/lib.rs
+  s_5975113cc9da18::t_a2a78403e072ed 691,725,728
+codex-rs/app-server/src/main.rs
+  s_5975113cc9da18::t_74742951dcf599 25-28,60
+codex-rs/app-server/src/message_processor.rs
+  s_5975113cc9da18::t_d8c142c455ed7c 311-312
+codex-rs/app-server/src/request_processors/account_processor.rs
+  s_5975113cc9da18::t_e0b09e500f1691 3,18,36,38-48,88,98-102
+codex-rs/app-server/tests/suite/v2/config_rpc.rs
+  s_e6dc4add1ab0c6::t_90a03b28bd1094 52,56-61,73-1146,1148-1152,1154-1157
+codex-rs/cli/BUILD.bazel
+  s_adda4c08301cec::t_49aecd75e8468f 14
+codex-rs/cli/src/doctor.rs
+  s_e6dc4add1ab0c6::t_a0637e7e03e7e2 439,1224,1242
+codex-rs/cli/src/doctor/output.rs
+  s_e6dc4add1ab0c6::t_622726170802e0 74,422,886,1131,1171,1175,1204,1216,1239,1243,1257,1268,1270,1344,1348,1362,1373,1375
+codex-rs/cli/src/doctor/snapshots/codex__doctor__output__tests__doctor_human_report_environment_rows.snap
+  s_e6dc4add1ab0c6::t_6d8039116831cb 5,9,38
+codex-rs/cli/src/main.rs
+  s_5975113cc9da18::t_6566b5aa959210 70,109,124,238,248,308,419,423-426,462,608,769,774,940,948,1087,1335,1408,1417,1421,1423,1427,1432,1445,1452,1713,1718,1744,1801,1987,2128,2130-2131,2133,2144,2149-2151,2153-2156,2160-2162,2166,2528-2543,2789,2806,2834,3081-3097,3109-3110,3193
+codex-rs/core/config.schema.json
+  s_e6dc4add1ab0c6::t_a3ba70a922fe2f 249,1651-1655,5506
+codex-rs/core/src/config/mod.rs
+  s_e6dc4add1ab0c6::t_5dbb67f4803451 3388-3394,3399-3404,3863,3892,4291,4295
+codex-rs/core/src/stream_events_utils.rs
+  s_626f4dee4de287::t_2b2cb8c0a08f61 511-517
+codex-rs/exec-server/src/remote.rs
+  s_626f4dee4de287::t_7d37521c54e124 405
+codex-rs/exec/src/cli.rs
+  s_e6dc4add1ab0c6::t_61e69eb00a16b1 12,19,26
+codex-rs/exec/src/event_processor_with_human_output.rs
+  s_5975113cc9da18::t_123ae55ed3d05f 100,214,408,442-445
+codex-rs/exec/src/lib.rs
+  s_e6dc4add1ab0c6::t_8048f856772aa2 349
+codex-rs/model-provider-info/src/lib.rs
+  s_36dcb490221138::t_23616e95c9fdf0 224-234
+codex-rs/skills/src/assets/samples/imagegen/SKILL.md
+  s_e6dc4add1ab0c6::t_ba158532719a8f 129
+codex-rs/skills/src/assets/samples/skill-creator/SKILL.md
+  s_e6dc4add1ab0c6::t_fc4039bccbb97d 305-306
+codex-rs/skills/src/assets/samples/skill-installer/scripts/install-skill-from-github.py
+  s_e6dc4add1ab0c6::t_8714fd480967da 46
+codex-rs/skills/src/assets/samples/skill-installer/scripts/list-skills.py
+  s_e6dc4add1ab0c6::t_6fc433e71f07fc 35
+codex-rs/tui/src/app.rs
+  s_e6dc4add1ab0c6::t_abc688dc391b03 78,1133-1138,1140-1145,1147-1153,1155-1156,1158-1164,1166-1168,1171-1179,1181-1190
+codex-rs/tui/src/app/app_server_event_targets.rs
+  s_5975113cc9da18::t_7bc5149b595477 30,179
+codex-rs/tui/src/app/event_dispatch.rs
+  s_5975113cc9da18::t_6d7e6c80c7b652 320
+codex-rs/tui/src/app/history_ui.rs
+  s_e6dc4add1ab0c6::t_92dbd9beaa8b03 1,98
+codex-rs/tui/src/app/side.rs
+  s_5975113cc9da18::t_e272b5554cbc36 100
+codex-rs/tui/src/app/snapshots/codex_tui__app__thread_goal_actions__tests__thread_goal_ephemeral_error_message_renders_snapshot.snap
+  s_e6dc4add1ab0c6::t_5633c08d2ec59c 8
+codex-rs/tui/src/app/tests/session_summary.rs
+  s_e6dc4add1ab0c6::t_bec27821ce75b6 61,88
+codex-rs/tui/src/app/thread_goal_actions.rs
+  s_e6dc4add1ab0c6::t_573fe0a38f73b2 20
+codex-rs/tui/src/app_server_session.rs
+  s_5975113cc9da18::t_3d9f65d66b2719 384
+codex-rs/tui/src/bottom_pane/chat_composer.rs
+  s_e6dc4add1ab0c6::t_5bf39f876fee7d 4496,4550,4588,4637,4810,4832,4891,4919,4970,5006,5043,5072,5341,5370,5408,5439,5474,5513,5544,5569,5593,5619,5687,5720,5761,5795,5826,5866,5899,5945,5987,6030,6070,6096,6126,6170,6210,6243,6281,6462,6502,6748,6775,6808,6851,6892,6936,6985,7037,7069,7105,7136,7160,7194,7243,7281,7334,7379,7409,7445,7478,7507,7536,7570,7598,7640,7685,7726,7842,7870,7901,7929,7952,7983,8006,8037,8060,8091,8114,8141,8202,8251,8285,8323,8367,8403,8452,8488,8521,8547,8581,8627,8655,8685,8710,8751,8773,8794,8826,8854,8883,8910,8957,8995,9053,9132,9209,9251,9296,9333,9382,9420,9454,9488,9520,9575,9626,9659,9684,9717,9749,9781,9813,9848,9873,9916,9959,10002,10055,10094,10123,10166,10192,10252,10315,10356,10380,10417,10456,10485,10532,10571,10596,10626,10669,10694,10719,10753,10794,10814,10834,10854,10879,10913,10939,10966,10994,11015,11040,11077,11097,11142,11179
+codex-rs/tui/src/bottom_pane/mod.rs
+  s_e6dc4add1ab0c6::t_ff3ba797de945b 1900,2001,2021,2049,2299,2366,2393,2424,2447,2476,2513,2545,2576,2605,2628,2676,2711,2747,2795,2906,2954,3032
+codex-rs/tui/src/bottom_pane/snapshots/codex_tui__bottom_pane__chat_composer__tests__empty.snap
+  s_e6dc4add1ab0c6::t_d3906e98b02990 6
+codex-rs/tui/src/bottom_pane/snapshots/codex_tui__bottom_pane__chat_composer__tests__footer_collapse_empty_full.snap
+  s_e6dc4add1ab0c6::t_5deaff85dcce18 6
+codex-rs/tui/src/bottom_pane/snapshots/codex_tui__bottom_pane__chat_composer__tests__footer_collapse_empty_mode_cycle_with_context.snap
+  s_e6dc4add1ab0c6::t_5db26d495fb29c 6
+codex-rs/tui/src/bottom_pane/snapshots/codex_tui__bottom_pane__chat_composer__tests__footer_collapse_empty_mode_cycle_without_context.snap
+  s_e6dc4add1ab0c6::t_89feb561ba88f0 6
+codex-rs/tui/src/bottom_pane/snapshots/codex_tui__bottom_pane__chat_composer__tests__footer_collapse_plan_empty_full.snap
+  s_e6dc4add1ab0c6::t_12f675417d2683 6
+codex-rs/tui/src/bottom_pane/snapshots/codex_tui__bottom_pane__chat_composer__tests__footer_collapse_plan_empty_mode_cycle_with_context.snap
+  s_e6dc4add1ab0c6::t_7a3dda8ae0f6d0 6
+codex-rs/tui/src/bottom_pane/snapshots/codex_tui__bottom_pane__chat_composer__tests__footer_collapse_plan_empty_mode_cycle_without_context.snap
+  s_e6dc4add1ab0c6::t_50ce51e4fdd0fb 6
+codex-rs/tui/src/bottom_pane/snapshots/codex_tui__bottom_pane__chat_composer__tests__footer_mode_ctrl_c_interrupt.snap
+  s_e6dc4add1ab0c6::t_ea5902f3943022 6
+codex-rs/tui/src/bottom_pane/snapshots/codex_tui__bottom_pane__chat_composer__tests__footer_mode_ctrl_c_quit.snap
+  s_e6dc4add1ab0c6::t_78b0cfb2f7806e 6
+codex-rs/tui/src/bottom_pane/snapshots/codex_tui__bottom_pane__chat_composer__tests__footer_mode_ctrl_c_then_esc_hint.snap
+  s_e6dc4add1ab0c6::t_929be09c99d0e0 6
+codex-rs/tui/src/bottom_pane/snapshots/codex_tui__bottom_pane__chat_composer__tests__footer_mode_esc_hint_backtrack.snap
+  s_e6dc4add1ab0c6::t_880b3f08e0e5c8 6
+codex-rs/tui/src/bottom_pane/snapshots/codex_tui__bottom_pane__chat_composer__tests__footer_mode_esc_hint_from_overlay.snap
+  s_e6dc4add1ab0c6::t_c0bad6a4535adb 6
+codex-rs/tui/src/bottom_pane/snapshots/codex_tui__bottom_pane__chat_composer__tests__footer_mode_overlay_then_external_esc_hint.snap
+  s_e6dc4add1ab0c6::t_3549198ab0f2eb 6
+codex-rs/tui/src/bottom_pane/snapshots/codex_tui__bottom_pane__chat_composer__tests__footer_mode_shell_command_escape_exits_empty_mode.snap
+  s_e6dc4add1ab0c6::t_52d211747034b5 7
+codex-rs/tui/src/bottom_pane/snapshots/codex_tui__bottom_pane__chat_composer__tests__footer_mode_shortcut_overlay.snap
+  s_1b51eca4d8162b::t_e281ff69ec8f09 6
+codex-rs/tui/src/bottom_pane/snapshots/codex_tui__bottom_pane__chat_composer__tests__footer_mode_shortcut_overlay_queue_submissions.snap
+  s_1b51eca4d8162b::t_74354a6b0b3558 6
+codex-rs/tui/src/bottom_pane/snapshots/codex_tui__bottom_pane__command_popup__tests__command_popup_default_items.snap
+  s_e6dc4add1ab0c6::t_39b63e65bce9c9 7,13,23,37-38
+codex-rs/tui/src/bottom_pane/snapshots/codex_tui__bottom_pane__tests__queued_messages_visible_when_status_hidden_snapshot.snap
+  s_1b51eca4d8162b::t_9e5427324facb4 10
+codex-rs/tui/src/bottom_pane/snapshots/codex_tui__bottom_pane__tests__status_and_composer_fill_height_without_bottom_padding.snap
+  s_1b51eca4d8162b::t_0878304b63b856 8
+codex-rs/tui/src/bottom_pane/snapshots/codex_tui__bottom_pane__tests__status_and_queued_messages_snapshot.snap
+  s_1b51eca4d8162b::t_10388de395867c 11
+codex-rs/tui/src/bottom_pane/snapshots/codex_tui__bottom_pane__tests__status_only_snapshot.snap
+  s_1b51eca4d8162b::t_7effefd8802029 8
+codex-rs/tui/src/bottom_pane/snapshots/codex_tui__bottom_pane__tests__status_with_details_and_queued_messages_snapshot.snap
+  s_1b51eca4d8162b::t_6c964708b9bf15 13
+codex-rs/tui/src/chatwidget/protocol.rs
+  s_5975113cc9da18::t_449f85a252fb18 226
+codex-rs/tui/src/chatwidget/slash_dispatch.rs
+  s_e6dc4add1ab0c6::t_c3c5ba3d099b76 180
+codex-rs/tui/src/chatwidget/snapshots/codex_tui__chatwidget__tests__app_server_guardian_review_denied_renders_denied_request.snap
+  s_1b51eca4d8162b::t_f79909635d3c6b 18
+codex-rs/tui/src/chatwidget/snapshots/codex_tui__chatwidget__tests__app_server_guardian_review_timed_out_renders_timed_out_request.snap
+  s_1b51eca4d8162b::t_aff6f1a7b3addd 18
+codex-rs/tui/src/chatwidget/snapshots/codex_tui__chatwidget__tests__app_server_mcp_startup_failure_renders_warning_history.snap
+  s_1b51eca4d8162b::t_df0d0a38b67acc 12
+codex-rs/tui/src/chatwidget/snapshots/codex_tui__chatwidget__tests__chatwidget_tall.snap
+  s_1b51eca4d8162b::t_787916d9429c7d 26
+codex-rs/tui/src/chatwidget/snapshots/codex_tui__chatwidget__tests__compact_queues_user_messages_snapshot.snap
+  s_1b51eca4d8162b::t_c6162b00c69ed3 20
+codex-rs/tui/src/chatwidget/snapshots/codex_tui__chatwidget__tests__esc_interrupt_goal_paused_footer.snap
+  s_1b51eca4d8162b::t_7f61d57289765e 9
+codex-rs/tui/src/chatwidget/snapshots/codex_tui__chatwidget__tests__esc_interrupt_goal_paused_footer@windows.snap
+  s_1b51eca4d8162b::t_ceaf4801c77e1c 9
+codex-rs/tui/src/chatwidget/snapshots/codex_tui__chatwidget__tests__guardian_approved_exec_renders_approved_request.snap
+  s_1b51eca4d8162b::t_0f43d4dd5a6b59 14
+codex-rs/tui/src/chatwidget/snapshots/codex_tui__chatwidget__tests__guardian_approved_request_permissions_renders_request_summary.snap
+  s_1b51eca4d8162b::t_e16e35cb09639c 14
+codex-rs/tui/src/chatwidget/snapshots/codex_tui__chatwidget__tests__guardian_denied_exec_renders_warning_and_denied_request.snap
+  s_1b51eca4d8162b::t_be904c50f36869 22
+codex-rs/tui/src/chatwidget/snapshots/codex_tui__chatwidget__tests__guardian_parallel_reviews_render_aggregate_status.snap
+  s_1b51eca4d8162b::t_9ca5715a3a72c1 10
+codex-rs/tui/src/chatwidget/snapshots/codex_tui__chatwidget__tests__guardian_timed_out_exec_renders_warning_and_timed_out_request.snap
+  s_1b51eca4d8162b::t_f773624427f055 22
+codex-rs/tui/src/chatwidget/snapshots/codex_tui__chatwidget__tests__mcp_startup_header_booting.snap
+  s_1b51eca4d8162b::t_8099a534c4b6cb 9
+codex-rs/tui/src/chatwidget/snapshots/codex_tui__chatwidget__tests__pending_token_activity_refresh_renders_above_composer_snapshot.snap
+  s_1b51eca4d8162b::t_47f1e3267dd5ff 12
+codex-rs/tui/src/chatwidget/snapshots/codex_tui__chatwidget__tests__personality_selection_popup.snap
+  s_1b51eca4d8162b::t_b5ef82233970f3 5
+codex-rs/tui/src/chatwidget/snapshots/codex_tui__chatwidget__tests__preamble_keeps_working_status.snap
+  s_1b51eca4d8162b::t_e85766267ef431 9
+codex-rs/tui/src/chatwidget/snapshots/codex_tui__chatwidget__tests__renamed_thread_footer_title.snap
+  s_1b51eca4d8162b::t_87de27d39d748c 7
+codex-rs/tui/src/chatwidget/snapshots/codex_tui__chatwidget__tests__replayed_interrupted_reconnect_footer_row.snap
+  s_1b51eca4d8162b::t_6dc3d3054991da 5
+codex-rs/tui/src/chatwidget/snapshots/codex_tui__chatwidget__tests__review_queues_user_messages_snapshot.snap
+  s_1b51eca4d8162b::t_3c5a6bc645b934 20
+codex-rs/tui/src/chatwidget/snapshots/codex_tui__chatwidget__tests__slash_archive_confirmation_popup.snap
+  s_1b51eca4d8162b::t_e5e00137df9cb1 6
+codex-rs/tui/src/chatwidget/snapshots/codex_tui__chatwidget__tests__slash_side_requests_forked_side_question_while_task_running.snap
+  s_1b51eca4d8162b::t_0f707184ebc1ef 9
+codex-rs/tui/src/chatwidget/snapshots/codex_tui__chatwidget__tests__status_line_fast_mode_footer.snap
+  s_1b51eca4d8162b::t_f59ffbdd7b37c2 7
+codex-rs/tui/src/chatwidget/snapshots/codex_tui__chatwidget__tests__status_line_goal_active_token_budget_footer.snap
+  s_1b51eca4d8162b::t_6fabb3a7a5760e 7
+codex-rs/tui/src/chatwidget/snapshots/codex_tui__chatwidget__tests__status_line_goal_complete_elapsed_footer.snap
+  s_1b51eca4d8162b::t_06cd8dfc7f6f1b 7
+codex-rs/tui/src/chatwidget/snapshots/codex_tui__chatwidget__tests__status_line_model_with_reasoning_context_remaining_footer.snap
+  s_1b51eca4d8162b::t_11cbb603a655f0 7
+codex-rs/tui/src/chatwidget/snapshots/codex_tui__chatwidget__tests__status_line_model_with_reasoning_fast_footer.snap
+  s_1b51eca4d8162b::t_3e1cda314d4364 7
+codex-rs/tui/src/chatwidget/snapshots/codex_tui__chatwidget__tests__status_line_model_with_reasoning_plan_mode_footer.snap
+  s_1b51eca4d8162b::t_b5fa0c8c2fe37d 7
+codex-rs/tui/src/chatwidget/snapshots/codex_tui__chatwidget__tests__status_widget_active.snap
+  s_1b51eca4d8162b::t_7289a22645e091 9
+codex-rs/tui/src/chatwidget/snapshots/codex_tui__chatwidget__tests__thread_name_update_resume_hint.snap
+  s_1b51eca4d8162b::t_6a8abb7adc93a1 5
+codex-rs/tui/src/chatwidget/snapshots/codex_tui__chatwidget__tests__unified_exec_begin_restores_working_status.snap
+  s_e6dc4add1ab0c6::t_b78dd6d69b7f8f 9
+codex-rs/tui/src/chatwidget/snapshots/codex_tui__chatwidget__tests__unified_exec_wait_status_renders_command_in_single_details_row.snap
+  s_e6dc4add1ab0c6::t_675c0d7f111b3f 9
+codex-rs/tui/src/chatwidget/tests/helpers.rs
+  s_e6dc4add1ab0c6::t_411d7aec5f238a 204
+codex-rs/tui/src/chatwidget/tests/slash_commands.rs
+  s_e6dc4add1ab0c6::t_87c2dda53a77cb 1581
+codex-rs/tui/src/cli.rs
+  s_e6dc4add1ab0c6::t_27e24327116408 15,19,28
+codex-rs/tui/src/history_cell/notices.rs
+  s_d14056290298b8::t_0451aae4306fb8 1
+codex-rs/tui/src/history_cell/session.rs
+  s_e6dc4add1ab0c6::t_76835fafa1cc48 148,166,176
+codex-rs/tui/src/keymap_setup.rs
+  s_e6dc4add1ab0c6::t_a621ac6aa516ef 870
+codex-rs/tui/src/lib.rs
+  s_e6dc4add1ab0c6::t_52b2b55d42c932 952
+codex-rs/tui/src/motion.rs
+  s_d14056290298b8::t_4f83820bb2143d 76
+codex-rs/tui/src/onboarding/auth.rs
+  s_5975113cc9da18::t_5b249ed6c6a7fa 96-97,786-792,811,815-817,820-843,845-846,848-850,853-854
+codex-rs/tui/src/onboarding/welcome.rs
+  s_d14056290298b8::t_7395b683b35eab 60-63
+codex-rs/tui/src/public_widgets/composer_input.rs
+  s_36dcb490221138::t_cc5e7044401c12 3-5
+codex-rs/tui/src/session_archive_commands.rs
+  s_e6dc4add1ab0c6::t_3360e03691baba 330
+codex-rs/tui/src/slash_command.rs
+  s_e6dc4add1ab0c6::t_c51305523731a0 86,95,100,118,125,138
+codex-rs/tui/src/status/card.rs
+  s_d14056290298b8::t_9394c5cbf1fb9b 290-293
+codex-rs/utils/cli/src/resume_command.rs
+  s_e6dc4add1ab0c6::t_902eafa44bda34 1,15,17,26,41,50,63,66,69,79,91
+codex-rs/utils/home-dir/src/lib.rs
+  s_5e2ea1280d1798::t_92acf034412e00 6,10,27-28
+codex-rs/utils/sandbox-summary/src/config_summary.rs
+  s_626f4dee4de287::t_85f8c619b22096 27-30
+docs/install.md
+  s_e6dc4add1ab0c6::t_6491287759126e 13,19-20,34-35,38,54,59-60,63
+dsx-gui/README.md
+  s_b6860bfd5f68ab::t_8d9b454c7299e8 5,26,30,37,39-40,42,50
+dsx-gui/server.py
+  s_b6860bfd5f68ab::t_e1a25a306cd283 6,15,151-161,167,259
+dsx-gui/src/composables/useApp.js
+  s_b6860bfd5f68ab::t_7c938e042b8e27 29-32
+dsx-gui/src/composables/useRpc.js
+  s_b6860bfd5f68ab::t_cab5584d554e7c 130,138,141
+dsx-gui/start.sh
+  s_b6860bfd5f68ab::t_1a0e80fb134636 26,68-70,73
+justfile
+  s_adda4c08301cec::t_086de7cda79481 14-17,19,21,41,94-103,112,117-118,121-122
+pnpm-lock.yaml
+  s_9198a6377859c9::t_55b275abe07c1d 1454
+scripts/codex_package/targets.py
+  s_3e4e9d27684922::t_a3851d07fa43a3 52-53
+scripts/codex_package/test_cargo.py
+  s_3e4e9d27684922::t_cc0cd7c7617725 17-25,85
+scripts/install/install.ps1
+  s_3e4e9d27684922::t_3971e8c50a43f8 85,226,264,269,295,303,539,563,605,684,693,743,756,758,760,779,799,829-832,918-920,922-924
+scripts/install/install.sh
+  s_3e4e9d27684922::t_85909e42f2dd17 9-10,132,138,287,516,522,532,602-603,607-608,612-613,617-618,624-625,667,680,684,705-707,732-733,738,763-764,766,773,853,863,865,867,894,936
+scripts/stage_npm_packages.py
+  s_e6dc4add1ab0c6::t_2041c7751a2e04 2,22,39,58,469-471
+tools/argument-comment-lint/Cargo.lock
+  s_e6dc4add1ab0c6::t_a78582b42ce630 16,18,37,39,66,68,72,81,83,87,89-95,99,101,108,110,127,132,134,187-217,247,249,253,282,292,307,331,333,337,339,347,349,376,378,382,384,427,429,433,442,453,455,474,476,480,488,490,501,503,515,517,521,523,535,537,541,543,567,569,583,585,588,608,610,614,616,618-619,627-635,638,640,642,645,650,652,654,666,668,672,674,686,688,695,697,709,711,727,729,733,735,739,741,782,784,812,814,818,820,824,826,833,835,842,844,851,853,877,879,889,891,900,902,910,932,941,943,947,949,957,959,967,969,976,978,982,987,989,1000,1002,1009,1011,1015,1017,1027,1029-1040,1055,1060,1062,1076,1117,1119,1121,1132,1137,1139,1143,1148,1150,1168,1182,1184,1186,1191,1193,1388-1389,1391,1395,1397,1411,1413,1422,1424,1428,1434,1436,1443,1445,1449,1455,1457,1466,1468,1477,1479,1483,1488,1490
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "9aef800f8b1891c3bb5e0392b15f89642aac4b2d",
+  "prompts": {},
+  "sessions": {
+    "s_1b51eca4d8162b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ada5b1762c231937b",
+        "model": "unknown"
+      },
+      "human_author": "cklxx <q1293822641@gmail.com>"
+    },
+    "s_23bee13e97233c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-aec4f8c0360bbf7e9",
+        "model": "unknown"
+      },
+      "human_author": "cklxx <q1293822641@gmail.com>"
+    },
+    "s_36dcb490221138": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7b9cb5a8-0faf-4813-ae7b-a2c6741c7298",
+        "model": "unknown"
+      },
+      "human_author": "cklxx <q1293822641@gmail.com>"
+    },
+    "s_3e4e9d27684922": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ab3aa20760686fdcf",
+        "model": "unknown"
+      },
+      "human_author": "cklxx <q1293822641@gmail.com>"
+    },
+    "s_5975113cc9da18": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a79717d6021b1fe7c",
+        "model": "unknown"
+      },
+      "human_author": "cklxx <q1293822641@gmail.com>"
+    },
+    "s_5e2ea1280d1798": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a6dd3756f3e82391d",
+        "model": "unknown"
+      },
+      "human_author": "cklxx <q1293822641@gmail.com>"
+    },
+    "s_626f4dee4de287": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ab3edc90adba9049e",
+        "model": "unknown"
+      },
+      "human_author": "cklxx <q1293822641@gmail.com>"
+    },
+    "s_9198a6377859c9": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a5f86f06fe8bfd0c9",
+        "model": "unknown"
+      },
+      "human_author": "cklxx <q1293822641@gmail.com>"
+    },
+    "s_9ceb2ac563b451": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a49c19b8f6f967180",
+        "model": "unknown"
+      },
+      "human_author": "cklxx <q1293822641@gmail.com>"
+    },
+    "s_adda4c08301cec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a428ed7a38725e094",
+        "model": "unknown"
+      },
+      "human_author": "cklxx <q1293822641@gmail.com>"
+    },
+    "s_b6860bfd5f68ab": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "0c439ad1-042d-4961-89d0-69aab6538606",
+        "model": "unknown"
+      },
+      "human_author": "cklxx <q1293822641@gmail.com>"
+    },
+    "s_d14056290298b8": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a16c908cc109e02a5",
+        "model": "unknown"
+      },
+      "human_author": "cklxx <q1293822641@gmail.com>"
+    },
+    "s_e6dc4add1ab0c6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "88776054-fcb9-4e17-8316-219d7f47da55",
+        "model": "unknown"
+      },
+      "human_author": "cklxx <q1293822641@gmail.com>"
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
