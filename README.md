@@ -22,7 +22,7 @@ dsx lives in your terminal and works alongside you on real code: it reads the re
 ### Download binary (macOS ARM64)
 
 ```bash
-curl -fsSL https://github.com/cklxx/dsx/releases/download/v0.1.2/dsx-0.1.2-darwin-arm64.tar.gz | tar xz
+curl -fsSL https://github.com/cklxx/dsx/releases/download/v0.2.0/dsx-0.2.0-darwin-arm64.tar.gz | tar xz
 sudo mv dsx /usr/local/bin/
 ```
 
