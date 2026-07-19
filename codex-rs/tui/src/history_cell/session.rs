@@ -71,13 +71,6 @@ fn with_border_internal(
     out
 }
 
-/// Return the emoji followed by a hair space (U+200A).
-/// Using only the hair space avoids excessive padding after the emoji while
-/// still providing a small visual gap across terminals.
-pub(crate) fn padded_emoji(emoji: &str) -> String {
-    format!("{emoji}\u{200A}")
-}
-
 #[derive(Debug)]
 struct TooltipHistoryCell {
     tip: String,
@@ -152,7 +145,7 @@ pub(crate) fn new_session_info(
         session.reasoning_effort.clone(),
         show_fast_status,
         config.cwd.to_path_buf(),
-        CODEX_CLI_VERSION,
+        env!("CARGO_PKG_VERSION"),
     )
     .with_yolo_mode(has_yolo_permissions(
         session.approval_policy,
@@ -170,7 +163,7 @@ pub(crate) fn new_session_info(
             Line::from(vec![
                 "  ".into(),
                 "/init".into(),
-                " - create an AGENTS.md file with instructions for Codex".dim(),
+                " - create an AGENTS.md file with instructions for DSX".dim(),
             ]),
             Line::from(vec![
                 "  ".into(),
@@ -180,7 +173,7 @@ pub(crate) fn new_session_info(
             Line::from(vec![
                 "  ".into(),
                 "/permissions".into(),
-                " - choose what Codex is allowed to do".dim(),
+                " - choose what DSX is allowed to do".dim(),
             ]),
             Line::from(vec![
                 "  ".into(),

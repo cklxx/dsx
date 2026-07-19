@@ -3,6 +3,9 @@ use std::io::ErrorKind;
 use std::io::Result as IoResult;
 use std::path::Path;
 
+#[cfg(unix)]
+use std::os::unix::fs::PermissionsExt;
+
 use super::TransportEvent;
 use crate::transport::websocket::run_websocket_connection;
 use codex_uds::UnixListener;
@@ -20,6 +23,8 @@ use tracing::warn;
 
 #[cfg(unix)]
 const CONTROL_SOCKET_MODE: u32 = 0o600;
+#[cfg(unix)]
+const CONTROL_SOCKET_DIR_MODE: u32 = 0o700;
 
 pub async fn start_control_socket_acceptor(
     socket_path: AbsolutePathBuf,
@@ -92,7 +97,7 @@ async fn run_control_socket_acceptor(
 
 pub async fn prepare_control_socket_path(socket_path: &Path) -> IoResult<()> {
     if let Some(parent) = socket_path.parent() {
-        codex_uds::prepare_private_socket_directory(parent).await?;
+        prepare_control_socket_directory(parent).await?;
     }
 
     match UnixStream::connect(socket_path).await {
@@ -131,6 +136,44 @@ pub async fn prepare_control_socket_path(socket_path: &Path) -> IoResult<()> {
     tokio::fs::remove_file(socket_path).await
 }
 
+#[cfg(unix)]
+async fn prepare_control_socket_directory(socket_dir: &Path) -> IoResult<()> {
+    let mut builder = tokio::fs::DirBuilder::new();
+    builder.mode(CONTROL_SOCKET_DIR_MODE);
+    match builder.create(socket_dir).await {
+        Ok(()) => return Ok(()),
+        Err(err) if err.kind() == ErrorKind::AlreadyExists => {}
+        Err(err) => return Err(err),
+    }
+
+    let metadata = tokio::fs::symlink_metadata(socket_dir).await?;
+    if !metadata.is_dir() {
+        return Err(std::io::Error::new(
+            ErrorKind::AlreadyExists,
+            format!(
+                "control socket directory path exists and is not a directory: {}",
+                socket_dir.display()
+            ),
+        ));
+    }
+    let mode = metadata.permissions().mode() & 0o777;
+    if mode != CONTROL_SOCKET_DIR_MODE {
+        return Err(std::io::Error::new(
+            ErrorKind::PermissionDenied,
+            format!(
+                "control socket directory {} must have mode 0700; found {mode:04o}",
+                socket_dir.display()
+            ),
+        ));
+    }
+    Ok(())
+}
+
+#[cfg(not(unix))]
+async fn prepare_control_socket_directory(socket_dir: &Path) -> IoResult<()> {
+    codex_uds::prepare_private_socket_directory(socket_dir).await
+}
+
 pub struct AppServerStartupLock {
     _file: std::fs::File,
 }
@@ -139,7 +182,7 @@ pub async fn acquire_app_server_startup_lock(
     startup_lock_path: AbsolutePathBuf,
 ) -> IoResult<AppServerStartupLock> {
     if let Some(parent) = startup_lock_path.as_path().parent() {
-        codex_uds::prepare_private_socket_directory(parent).await?;
+        prepare_control_socket_directory(parent).await?;
     }
     tokio::task::spawn_blocking(move || {
         let file = OpenOptions::new()
@@ -157,8 +200,6 @@ pub async fn acquire_app_server_startup_lock(
 
 #[cfg(unix)]
 async fn set_control_socket_permissions(socket_path: &Path) -> IoResult<()> {
-    use std::os::unix::fs::PermissionsExt;
-
     tokio::fs::set_permissions(
         socket_path,
         std::fs::Permissions::from_mode(CONTROL_SOCKET_MODE),

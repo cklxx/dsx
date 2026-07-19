@@ -246,7 +246,7 @@
       "description": "Determines the conditions under which the user is consulted to approve running the command proposed by Codex.",
       "oneOf": [
         {
-          "description": "Under this policy, only \"known safe\" commands\u2014as determined by `is_safe_command()`\u2014that **only read files** are auto\u2011approved. Everything else will ask the user to approve.",
+          "description": "Under this policy, only \"known safe\" commands—as determined by `is_safe_command()`—that **only read files** are auto‑approved. Everything else will ask the user to approve.",
           "enum": [
             "untrusted"
           ],
@@ -387,9 +387,6 @@
         },
         "approvals_reviewer": {
           "$ref": "#/definitions/ApprovalsReviewer"
-        },
-        "chatgpt_base_url": {
-          "type": "string"
         },
         "experimental_compact_prompt_file": {
           "$ref": "#/definitions/AbsolutePathBuf"
@@ -1052,20 +1049,6 @@
       },
       "type": "object"
     },
-    "ForcedChatgptWorkspaceIds": {
-      "anyOf": [
-        {
-          "type": "string"
-        },
-        {
-          "items": {
-            "type": "string"
-          },
-          "type": "array"
-        }
-      ],
-      "description": "Backward-compatible shape for ChatGPT workspace login restrictions in config.toml."
-    },
     "ForcedLoginMethod": {
       "enum": [
         "chatgpt",
@@ -1665,6 +1648,11 @@
           "description": "Friendly display name.",
           "type": "string"
         },
+        "namespace_tools": {
+          "default": null,
+          "description": "Whether this provider accepts Codex's `type: \"namespace\"` tool wrapper.\n\n`None` means \"infer from provider type\": OpenAI-auth / Azure-style Responses providers keep namespaces; everyone else (including DeepSeek Anthropic) flattens. Set explicitly to override.",
+          "type": "boolean"
+        },
         "query_params": {
           "additionalProperties": {
             "type": "string"
@@ -1699,13 +1687,6 @@
           "default": false,
           "description": "Whether this provider supports the Responses API WebSocket transport.",
           "type": "boolean"
-        },
-        "namespace_tools": {
-          "description": "Whether this provider accepts Codex's `type: \"namespace\"` tool wrapper. `None` means infer from provider type: OpenAI-auth / Azure-style Responses providers keep namespaces; everyone else (including DeepSeek Anthropic) flattens. Set explicitly to override.",
-          "type": [
-            "boolean",
-            "null"
-          ]
         },
         "websocket_connect_timeout_ms": {
           "description": "Maximum time (in milliseconds) to wait for a websocket connection attempt before treating it as failed.",
@@ -4687,14 +4668,6 @@
       "minimum": 0.0,
       "type": "integer"
     },
-    "chatgpt_base_url": {
-      "description": "Base URL for requests to ChatGPT (as opposed to the OpenAI API).",
-      "type": "string"
-    },
-    "check_for_update_on_startup": {
-      "description": "When `true`, checks for Codex updates on startup and surfaces update prompts. Set to `false` only if your Codex updates are centrally managed. Defaults to `true`.",
-      "type": "boolean"
-    },
     "cli_auth_credentials_store": {
       "allOf": [
         {
@@ -5116,15 +5089,6 @@
         }
       ],
       "description": "Optional URI-based file opener. If set, citations to files in the model output will be hyperlinked using the specified URI scheme."
-    },
-    "forced_chatgpt_workspace_id": {
-      "allOf": [
-        {
-          "$ref": "#/definitions/ForcedChatgptWorkspaceIds"
-        }
-      ],
-      "default": null,
-      "description": "When set, restricts ChatGPT login to one or more workspace identifiers."
     },
     "forced_login_method": {
       "allOf": [

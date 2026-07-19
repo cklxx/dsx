@@ -35,10 +35,6 @@ const GROUPS: &[OutputGroup] = &[
         keys: &["config", "auth", "mcp", "sandbox"],
     },
     OutputGroup {
-        title: "Updates",
-        keys: &["updates"],
-    },
-    OutputGroup {
         title: "Connectivity",
         keys: &["network", "websocket", "reachability"],
     },
@@ -75,7 +71,7 @@ pub(super) fn render_human_report(report: &DoctorReport, options: HumanOutputOpt
     let _ = writeln!(
         out,
         "{} {}",
-        bold("Codex Doctor", options),
+        bold("DSX Doctor", options),
         dim(&header_suffix(report), options)
     );
     out.push('\n');
@@ -248,7 +244,6 @@ fn issue_summary(check: &DoctorCheck) -> String {
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum DisplayStatus {
     Ok,
-    Update,
     Note,
     Warning,
     Fail,
@@ -283,7 +278,6 @@ fn status_marker(status: DisplayStatus, options: HumanOutputOptions) -> String {
     let marker = if options.ascii {
         match status {
             DisplayStatus::Ok => "[ok]",
-            DisplayStatus::Update => "[up]",
             DisplayStatus::Note | DisplayStatus::Warning => "[!!]",
             DisplayStatus::Fail => "[XX]",
             DisplayStatus::Idle => "[--]",
@@ -291,7 +285,6 @@ fn status_marker(status: DisplayStatus, options: HumanOutputOptions) -> String {
     } else {
         match status {
             DisplayStatus::Ok => "✓",
-            DisplayStatus::Update => "↑",
             DisplayStatus::Note | DisplayStatus::Warning => "⚠",
             DisplayStatus::Fail => "✗",
             DisplayStatus::Idle => "○",
@@ -300,7 +293,6 @@ fn status_marker(status: DisplayStatus, options: HumanOutputOptions) -> String {
 
     match status {
         DisplayStatus::Ok => green(marker, options),
-        DisplayStatus::Update => amber(marker, options),
         DisplayStatus::Note | DisplayStatus::Warning => orange(marker, options),
         DisplayStatus::Fail => red(marker, options),
         DisplayStatus::Idle => dim(marker, options),
@@ -320,7 +312,6 @@ fn style_description(
     let highlighted = highlight_actions(description, options);
     match status {
         DisplayStatus::Ok | DisplayStatus::Idle => dim(&highlighted, options),
-        DisplayStatus::Update => amber(&highlighted, options),
         DisplayStatus::Note | DisplayStatus::Warning | DisplayStatus::Fail => highlighted,
     }
 }
@@ -333,33 +324,7 @@ fn detail_marker(is_issue: bool, options: HumanOutputOptions) -> String {
 }
 
 fn style_note_summary(note: &DoctorNote, options: HumanOutputOptions) -> String {
-    if note.status == DisplayStatus::Update {
-        return style_update_note_summary(&note.summary, options);
-    }
     style_description(&note.summary, note.status, options)
-}
-
-fn style_update_note_summary(summary: &str, options: HumanOutputOptions) -> String {
-    if !options.color_enabled {
-        return summary.to_string();
-    }
-
-    let Some((version, rest)) = summary.split_once(" available") else {
-        return amber(summary, options);
-    };
-    let Some((action, parenthetical)) = rest.split_once(" (") else {
-        return format!(
-            "{}{}",
-            amber(&format!("{version} available"), options),
-            amber(rest, options)
-        );
-    };
-    format!(
-        "{}{} {}",
-        amber(&format!("{version} available"), options),
-        amber(action, options),
-        dim(&format!("({parenthetical}"), options)
-    )
 }
 
 fn summary_line(report: &DoctorReport, options: HumanOutputOptions) -> String {
@@ -412,7 +377,6 @@ fn count_label(
     let count = dim(&count.to_string(), options);
     let label = match status {
         DisplayStatus::Ok => green(label, options),
-        DisplayStatus::Update => amber(label, options),
         DisplayStatus::Note | DisplayStatus::Warning => orange(label, options),
         DisplayStatus::Fail => red(label, options),
         DisplayStatus::Idle => dim(label, options),
@@ -455,7 +419,7 @@ fn write_footer(out: &mut String, options: HumanOutputOptions) {
             out,
             "{}",
             dim(
-                "Run codex doctor without --summary for detailed diagnostics.",
+                "Run dsx doctor without --summary for detailed diagnostics.",
                 options
             )
         );
@@ -491,11 +455,6 @@ fn header_suffix(report: &DoctorReport) -> String {
 
 fn notes_for_report(report: &DoctorReport) -> Vec<DoctorNote> {
     let mut notes = Vec::new();
-    if let Some(check) = find_check(report, "updates") {
-        update_note(check, report)
-            .into_iter()
-            .for_each(|note| notes.push(note));
-    }
     if let Some(check) = find_check(report, "state") {
         rollout_note(check)
             .into_iter()
@@ -520,28 +479,6 @@ fn find_check<'a>(report: &'a DoctorReport, category: &str) -> Option<&'a Doctor
         .checks
         .iter()
         .find(|check| check.category == category)
-}
-
-fn update_note(check: &DoctorCheck, report: &DoctorReport) -> Option<DoctorNote> {
-    let status = detail::detail_value(check, "latest version status")?;
-    if !status.contains("newer version is available") {
-        return None;
-    }
-    let latest = detail::detail_value(check, "latest version")
-        .or_else(|| detail::detail_value(check, "cached latest version"))
-        .unwrap_or_else(|| "newer version".to_string());
-    let dismissed = detail::detail_value(check, "dismissed version");
-    let mut parenthetical = format!("current {}", report.codex_version);
-    if let Some(dismissed) = dismissed
-        && !detail::is_falsy(&dismissed)
-    {
-        parenthetical.push_str(&format!(", dismissed {dismissed}"));
-    }
-    Some(DoctorNote {
-        status: DisplayStatus::Update,
-        name: "updates".to_string(),
-        summary: format!("{latest} available ({parenthetical})"),
-    })
 }
 
 fn rollout_note(check: &DoctorCheck) -> Option<DoctorNote> {
@@ -946,7 +883,7 @@ impl StatusCounts {
                 DisplayStatus::Idle => counts.idle += 1,
                 DisplayStatus::Warning => counts.warning += 1,
                 DisplayStatus::Fail => counts.fail += 1,
-                DisplayStatus::Update | DisplayStatus::Note => {}
+                DisplayStatus::Note => {}
             }
         }
         counts
@@ -1046,10 +983,6 @@ fn style_detail_bare_token(bare: &str, options: HumanOutputOptions) -> String {
 
 fn green(text: &str, options: HumanOutputOptions) -> String {
     color256(text, /*code*/ 10, options)
-}
-
-fn amber(text: &str, options: HumanOutputOptions) -> String {
-    color256(text, /*code*/ 220, options)
 }
 
 fn orange(text: &str, options: HumanOutputOptions) -> String {
@@ -1195,13 +1128,7 @@ mod tests {
                 "token expired",
             )
             .detail("OPENAI_API_KEY: present")
-            .remediation("Run `codex login`."),
-            DoctorCheck::new(
-                "updates.status",
-                "updates",
-                CheckStatus::Ok,
-                "update configuration is locally consistent",
-            ),
+            .remediation("Run `dsx login`."),
             DoctorCheck::new(
                 "network.env",
                 "network",
@@ -1241,11 +1168,11 @@ mod tests {
         let rendered = render_human_report(&sample_report(), detailed_no_color_unicode_options());
         let expected = format!(
             "\
-Codex Doctor v0.0.0
+DSX Doctor v0.0.0
 
 Notes
    ⚠ terminal     narrow terminal
-   ✗ auth         token expired - Run `codex login`.
+   ✗ auth         token expired - Run `dsx login`.
 ─────────────────────────────────────────────────────────────
 
 Environment
@@ -1274,11 +1201,8 @@ Environment
   ✓ state        state paths inspectable
 
 Configuration
-  ✗ auth         token expired — Run `codex login`.
+  ✗ auth         token expired — Run `dsx login`.
       OPENAI_API_KEY           present
-
-Updates
-  ✓ updates      update configuration is locally consistent
 
 Connectivity
   ✓ network      network environment readable
@@ -1289,7 +1213,7 @@ Background Server
   ✓ app-server   background server is not running
 
 {}
-12 ok · 2 notes · 1 warn · 1 fail failed
+11 ok · 2 notes · 1 warn · 1 fail failed
 
 --summary compact output           --all expand truncated lists
 --json redacted report
@@ -1312,11 +1236,11 @@ Background Server
         let rendered = render_human_report(&sample_report(), summary_no_color_unicode_options());
         let expected = format!(
             "\
-Codex Doctor v0.0.0
+DSX Doctor v0.0.0
 
 Notes
    ⚠ terminal     narrow terminal
-   ✗ auth         token expired - Run `codex login`.
+   ✗ auth         token expired - Run `dsx login`.
 ─────────────────────────────────────────────────────────────
 
 Environment
@@ -1330,10 +1254,7 @@ Environment
   ✓ state        state paths inspectable
 
 Configuration
-  ✗ auth         token expired — Run `codex login`.
-
-Updates
-  ✓ updates      update configuration is locally consistent
+  ✗ auth         token expired — Run `dsx login`.
 
 Connectivity
   ✓ network      network environment readable
@@ -1344,9 +1265,9 @@ Background Server
   ✓ app-server   background server is not running
 
 {}
-12 ok · 2 notes · 1 warn · 1 fail failed
+11 ok · 2 notes · 1 warn · 1 fail failed
 
-Run codex doctor without --summary for detailed diagnostics.
+Run dsx doctor without --summary for detailed diagnostics.
 --all expand truncated lists       --json redacted report
 ",
             "─".repeat(SEPARATOR_WIDTH)
@@ -1420,11 +1341,11 @@ Run codex doctor without --summary for detailed diagnostics.
         );
         let expected = format!(
             "\
-Codex Doctor v0.0.0
+DSX Doctor v0.0.0
 
 Notes
    [!!] terminal     narrow terminal
-   [XX] auth         token expired - Run `codex login`.
+   [XX] auth         token expired - Run `dsx login`.
 -------------------------------------------------------------
 
 Environment
@@ -1438,10 +1359,7 @@ Environment
   [ok] state        state paths inspectable
 
 Configuration
-  [XX] auth         token expired - Run `codex login`.
-
-Updates
-  [ok] updates      update configuration is locally consistent
+  [XX] auth         token expired - Run `dsx login`.
 
 Connectivity
   [ok] network      network environment readable
@@ -1452,9 +1370,9 @@ Background Server
   [ok] app-server   background server is not running
 
 {}
-12 ok | 2 notes | 1 warn | 1 fail failed
+11 ok | 2 notes | 1 warn | 1 fail failed
 
-Run codex doctor without --summary for detailed diagnostics.
+Run dsx doctor without --summary for detailed diagnostics.
 --all expand truncated lists       --json redacted report
 ",
             "-".repeat(SEPARATOR_WIDTH)
@@ -1516,84 +1434,6 @@ Run codex doctor without --summary for detailed diagnostics.
     }
 
     #[test]
-    fn render_human_report_promotes_notes_without_changing_statuses() {
-        let report = DoctorReport {
-            schema_version: 1,
-            generated_at: "0s since unix epoch".to_string(),
-            overall_status: CheckStatus::Warning,
-            codex_version: "0.0.0".to_string(),
-            checks: vec![
-                DoctorCheck::new(
-                    "updates.status",
-                    "updates",
-                    CheckStatus::Ok,
-                    "update configuration is locally consistent",
-                )
-                .detail("latest version status: newer version is available")
-                .detail("latest version: 0.130.0")
-                .detail("dismissed version: 0.128.0"),
-                DoctorCheck::new(
-                    "state.paths",
-                    "state",
-                    CheckStatus::Ok,
-                    "state paths inspectable",
-                )
-                .detail("active rollout files: 1515 files, 2702146365 total bytes, 1783594 average bytes"),
-                DoctorCheck::new(
-                    "sandbox.helpers",
-                    "sandbox",
-                    CheckStatus::Ok,
-                    "sandbox configuration is readable",
-                )
-                .detail("filesystem sandbox: danger-full-access")
-                .detail("network sandbox: restricted")
-                .detail("approval policy: Never"),
-                DoctorCheck::new(
-                    "mcp.config",
-                    "mcp",
-                    CheckStatus::Warning,
-                    "MCP configuration has optional issues",
-                ),
-                DoctorCheck::new(
-                    "network.websocket_reachability",
-                    "websocket",
-                    CheckStatus::Ok,
-                    "Responses WebSocket handshake succeeded",
-                )
-                .detail("auth mode: chatgpt"),
-                DoctorCheck::new(
-                    "network.provider_reachability",
-                    "reachability",
-                    CheckStatus::Ok,
-                    "active provider endpoints are reachable over HTTP",
-                )
-                .detail("reachability mode: API key auth"),
-                DoctorCheck::new(
-                    "app_server.status",
-                    "app-server",
-                    CheckStatus::Ok,
-                    "background server is not running",
-                )
-                .detail("status: not running")
-                .detail("mode: ephemeral"),
-            ],
-        };
-
-        let rendered = render_human_report(&report, summary_no_color_unicode_options());
-
-        assert!(rendered.contains("Notes\n   ↑ updates"));
-        assert!(rendered.contains("0.130.0 available (current 0.0.0, dismissed 0.128.0)"));
-        assert!(rendered.contains("⚠ rollouts"));
-        assert!(rendered.contains("⚠ sandbox"));
-        assert!(rendered.contains("⚠ mcp"));
-        assert!(rendered.contains(
-            "⚠ auth         mixed auth signals: ChatGPT login plus API key env var; HTTP reachability uses API-key mode"
-        ));
-        assert!(rendered.contains("○ app-server   not running (ephemeral mode)"));
-        assert!(rendered.contains("5 ok · 1 idle · 5 notes · 1 warn · 0 fail degraded"));
-    }
-
-    #[test]
     fn render_human_report_expands_feature_flags_with_all() {
         let report = DoctorReport {
             schema_version: 1,
@@ -1634,17 +1474,6 @@ Run codex doctor without --summary for detailed diagnostics.
         assert!(rendered.contains("\u{1b}[38;5;10mok"));
         assert!(rendered.contains("\u{1b}[38;5;117m~/code/codex/target/debug/codex"));
         assert!(rendered.contains("\u{1b}[38;5;244m"));
-    }
-
-    #[test]
-    fn update_note_emphasizes_available_version_and_dims_context() {
-        let rendered = style_update_note_summary(
-            "0.130.0 available (current 0.0.0, dismissed 0.128.0)",
-            detailed_color_unicode_options(),
-        );
-
-        assert!(rendered.contains("\u{1b}[38;5;220m0.130.0 available"));
-        assert!(rendered.contains("\u{1b}[2m(current 0.0.0, dismissed 0.128.0)"));
     }
 
     #[test]

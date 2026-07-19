@@ -1,6 +1,6 @@
-# codex-app-server
+# DSX app-server
 
-`codex app-server` is the interface Codex uses to power rich interfaces such as the [Codex VS Code extension](https://marketplace.visualstudio.com/items?itemName=openai.chatgpt).
+`dsx app-server` is DSX's local control-plane interface for rich clients such as desktop and editor GUIs.
 
 ## Table of Contents
 
@@ -19,14 +19,18 @@
 
 ## Protocol
 
-Similar to [MCP](https://modelcontextprotocol.io/), `codex app-server` supports bidirectional communication using JSON-RPC 2.0 messages (with the `"jsonrpc":"2.0"` header omitted on the wire).
+Similar to [MCP](https://modelcontextprotocol.io/), `dsx app-server` supports bidirectional communication using JSON-RPC 2.0 messages (with the `"jsonrpc":"2.0"` header omitted on the wire).
 
 Supported transports:
 
-- stdio (`--stdio` or `--listen stdio://`, default): newline-delimited JSON (JSONL)
+- unix socket (`--listen unix://` or `--listen unix://PATH`, default on Unix): websocket connections over `$DSX_HOME/app-server-control/app-server-control.sock` or a custom socket path, using the standard HTTP Upgrade handshake
+- stdio (`--stdio` or `--listen stdio://`, default on non-Unix platforms): newline-delimited JSON (JSONL)
 - websocket (`--listen ws://IP:PORT`): one JSON-RPC message per websocket text frame (**experimental / unsupported**)
-- unix socket (`--listen unix://` or `--listen unix://PATH`): websocket connections over `$DSX_HOME/app-server-control/app-server-control.sock` or a custom socket path, using the standard HTTP Upgrade handshake
 - off (`--listen off`): do not expose a local transport
+
+On Unix, the default control socket directory is restricted to mode `0700` and the socket to `0600`. Custom socket paths should use a dedicated private parent directory; do not place them directly in shared directories such as `/tmp`.
+
+Unauthenticated WebSocket listeners are limited to loopback addresses. Non-loopback binds are refused unless `--ws-auth capability-token` or `--ws-auth signed-bearer-token` is configured. The listener provides plaintext `ws://`, not TLS: use loopback with SSH port forwarding, or a trusted encrypted tunnel/TLS terminator, for remote access.
 
 When running with `--listen ws://IP:PORT`, the same listener also serves basic HTTP health probes:
 
@@ -36,7 +40,7 @@ When running with `--listen ws://IP:PORT`, the same listener also serves basic H
 
 Websocket transport is currently experimental and unsupported. Do not rely on it for production workloads.
 
-The unix socket transport is intended for local app-server control-plane clients. `codex app-server proxy`
+The unix socket transport is intended for local app-server control-plane clients. `dsx app-server proxy`
 opens exactly one raw stream connection to `$DSX_HOME/app-server-control/app-server-control.sock`
 by default, or to `--sock PATH` when provided, and proxies bytes between that socket and stdin/stdout.
 The proxied stream carries the websocket HTTP Upgrade handshake followed by websocket frames.
@@ -54,11 +58,11 @@ Backpressure behavior:
 
 ## Message Schema
 
-Currently, you can dump a TypeScript version of the schema using `codex app-server generate-ts`, or a JSON Schema bundle via `codex app-server generate-json-schema`. Each output is specific to the version of Codex you used to run the command, so the generated artifacts are guaranteed to match that version.
+Currently, you can dump a TypeScript version of the schema using `dsx app-server generate-ts`, or a JSON Schema bundle via `dsx app-server generate-json-schema`. Each output is specific to the version of DSX you used to run the command, so the generated artifacts are guaranteed to match that version.
 
 ```
-codex app-server generate-ts --out DIR
-codex app-server generate-json-schema --out DIR
+dsx app-server generate-ts --out DIR
+dsx app-server generate-json-schema --out DIR
 ```
 
 ## Core Primitives
@@ -219,14 +223,6 @@ Example with notification opt-out:
 - `plugin/skill/read` — read remote plugin skill markdown on demand by `remoteMarketplaceName`, `remotePluginId`, and `skillName`. This lets clients preview uninstalled remote plugin skills without downloading the plugin bundle.
 - `skills/changed` — notification emitted when watched local skill files change.
 - `app/list` — list available apps.
-- `remoteControl/enable` — experimental; enable remote control for the current app-server process and return the current remote-control status snapshot. By default, any missing enrollment is completed before the response and the preference is persisted for the current app-server client scope. Pass `ephemeral: true` to enable remote control only for the current process without changing the persisted preference.
-- `remoteControl/disable` — experimental; disable remote control for the current app-server process and return the current remote-control status snapshot. By default, the disabled preference is persisted for the current app-server client scope. Pass `ephemeral: true` to disable only for the current process without changing the persisted preference. This does not revoke already enrolled controller devices.
-- `remoteControl/status/read` — experimental; read the current remote-control status snapshot. `status` is one of `disabled`, `connecting`, `connected`, or `errored`; `serverName` is the local machine name used by this app-server process; `environmentId` is a string when the app-server has a current enrollment and `null` when that enrollment is cleared, invalidated, or remote control is disabled.
-- `remoteControl/pairing/start` — experimental; start a short-lived remote-control pairing artifact for the current app-server process. Pass `manualCode: true` to also request a manual pairing code. Returns `pairingCode`, `manualPairingCode`, `environmentId`, and Unix-seconds `expiresAt`; app-server intentionally does not expose the backend `serverId`.
-- `remoteControl/pairing/status` — experimental; poll whether a remote-control `pairingCode` or `manualPairingCode` has been claimed. Pass exactly one of the two fields. Returns `claimed`.
-- `remoteControl/client/list` — experimental; list controller devices granted access to an environment. Pass `environmentId` and optional `cursor`, `limit`, and `order`; returns picker-oriented client metadata plus `nextCursor`. This signed-in account-management operation works while the local relay is disabled or unenrolled.
-- `remoteControl/client/revoke` — experimental; revoke one controller device's grant for an environment. Pass `environmentId` and `clientId`; returns an empty object. This signed-in account-management operation works while the local relay is disabled or unenrolled.
-- `remoteControl/status/changed` — notification emitted when the remote-control status or client-visible environment id changes. `status` is one of `disabled`, `connecting`, `connected`, or `errored`; `serverName` is the local machine name used by this app-server process; `environmentId` is a string when the app-server has a current enrollment and `null` when that enrollment is cleared, invalidated, or remote control is disabled. Newly initialized app-server clients always receive the current status snapshot.
 - `skills/config/write` — write user-level skill config by name or absolute path.
 - `plugin/install` — install a plugin from a discovered marketplace entry, rejecting marketplace entries marked unavailable for install, install MCPs if any, and return the effective plugin auth policy plus any apps that still need auth (**under development; do not call from production clients yet**).
 - `plugin/uninstall` — uninstall a local plugin by `pluginId` in `<plugin>@<marketplace>` form by removing its cached files and clearing its user-level config entry, or uninstall a remote ChatGPT plugin by backend `pluginId` by forwarding the uninstall to the ChatGPT plugin backend and removing any downloaded remote-plugin cache (**under development; do not call from production clients yet**).
@@ -243,7 +239,6 @@ Example with notification opt-out:
 - `externalAgentConfig/import` — apply selected external-agent migration items by passing explicit `migrationItems` with `cwd` (`null` for home) and any `details` returned by detect. Callers may pass `source` to identify the product that initiated the import; omitted or `null` means unspecified. The response acknowledges the synchronous import phase with an `importId`. Expected migration failures are reported as per-item failures rather than JSON-RPC errors, so the server still returns that `importId` and emits `externalAgentConfig/import/completed` with the same ID once all synchronous and background work finishes. The completion notification contains type-level `itemTypeResults` with successes and failures, including raw failure messages for the client to report separately.
 - `config/value/write` — write a single config key/value to the user's config.toml on disk; dotted paths such as `desktop.someKey` use the same generic write surface.
 - `config/batchWrite` — apply multiple config edits atomically to the user's config.toml on disk, with optional `reloadUserConfig: true` to hot-reload loaded threads, including multiple `desktop.*` edits.
-- `configRequirements/read` — fetch loaded requirements constraints from `requirements.toml` and/or MDM (or `null` if none are configured), including allow-lists (`allowedApprovalPolicies`, `allowedSandboxModes`, `allowedWebSearchModes`), the layered permission-profile allow map (`allowedPermissionProfiles`), the managed permission-profile default (`defaultPermissions`), lifecycle hook lockdown (`allowManagedHooksOnly`), remote-control policy (`allowRemoteControl`; `false` force-disables remote control while `true` or `null` preserves existing behavior), computer use policy (`computerUse`), pinned feature values (`featureRequirements`), managed lifecycle hooks (`hooks`), `enforceResidency`, managed new-thread defaults (`models.newThread.model`, `models.newThread.modelReasoningEffort`, and `models.newThread.serviceTier`), and `network` constraints such as canonical domain/socket permissions plus `managedAllowedDomainsOnly` and `dangerFullAccessDenylistOnly`.
 
 ### Example: Start or resume a thread
 
@@ -1909,177 +1904,30 @@ $demo-app Pull the latest updates from the team.
 }
 ```
 
-## Auth endpoints
+## Account endpoints
 
-The JSON-RPC auth/account surface exposes request/response methods plus server-initiated notifications (no `id`). Use these to determine auth state, start or cancel logins, logout, and inspect ChatGPT rate limits.
+DSX authentication is configured outside app-server with `DEEPSEEK_API_KEY`. The app-server account surface is read-only: it reports the current API-key state and never returns, refreshes, or persists credentials.
 
-### Authentication modes
+### API overview
 
-Codex supports these authentication modes. The current mode is surfaced in `account/updated` (`authMode`), which also includes the current ChatGPT `planType` when available, and can be inferred from `account/read`.
+- `account/read` — read the current account state.
+- `account/updated` (notify) — emitted when the effective account state changes.
+- `account/rateLimits/read` — read current rate-limit information when the provider supplies it.
+- `account/rateLimits/updated` (notify) — emitted when provider rate limits change.
 
-- **API key (`apiKey`)**: Caller supplies an OpenAI API key via `account/login/start` with `type: "apiKey"`. The API key is saved and used for API requests.
-- **ChatGPT managed (`chatgpt`)** (recommended): Codex owns the ChatGPT OAuth flow and refresh tokens. Start via `account/login/start` with `type: "chatgpt"` for the browser flow or `type: "chatgptDeviceCode"` for device code; Codex persists tokens to disk and refreshes them automatically.
-- **Personal access token (`personalAccessToken`)**: Codex uses a ChatGPT-backed personal access token loaded outside the app-server login RPCs, such as with `codex login --with-access-token` or `CODEX_ACCESS_TOKEN`.
-
-### API Overview
-
-- `account/read` — fetch current account info; optionally refresh tokens.
-- `account/login/start` — begin login (`apiKey`, `chatgpt`, `chatgptDeviceCode`).
-- `account/login/completed` (notify) — emitted when a login attempt finishes (success or error).
-- `account/login/cancel` — cancel a pending managed ChatGPT login by `loginId`.
-- `account/logout` — sign out; triggers `account/updated`.
-- `account/updated` (notify) — emitted whenever auth mode changes (`authMode`: `apikey`, `chatgpt`, `personalAccessToken`, or `null`) and includes the current ChatGPT `planType` when available.
-- `account/rateLimits/read` — fetch ChatGPT rate limits, an optional effective monthly credit limit, and the number of earned rate-limit resets currently available. Rate-limit updates arrive via `account/rateLimits/updated` (notify); the reset count is snapshot-only.
-- `account/rateLimitResetCredit/consume` — consume one earned reset using a caller-provided idempotency key.
-- `account/usage/read` — fetch ChatGPT account token-activity summary and daily buckets.
-- `account/workspaceMessages/read` — fetch active workspace messages, including workspace notification headlines when available.
-- `account/rateLimits/updated` (notify) — emitted whenever a user's ChatGPT rate limits change. This is a sparse rolling update; merge available values into the most recent `account/rateLimits/read` response or refetch that snapshot.
-- `account/sendAddCreditsNudgeEmail` — ask ChatGPT to email the workspace owner about depleted credits or a reached usage limit.
-- `mcpServer/oauthLogin/completed` (notify) — emitted after a `mcpServer/oauth/login` flow finishes for a server; payload includes `{ name, threadId, success, error? }`.
-- `mcpServer/startupStatus/updated` (notify) — emitted when a configured MCP server's startup status changes; payload includes `{ threadId, name, status, error, failureReason }`, where `threadId` is the owning thread when startup is thread-scoped and `null` when it is app-scoped, and `status` is `starting`, `ready`, `failed`, or `cancelled`. `failureReason` is `reauthenticationRequired` when stored OAuth credentials have expired and cannot be refreshed, so clients can prompt the user to reconnect the named server.
-
-### 1) Check auth state
-
-Request:
+### Read account state
 
 ```json
-{ "method": "account/read", "id": 1, "params": { "refreshToken": false } }
+{ "method": "account/read", "id": 1, "params": {} }
 ```
 
-Response examples:
+Example response:
 
 ```json
-{ "id": 1, "result": { "account": null, "requiresOpenaiAuth": false } } // No OpenAI auth needed (e.g., OSS/local models)
-{ "id": 1, "result": { "account": null, "requiresOpenaiAuth": true } }  // OpenAI auth required (typical for OpenAI-hosted models)
-{ "id": 1, "result": { "account": { "type": "apiKey" }, "requiresOpenaiAuth": true } }
-{ "id": 1, "result": { "account": { "type": "chatgpt", "email": "user@example.com", "planType": "pro" }, "requiresOpenaiAuth": true } }
-{ "id": 1, "result": { "account": { "type": "chatgpt", "email": null, "planType": "enterprise" }, "requiresOpenaiAuth": true } }
-{ "id": 1, "result": { "account": { "type": "amazonBedrock", "credentialSource": "codexManaged" }, "requiresOpenaiAuth": false } }
-{ "id": 1, "result": { "account": { "type": "amazonBedrock", "credentialSource": "awsManaged" }, "requiresOpenaiAuth": false } }
+{ "id": 1, "result": { "account": { "type": "apiKey" }, "requiresOpenaiAuth": false } }
 ```
 
-Field notes:
-
-- `refreshToken` (bool): set `true` to force a token refresh.
-- `email` is `null` when the ChatGPT account does not have an email address.
-- `requiresOpenaiAuth` reflects the active provider; when `false`, Codex can run without OpenAI credentials.
-- Amazon Bedrock reports `credentialSource: "codexManaged"` when it uses a Bedrock API key managed by Codex. Otherwise it reports `credentialSource: "awsManaged"` for the external AWS credential path. This identifies the selected credential source; it does not validate that the AWS credential chain can resolve credentials.
-
-### 2) Log in with an API key
-
-1. Send:
-   ```json
-   {
-     "method": "account/login/start",
-     "id": 2,
-     "params": { "type": "apiKey", "apiKey": "sk-…" }
-   }
-   ```
-2. Expect:
-   ```json
-   { "id": 2, "result": { "type": "apiKey" } }
-   ```
-3. Notifications:
-   ```json
-   { "method": "account/login/completed", "params": { "loginId": null, "success": true, "error": null } }
-   { "method": "account/updated", "params": { "authMode": "apikey", "planType": null } }
-   ```
-
-### 3) Log in with ChatGPT (browser flow)
-
-1. Start:
-   ```json
-   { "method": "account/login/start", "id": 3, "params": { "type": "chatgpt" } }
-   { "id": 3, "result": { "type": "chatgpt", "loginId": "<uuid>", "authUrl": "https://chatgpt.com/…&redirect_uri=http%3A%2F%2Flocalhost%3A<port>%2Fauth%2Fcallback" } }
-   ```
-2. Open `authUrl` in a browser; the app-server hosts the local callback.
-3. Wait for notifications:
-   ```json
-   { "method": "account/login/completed", "params": { "loginId": "<uuid>", "success": true, "error": null } }
-   { "method": "account/updated", "params": { "authMode": "chatgpt", "planType": "plus" } }
-   ```
-
-### 4) Log in with ChatGPT (device code flow)
-
-1. Start:
-   ```json
-   { "method": "account/login/start", "id": 4, "params": { "type": "chatgptDeviceCode" } }
-   { "id": 4, "result": { "type": "chatgptDeviceCode", "loginId": "<uuid>", "verificationUrl": "https://auth.openai.com/codex/device", "userCode": "ABCD-1234" } }
-   ```
-2. Show `verificationUrl` and `userCode` to the user; the frontend owns the UX.
-3. Wait for notifications:
-   ```json
-   { "method": "account/login/completed", "params": { "loginId": "<uuid>", "success": true, "error": null } }
-   { "method": "account/updated", "params": { "authMode": "chatgpt", "planType": "plus" } }
-   ```
-
-### 5) Cancel a ChatGPT login
-
-```json
-{ "method": "account/login/cancel", "id": 5, "params": { "loginId": "<uuid>" } }
-{ "method": "account/login/completed", "params": { "loginId": "<uuid>", "success": false, "error": "…" } }
-```
-
-### 6) Logout
-
-```json
-{ "method": "account/logout", "id": 6 }
-{ "id": 6, "result": {} }
-{ "method": "account/updated", "params": { "authMode": null, "planType": null } }
-```
-
-### 7) Rate limits (ChatGPT)
-
-```json
-{ "method": "account/rateLimits/read", "id": 7 }
-{ "id": 7, "result": { "rateLimits": { "primary": { "usedPercent": 25, "windowDurationMins": 15, "resetsAt": 1730947200 }, "secondary": null, "rateLimitReachedType": null }, "rateLimitResetCredits": { "availableCount": 2 } } }
-{ "method": "account/rateLimits/updated", "params": { "rateLimits": { … } } }
-```
-
-Field notes:
-
-- `usedPercent` is current usage within the OpenAI quota window.
-- `windowDurationMins` is the quota window length.
-- `resetsAt` is a Unix timestamp (seconds) for the next reset.
-- `rateLimitReachedType` identifies the backend-classified limit state when one has been reached.
-- `individualLimit` describes the effective monthly credit limit when available. In an `account/rateLimits/read` response, `null` means no monthly limit is available. In a sparse `account/rateLimits/updated` notification, nullable account metadata may be unavailable and does not clear a previously observed value.
-- `rateLimitResetCredits` contains the available earned-reset count when the backend provides it; otherwise it is `null`. Refetch `account/rateLimits/read` after consuming a reset.
-
-### 8) Earned rate-limit resets (ChatGPT)
-
-```json
-{ "method": "account/rateLimitResetCredit/consume", "id": 8, "params": { "idempotencyKey": "8ae96ff3-3425-4f4c-8772-b6fd61502868" } }
-{ "id": 8, "result": { "outcome": "reset" } }
-```
-
-Field notes:
-
-- `idempotencyKey` must be non-empty. A UUID is recommended for each logical redemption attempt; reuse the same value when retrying that attempt.
-- `reset` means a credit was consumed.
-- `alreadyRedeemed` means the same redemption completed previously. Treat it as an idempotent success and refresh account limits.
-- `nothingToReset` means there is no eligible rate-limit window to reset.
-- `noCredit` means the account has no earned reset credits available.
-- Refetch `account/rateLimits/read` after consuming a reset instead of inferring updated windows from this response.
-
-### 9) Workspace messages (ChatGPT)
-
-```json
-{ "method": "account/workspaceMessages/read", "id": 9 }
-{ "id": 9, "result": { "featureEnabled": true, "messages": [
-    { "messageId": "msg_123", "messageType": "headline", "messageBody": "Workspace maintenance starts at 5pm.", "createdAt": 1781395200, "archivedAt": null }
-] } }
-```
-
-When the upstream workspace-message feature is disabled, `featureEnabled` is `false` and `messages` is empty.
-
-### 10) Notify a workspace owner about a limit
-
-```json
-{ "method": "account/sendAddCreditsNudgeEmail", "id": 9, "params": { "creditType": "credits" } }
-{ "id": 9, "result": { "status": "sent" } }
-```
-
-Use `creditType: "credits"` when workspace credits are depleted, or `creditType: "usage_limit"` when the workspace usage limit has been reached. If the owner was already notified recently, the response status is `cooldown_active`.
+Credentials are intentionally omitted from responses. Login, logout, cancellation, and token-refresh RPCs are not supported.
 
 ## Experimental API Opt-in
 
@@ -2090,16 +1938,16 @@ Some app-server methods and fields are intentionally gated behind an experimenta
 
 ### Generating stable vs experimental client schemas
 
-`codex app-server` schema generation defaults to the stable API surface (experimental fields and methods filtered out). Pass `--experimental` to include experimental methods/fields in generated TypeScript or JSON schema:
+`dsx app-server` schema generation defaults to the stable API surface (experimental fields and methods filtered out). Pass `--experimental` to include experimental methods/fields in generated TypeScript or JSON schema:
 
 ```bash
 # Stable-only output (default)
-codex app-server generate-ts --out DIR
-codex app-server generate-json-schema --out DIR
+dsx app-server generate-ts --out DIR
+dsx app-server generate-json-schema --out DIR
 
 # Include experimental API surface
-codex app-server generate-ts --out DIR --experimental
-codex app-server generate-json-schema --out DIR --experimental
+dsx app-server generate-ts --out DIR --experimental
+dsx app-server generate-json-schema --out DIR --experimental
 ```
 
 ### How clients opt in at runtime

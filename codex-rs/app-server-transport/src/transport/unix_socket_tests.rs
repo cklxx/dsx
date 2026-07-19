@@ -3,6 +3,7 @@ use super::CHANNEL_CAPACITY;
 use super::TransportEvent;
 use super::acquire_app_server_startup_lock;
 use super::app_server_control_socket_path;
+use super::prepare_control_socket_path;
 use super::start_control_socket_acceptor;
 use codex_app_server_protocol::JSONRPCMessage;
 use codex_app_server_protocol::JSONRPCNotification;
@@ -188,6 +189,49 @@ async fn control_socket_file_is_private_after_bind() {
 
     shutdown_token.cancel();
     accept_handle.await.expect("acceptor should join");
+}
+
+#[cfg(unix)]
+#[tokio::test]
+async fn custom_socket_parent_permissions_are_rejected_without_modification() {
+    use std::os::unix::fs::PermissionsExt;
+
+    let temp_dir = tempfile::TempDir::new().expect("temp dir");
+    let shared_dir = temp_dir.path().join("shared");
+    std::fs::create_dir(&shared_dir).expect("shared dir");
+    std::fs::set_permissions(&shared_dir, std::fs::Permissions::from_mode(0o755))
+        .expect("shared dir permissions");
+
+    let error = prepare_control_socket_path(&shared_dir.join("app-server.sock"))
+        .await
+        .expect_err("shared parent should be rejected");
+
+    assert_eq!(error.kind(), std::io::ErrorKind::PermissionDenied);
+    let mode = std::fs::metadata(&shared_dir)
+        .expect("shared dir metadata")
+        .permissions()
+        .mode()
+        & 0o777;
+    assert_eq!(mode, 0o755);
+}
+
+#[cfg(unix)]
+#[tokio::test]
+async fn missing_custom_socket_parent_is_created_private() {
+    use std::os::unix::fs::PermissionsExt;
+
+    let temp_dir = tempfile::TempDir::new().expect("temp dir");
+    let socket_dir = temp_dir.path().join("private");
+    prepare_control_socket_path(&socket_dir.join("app-server.sock"))
+        .await
+        .expect("private parent should be created");
+
+    let mode = std::fs::metadata(&socket_dir)
+        .expect("private dir metadata")
+        .permissions()
+        .mode()
+        & 0o777;
+    assert_eq!(mode, 0o700);
 }
 
 fn absolute_path(path: &str) -> AbsolutePathBuf {

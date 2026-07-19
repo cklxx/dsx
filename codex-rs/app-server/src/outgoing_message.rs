@@ -732,7 +732,6 @@ fn now_unix_timestamp_ms() -> u64 {
 mod tests {
     use std::time::Duration;
 
-    use codex_app_server_protocol::AccountLoginCompletedNotification;
     use codex_app_server_protocol::AccountRateLimitsUpdatedNotification;
     use codex_app_server_protocol::AccountUpdatedNotification;
     use codex_app_server_protocol::ApplyPatchApprovalParams;
@@ -757,59 +756,8 @@ mod tests {
     use serde_json::json;
     use std::sync::Arc;
     use tokio::time::timeout;
-    use uuid::Uuid;
 
     use super::*;
-
-    #[test]
-    fn verify_server_notification_serialization() {
-        let notification =
-            ServerNotification::AccountLoginCompleted(AccountLoginCompletedNotification {
-                login_id: Some(Uuid::nil().to_string()),
-                success: true,
-                error: None,
-            });
-
-        let jsonrpc_notification = OutgoingMessage::AppServerNotification(notification);
-        assert_eq!(
-            json!({
-                "method": "account/login/completed",
-                "params": {
-                    "loginId": Uuid::nil().to_string(),
-                    "success": true,
-                    "error": null,
-                },
-            }),
-            serde_json::to_value(jsonrpc_notification)
-                .expect("ensure the strum macros serialize the method field correctly"),
-            "ensure the strum macros serialize the method field correctly"
-        );
-    }
-
-    #[test]
-    fn verify_account_login_completed_notification_serialization() {
-        let notification =
-            ServerNotification::AccountLoginCompleted(AccountLoginCompletedNotification {
-                login_id: Some(Uuid::nil().to_string()),
-                success: true,
-                error: None,
-            });
-
-        let jsonrpc_notification = OutgoingMessage::AppServerNotification(notification);
-        assert_eq!(
-            json!({
-                "method": "account/login/completed",
-                "params": {
-                    "loginId": Uuid::nil().to_string(),
-                    "success": true,
-                    "error": null,
-                },
-            }),
-            serde_json::to_value(jsonrpc_notification)
-                .expect("ensure the notification serializes correctly"),
-            "ensure the notification serializes correctly"
-        );
-    }
 
     #[test]
     fn verify_account_rate_limits_notification_serialization() {

@@ -1,7 +1,12 @@
 use pretty_assertions::assert_eq;
 
-use super::executable_identity_from_bytes;
+use super::managed_codex_file_name;
 use super::parse_codex_version;
+
+#[test]
+fn managed_executable_uses_dsx_name() {
+    assert_eq!(managed_codex_file_name(), "dsx");
+}
 
 #[test]
 fn parses_codex_cli_version_output() {
@@ -14,14 +19,4 @@ fn parses_codex_cli_version_output() {
 #[test]
 fn rejects_malformed_codex_cli_version_output() {
     assert!(parse_codex_version("codex\n").is_err());
-}
-
-#[test]
-fn executable_identity_uses_binary_contents() {
-    let old = executable_identity_from_bytes(b"old");
-    let same = executable_identity_from_bytes(b"old");
-    let new = executable_identity_from_bytes(b"new");
-
-    assert_eq!(old, same);
-    assert_ne!(old, new);
 }

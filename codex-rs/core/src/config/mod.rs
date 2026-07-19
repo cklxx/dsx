@@ -81,7 +81,6 @@ use codex_model_provider_info::LEGACY_OLLAMA_CHAT_PROVIDER_ID;
 use codex_model_provider_info::ModelProviderInfo;
 use codex_model_provider_info::OLLAMA_CHAT_PROVIDER_REMOVED_ERROR;
 use codex_model_provider_info::built_in_model_providers;
-use codex_model_provider_info::merge_configured_model_providers;
 use codex_models_manager::ModelsManagerConfig;
 use codex_protocol::config_types::AltScreenMode;
 use codex_protocol::config_types::AutoCompactTokenLimitScope;
@@ -1051,11 +1050,6 @@ pub struct Config {
 
     /// Collection of various notices we show the user
     pub notices: Notice,
-
-    /// When `true`, checks for Codex updates on startup and surfaces update prompts.
-    /// Set to `false` only if your Codex updates are centrally managed.
-    /// Defaults to `true`.
-    pub check_for_update_on_startup: bool,
 
     /// When true, disables burst-paste detection for typed input entirely.
     /// All characters are inserted as they are received, and no buffering
@@ -3391,13 +3385,23 @@ impl Config {
             agent_roles::load_agent_roles(fs, &cfg, &config_layer_stack, &mut startup_warnings)
                 .await?;
 
-        let model_providers =
-            merge_configured_model_providers(built_in_model_providers(), cfg.model_providers)
-                .map_err(|message| std::io::Error::new(std::io::ErrorKind::InvalidData, message))?;
+        if !cfg.model_providers.is_empty() {
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::InvalidData,
+                "custom model providers are not supported; DSX uses DeepSeek only",
+            ));
+        }
+        let model_providers = built_in_model_providers();
 
         let model_provider_id = model_provider
             .or(cfg.model_provider)
             .unwrap_or_else(|| "deepseek".to_string());
+        if model_provider_id != "deepseek" {
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::InvalidInput,
+                format!("unsupported model provider `{model_provider_id}`; DSX uses DeepSeek only"),
+            ));
+        }
         let model_provider = model_providers
             .get(&model_provider_id)
             .ok_or_else(|| {
@@ -3526,19 +3530,6 @@ impl Config {
 
         let use_experimental_unified_exec_tool = features.enabled(Feature::UnifiedExec);
 
-        let forced_chatgpt_workspace_id = cfg
-            .forced_chatgpt_workspace_id
-            .clone()
-            .map(codex_config::config_toml::ForcedChatgptWorkspaceIds::into_vec)
-            .map(|values| {
-                values
-                    .into_iter()
-                    .map(|value| value.trim().to_string())
-                    .filter(|value| !value.is_empty())
-                    .collect::<Vec<_>>()
-            })
-            .filter(|values| !values.is_empty());
-
         let forced_login_method = cfg.forced_login_method;
 
         let model = model.or(cfg.model);
@@ -3622,7 +3613,6 @@ impl Config {
 
         let review_model = override_review_model.or(cfg.review_model);
 
-        let check_for_update_on_startup = cfg.check_for_update_on_startup.unwrap_or(true);
         let model_catalog = load_model_catalog(cfg.model_catalog_json.clone())?;
 
         let log_dir = cfg
@@ -3870,9 +3860,7 @@ impl Config {
             model_supports_reasoning_summaries: cfg.model_supports_reasoning_summaries,
             model_catalog,
             model_verbosity: cfg.model_verbosity,
-            chatgpt_base_url: cfg
-                .chatgpt_base_url
-                .unwrap_or("https://chatgpt.com/backend-api/".to_string()),
+            chatgpt_base_url: "https://chatgpt.com/backend-api/".to_string(),
             respect_system_proxy,
             apps_mcp_product_sku: cfg.apps_mcp_product_sku.clone(),
             realtime_audio: cfg
@@ -3901,7 +3889,7 @@ impl Config {
             experimental_realtime_start_instructions: cfg.experimental_realtime_start_instructions,
             experimental_thread_config_endpoint: cfg.experimental_thread_config_endpoint,
             experimental_thread_store: thread_store_config(cfg.experimental_thread_store),
-            forced_chatgpt_workspace_id,
+            forced_chatgpt_workspace_id: None,
             forced_login_method,
             web_search_mode: constrained_web_search_mode.value,
             web_search_config,
@@ -3920,7 +3908,6 @@ impl Config {
                 .unwrap_or(false),
             active_project,
             notices,
-            check_for_update_on_startup,
             disable_paste_burst: cfg.disable_paste_burst.unwrap_or(false),
             analytics_enabled: cfg.analytics.as_ref().and_then(|a| a.enabled),
             feedback_enabled: cfg
@@ -4301,11 +4288,11 @@ fn normalize_guardian_policy_config(value: Option<&str>) -> Option<String> {
 }
 
 /// Returns the path to the dsx configuration directory, which can be
-/// specified by the `DSX_HOME` environment variable (with `DSX_HOME` as a
+/// specified by the `DSX_HOME` environment variable (with `CODEX_HOME` as a
 /// fallback for backwards compatibility). If neither is set, defaults to
 /// `~/.dsx`.
 ///
-/// - If `DSX_HOME` (or `DSX_HOME`) is set, the value must exist and be a
+/// - If `DSX_HOME` (or `CODEX_HOME`) is set, the value must exist and be a
 ///   directory. The value will be canonicalized and this function will Err otherwise.
 /// - If neither environment variable is set, this function does not verify that the
 ///   directory exists.

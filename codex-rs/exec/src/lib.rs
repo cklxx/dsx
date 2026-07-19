@@ -346,10 +346,7 @@ pub async fn run_main(cli: Cli, arg0_paths: Arg0DispatchPaths) -> anyhow::Result
     .await;
     let bootstrap_config_toml = &bootstrap_config.config_toml;
 
-    let chatgpt_base_url = bootstrap_config_toml
-        .chatgpt_base_url
-        .clone()
-        .unwrap_or_else(|| "https://chatgpt.com/backend-api/".to_string());
+    let chatgpt_base_url = "https://chatgpt.com/backend-api/".to_string();
     let auth_route_config = resolve_bootstrap_auth_route_config(
         bootstrap_config_toml,
         bootstrap_config
@@ -1712,15 +1709,6 @@ async fn handle_server_request(
                     "dynamic tool calls are not supported in exec mode for thread `{}`",
                     params.thread_id
                 ),
-            )
-            .await
-        }
-        ServerRequest::ChatgptAuthTokensRefresh { request_id, .. } => {
-            reject_server_request(
-                client,
-                request_id,
-                &method,
-                "chatgpt auth token refresh is not supported in exec mode".to_string(),
             )
             .await
         }

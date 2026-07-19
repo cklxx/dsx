@@ -2,7 +2,7 @@
 
 Web-based frontend for [dsx](https://github.com/cklxx/dsx) — a DeepSeek V4 agent built on the codex-rs framework.
 
-Built with Vue 3 + Naive UI, served via a Python proxy that connects to the dsx app-server over WebSocket JSON-RPC.
+Built with Vue 3 + Naive UI, served through a loopback-only Python proxy with a per-launch URL token. The proxy connects to the dsx app-server over loopback WebSocket JSON-RPC.
 
 ![Screenshot](screenshot.png)
 
@@ -23,23 +23,23 @@ Built with Vue 3 + Naive UI, served via a Python proxy that connects to the dsx 
 
 This builds the Vue app (`npm install && npm run build`) and starts the proxy server.
 
-Then open http://localhost:9021 in your browser.
+The launcher opens the tokenized loopback URL automatically. Do not remove the `?token=...` query parameter.
 
 ### Requirements
 
-- dsx app-server running on `localhost:9020`
+- dsx CLI available on `PATH`
 - Node.js (for build)
 - Python 3 (for proxy)
 
 ## Architecture
 
 ```
-Browser (Vue 3 SPA)
+Browser (Vue 3 SPA, tokenized loopback URL)
     │
-    ▼ HTTP/WebSocket :9021
-Python proxy (server.py)
+    ▼ HTTP/WebSocket 127.0.0.1:9021
+Python proxy (same-origin + token validation)
     │
-    ▼ WebSocket :9020 (strips Origin header)
+    ▼ WebSocket 127.0.0.1:9020
 dsx app-server (codex-rs)
 ```
 
@@ -47,7 +47,7 @@ dsx app-server (codex-rs)
 
 | File | Purpose |
 |------|---------|
-| `src/composables/useRpc.js` | WebSocket JSON-RPC client, auto-approves permissions |
+| `src/composables/useRpc.js` | WebSocket JSON-RPC client; privileged requests are declined until an approval UI exists |
 | `src/composables/useApp.js` | App state, thread/turn/message management |
 | `src/components/ChatView.vue` | Message list with render-block grouping logic |
 | `src/components/MessageGroup.vue` | User/assistant/reasoning message rendering |

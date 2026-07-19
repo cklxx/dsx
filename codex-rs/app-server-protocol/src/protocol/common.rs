@@ -880,48 +880,6 @@ client_request_definitions! {
         serialization: global("config"),
         response: v2::ExperimentalFeatureEnablementSetResponse,
     },
-    #[experimental("remoteControl/enable")]
-    RemoteControlEnable => "remoteControl/enable" {
-        params: #[serde(skip_serializing_if = "Option::is_none")] v2::NullableRemoteControlEnableParams,
-        serialization: global("remote-control"),
-        response: v2::RemoteControlEnableResponse,
-    },
-    #[experimental("remoteControl/disable")]
-    RemoteControlDisable => "remoteControl/disable" {
-        params: #[serde(skip_serializing_if = "Option::is_none")] v2::NullableRemoteControlDisableParams,
-        serialization: global("remote-control"),
-        response: v2::RemoteControlDisableResponse,
-    },
-    #[experimental("remoteControl/status/read")]
-    RemoteControlStatusRead => "remoteControl/status/read" {
-        params: #[ts(type = "undefined")] #[serde(skip_serializing_if = "Option::is_none")] Option<()>,
-        serialization: global_shared_read("remote-control"),
-        response: v2::RemoteControlStatusReadResponse,
-    },
-    #[experimental("remoteControl/pairing/start")]
-    RemoteControlPairingStart => "remoteControl/pairing/start" {
-        params: v2::RemoteControlPairingStartParams,
-        serialization: global("remote-control-pairing"),
-        response: v2::RemoteControlPairingStartResponse,
-    },
-    #[experimental("remoteControl/pairing/status")]
-    RemoteControlPairingStatus => "remoteControl/pairing/status" {
-        params: v2::RemoteControlPairingStatusParams,
-        serialization: global_shared_read("remote-control-pairing"),
-        response: v2::RemoteControlPairingStatusResponse,
-    },
-    #[experimental("remoteControl/client/list")]
-    RemoteControlClientsList => "remoteControl/client/list" {
-        params: v2::RemoteControlClientsListParams,
-        serialization: global_shared_read("remote-control-clients"),
-        response: v2::RemoteControlClientsListResponse,
-    },
-    #[experimental("remoteControl/client/revoke")]
-    RemoteControlClientsRevoke => "remoteControl/client/revoke" {
-        params: v2::RemoteControlClientsRevokeParams,
-        serialization: global("remote-control-clients"),
-        response: v2::RemoteControlClientsRevokeResponse,
-    },
     #[experimental("collaborationMode/list")]
     /// Lists collaboration mode presets.
     CollaborationModeList => "collaborationMode/list" {
@@ -990,25 +948,6 @@ client_request_definitions! {
         params: #[ts(type = "undefined")] #[serde(skip_serializing_if = "Option::is_none")] Option<()>,
         serialization: global("config"),
         response: v2::WindowsSandboxReadinessResponse,
-    },
-
-    LoginAccount => "account/login/start" {
-        params: v2::LoginAccountParams,
-        inspect_params: true,
-        serialization: global("account-auth"),
-        response: v2::LoginAccountResponse,
-    },
-
-    CancelLoginAccount => "account/login/cancel" {
-        params: v2::CancelLoginAccountParams,
-        serialization: global("account-auth"),
-        response: v2::CancelLoginAccountResponse,
-    },
-
-    LogoutAccount => "account/logout" {
-        params: #[ts(type = "undefined")] #[serde(skip_serializing_if = "Option::is_none")] Option<()>,
-        serialization: global("account-auth"),
-        response: v2::LogoutAccountResponse,
     },
 
     GetAccountRateLimits => "account/rateLimits/read" {
@@ -1489,11 +1428,6 @@ server_request_definitions! {
         response: v2::DynamicToolCallResponse,
     },
 
-    ChatgptAuthTokensRefresh => "account/chatgptAuthTokens/refresh" {
-        params: v2::ChatgptAuthTokensRefreshParams,
-        response: v2::ChatgptAuthTokensRefreshResponse,
-    },
-
     /// Generate a fresh upstream attestation result on demand.
     AttestationGenerate => "attestation/generate" {
         params: v2::AttestationGenerateParams,
@@ -1655,7 +1589,6 @@ server_notification_definitions! {
     AccountUpdated => "account/updated" (v2::AccountUpdatedNotification),
     AccountRateLimitsUpdated => "account/rateLimits/updated" (v2::AccountRateLimitsUpdatedNotification),
     AppListUpdated => "app/list/updated" (v2::AppListUpdatedNotification),
-    RemoteControlStatusChanged => "remoteControl/status/changed" (v2::RemoteControlStatusChangedNotification),
     ExternalAgentConfigImportProgress => "externalAgentConfig/import/progress" (v2::ExternalAgentConfigImportProgressNotification),
     ExternalAgentConfigImportCompleted => "externalAgentConfig/import/completed" (v2::ExternalAgentConfigImportCompletedNotification),
     FsChanged => "fs/changed" (v2::FsChangedNotification),
@@ -1695,11 +1628,6 @@ server_notification_definitions! {
     /// Notifies the user of world-writable directories on Windows, which cannot be protected by the sandbox.
     WindowsWorldWritableWarning => "windows/worldWritableWarning" (v2::WindowsWorldWritableWarningNotification),
     WindowsSandboxSetupCompleted => "windowsSandbox/setupCompleted" (v2::WindowsSandboxSetupCompletedNotification),
-
-    #[serde(rename = "account/login/completed")]
-    #[ts(rename = "account/login/completed")]
-    #[strum(serialize = "account/login/completed")]
-    AccountLoginCompleted(v2::AccountLoginCompletedNotification),
 
 }
 
@@ -1961,9 +1889,7 @@ mod tests {
 
         let account_read = ClientRequest::GetAccount {
             request_id: request_id(),
-            params: v2::GetAccountParams {
-                refresh_token: false,
-            },
+            params: v2::GetAccountParams {},
         };
         assert_eq!(
             account_read.serialization_scope(),
@@ -2033,138 +1959,6 @@ mod tests {
         assert_eq!(
             environment_add.serialization_scope(),
             Some(ClientRequestSerializationScope::Global("environment"))
-        );
-    }
-
-    #[test]
-    fn client_request_serialization_scope_covers_unkeyed_representatives() {
-        let initialize = ClientRequest::Initialize {
-            request_id: request_id(),
-            params: v1::InitializeParams {
-                client_info: v1::ClientInfo {
-                    name: "test".to_string(),
-                    title: None,
-                    version: "0.1.0".to_string(),
-                },
-                capabilities: None,
-            },
-        };
-        assert_eq!(initialize.serialization_scope(), None);
-
-        let thread_start = ClientRequest::ThreadStart {
-            request_id: request_id(),
-            params: v2::ThreadStartParams::default(),
-        };
-        assert_eq!(thread_start.serialization_scope(), None);
-
-        let command_exec = ClientRequest::OneOffCommandExec {
-            request_id: request_id(),
-            params: v2::CommandExecParams {
-                command: vec!["true".to_string()],
-                process_id: None,
-                tty: false,
-                stream_stdin: false,
-                stream_stdout_stderr: false,
-                output_bytes_cap: None,
-                disable_output_cap: false,
-                disable_timeout: false,
-                timeout_ms: None,
-                cwd: None,
-                env: None,
-                size: None,
-                sandbox_policy: None,
-                permission_profile: None,
-            },
-        };
-        assert_eq!(command_exec.serialization_scope(), None);
-
-        let fs_read = ClientRequest::FsReadFile {
-            request_id: request_id(),
-            params: v2::FsReadFileParams {
-                path: absolute_path("/tmp/file.txt"),
-            },
-        };
-        assert_eq!(fs_read.serialization_scope(), None);
-
-        let thread_turns_list = ClientRequest::ThreadTurnsList {
-            request_id: request_id(),
-            params: v2::ThreadTurnsListParams {
-                thread_id: "thread-1".to_string(),
-                cursor: None,
-                limit: None,
-                sort_direction: None,
-                items_view: None,
-            },
-        };
-        assert_eq!(thread_turns_list.serialization_scope(), None);
-
-        let thread_items_list = ClientRequest::ThreadItemsList {
-            request_id: request_id(),
-            params: v2::ThreadItemsListParams {
-                thread_id: "thread-1".to_string(),
-                turn_id: None,
-                cursor: None,
-                limit: None,
-                sort_direction: None,
-            },
-        };
-        assert_eq!(thread_items_list.serialization_scope(), None);
-
-        let mcp_resource_read = ClientRequest::McpResourceRead {
-            request_id: request_id(),
-            params: v2::McpResourceReadParams {
-                thread_id: None,
-                server: "server-a".to_string(),
-                uri: "file:///tmp/resource".to_string(),
-            },
-        };
-        assert_eq!(mcp_resource_read.serialization_scope(), None);
-
-        let remote_control_pairing_start = ClientRequest::RemoteControlPairingStart {
-            request_id: request_id(),
-            params: v2::RemoteControlPairingStartParams::default(),
-        };
-        assert_eq!(
-            remote_control_pairing_start.serialization_scope(),
-            Some(ClientRequestSerializationScope::Global(
-                "remote-control-pairing"
-            ))
-        );
-        let remote_control_pairing_status = ClientRequest::RemoteControlPairingStatus {
-            request_id: request_id(),
-            params: v2::RemoteControlPairingStatusParams {
-                pairing_code: Some("pairing-code".to_string()),
-                manual_pairing_code: None,
-            },
-        };
-        assert_eq!(
-            remote_control_pairing_status.serialization_scope(),
-            Some(ClientRequestSerializationScope::GlobalSharedRead(
-                "remote-control-pairing"
-            ))
-        );
-        let remote_control_clients_list = ClientRequest::RemoteControlClientsList {
-            request_id: request_id(),
-            params: v2::RemoteControlClientsListParams::default(),
-        };
-        assert_eq!(
-            remote_control_clients_list.serialization_scope(),
-            Some(ClientRequestSerializationScope::GlobalSharedRead(
-                "remote-control-clients"
-            ))
-        );
-        let remote_control_clients_revoke = ClientRequest::RemoteControlClientsRevoke {
-            request_id: request_id(),
-            params: v2::RemoteControlClientsRevokeParams {
-                environment_id: "environment-id".to_string(),
-                client_id: "client-id".to_string(),
-            },
-        };
-        assert_eq!(
-            remote_control_clients_revoke.serialization_scope(),
-            Some(ClientRequestSerializationScope::Global(
-                "remote-control-clients"
-            ))
         );
     }
 
@@ -2364,29 +2158,6 @@ mod tests {
         let payload = ServerRequestPayload::ExecCommandApproval(params);
         assert_eq!(request.id(), &RequestId::Integer(7));
         assert_eq!(payload.request_with_id(RequestId::Integer(7)), request);
-        Ok(())
-    }
-
-    #[test]
-    fn serialize_chatgpt_auth_tokens_refresh_request() -> Result<()> {
-        let request = ServerRequest::ChatgptAuthTokensRefresh {
-            request_id: RequestId::Integer(8),
-            params: v2::ChatgptAuthTokensRefreshParams {
-                reason: v2::ChatgptAuthTokensRefreshReason::Unauthorized,
-                previous_account_id: Some("org-123".to_string()),
-            },
-        };
-        assert_eq!(
-            json!({
-                "method": "account/chatgptAuthTokens/refresh",
-                "id": 8,
-                "params": {
-                    "reason": "unauthorized",
-                    "previousAccountId": "org-123"
-                }
-            }),
-            serde_json::to_value(&request)?,
-        );
         Ok(())
     }
 
@@ -2695,160 +2466,16 @@ mod tests {
     }
 
     #[test]
-    fn serialize_account_login_api_key() -> Result<()> {
-        let request = ClientRequest::LoginAccount {
-            request_id: RequestId::Integer(2),
-            params: v2::LoginAccountParams::ApiKey {
-                api_key: "secret".to_string(),
-            },
-        };
-        assert_eq!(
-            json!({
-                "method": "account/login/start",
-                "id": 2,
-                "params": {
-                    "type": "apiKey",
-                    "apiKey": "secret"
-                }
-            }),
-            serde_json::to_value(&request)?,
-        );
-        Ok(())
-    }
-
-    #[test]
-    fn serialize_account_login_chatgpt() -> Result<()> {
-        let request = ClientRequest::LoginAccount {
-            request_id: RequestId::Integer(3),
-            params: v2::LoginAccountParams::Chatgpt {
-                codex_streamlined_login: false,
-            },
-        };
-        assert_eq!(
-            json!({
-                "method": "account/login/start",
-                "id": 3,
-                "params": {
-                    "type": "chatgpt"
-                }
-            }),
-            serde_json::to_value(&request)?,
-        );
-        Ok(())
-    }
-
-    #[test]
-    fn serialize_account_login_chatgpt_streamlined() -> Result<()> {
-        let request = ClientRequest::LoginAccount {
-            request_id: RequestId::Integer(3),
-            params: v2::LoginAccountParams::Chatgpt {
-                codex_streamlined_login: true,
-            },
-        };
-        assert_eq!(
-            json!({
-                "method": "account/login/start",
-                "id": 3,
-                "params": {
-                    "type": "chatgpt",
-                    "codexStreamlinedLogin": true
-                }
-            }),
-            serde_json::to_value(&request)?,
-        );
-        Ok(())
-    }
-
-    #[test]
-    fn serialize_account_login_chatgpt_device_code() -> Result<()> {
-        let request = ClientRequest::LoginAccount {
-            request_id: RequestId::Integer(4),
-            params: v2::LoginAccountParams::ChatgptDeviceCode,
-        };
-        assert_eq!(
-            json!({
-                "method": "account/login/start",
-                "id": 4,
-                "params": {
-                    "type": "chatgptDeviceCode"
-                }
-            }),
-            serde_json::to_value(&request)?,
-        );
-        Ok(())
-    }
-
-    #[test]
-    fn serialize_account_logout() -> Result<()> {
-        let request = ClientRequest::LogoutAccount {
-            request_id: RequestId::Integer(5),
-            params: None,
-        };
-        assert_eq!(
-            json!({
-                "method": "account/logout",
-                "id": 5,
-            }),
-            serde_json::to_value(&request)?,
-        );
-        Ok(())
-    }
-
-    #[test]
-    fn serialize_account_login_chatgpt_auth_tokens() -> Result<()> {
-        let request = ClientRequest::LoginAccount {
-            request_id: RequestId::Integer(6),
-            params: v2::LoginAccountParams::ChatgptAuthTokens {
-                access_token: "access-token".to_string(),
-                chatgpt_account_id: "org-123".to_string(),
-                chatgpt_plan_type: Some("business".to_string()),
-            },
-        };
-        assert_eq!(
-            json!({
-                "method": "account/login/start",
-                "id": 6,
-                "params": {
-                    "type": "chatgptAuthTokens",
-                    "accessToken": "access-token",
-                    "chatgptAccountId": "org-123",
-                    "chatgptPlanType": "business"
-                }
-            }),
-            serde_json::to_value(&request)?,
-        );
-        Ok(())
-    }
-
-    #[test]
     fn serialize_get_account() -> Result<()> {
         let request = ClientRequest::GetAccount {
             request_id: RequestId::Integer(6),
-            params: v2::GetAccountParams {
-                refresh_token: false,
-            },
+            params: v2::GetAccountParams {},
         };
         assert_eq!(
             json!({
                 "method": "account/read",
                 "id": 6,
                 "params": {}
-            }),
-            serde_json::to_value(&request)?,
-        );
-        let request = ClientRequest::GetAccount {
-            request_id: RequestId::Integer(7),
-            params: v2::GetAccountParams {
-                refresh_token: true,
-            },
-        };
-        assert_eq!(
-            json!({
-                "method": "account/read",
-                "id": 7,
-                "params": {
-                    "refreshToken": true
-                }
             }),
             serde_json::to_value(&request)?,
         );

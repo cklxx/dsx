@@ -302,8 +302,8 @@ scripts/init_skill.py <skill-name> --path <output-directory> [--resources script
 Examples:
 
 ```bash
-scripts/init_skill.py my-skill --path "${DSX_HOME:-$HOME/.codex}/skills"
-scripts/init_skill.py my-skill --path "${DSX_HOME:-$HOME/.codex}/skills" --resources scripts,references
+scripts/init_skill.py my-skill --path "${DSX_HOME:-${CODEX_HOME:-$HOME/.dsx}}/skills"
+scripts/init_skill.py my-skill --path "${DSX_HOME:-${CODEX_HOME:-$HOME/.dsx}}/skills" --resources scripts,references
 scripts/init_skill.py my-skill --path ~/work/skills --resources scripts --examples
 ```
 

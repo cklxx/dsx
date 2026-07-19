@@ -23,23 +23,12 @@ use tracing::warn;
 /// plenty for an interactive CLI.
 pub const CHANNEL_CAPACITY: usize = 128;
 
-mod remote_control;
 mod stdio;
 mod unix_socket;
 #[cfg(test)]
 mod unix_socket_tests;
 mod websocket;
 
-pub use remote_control::REMOTE_CONTROL_DISABLED_ENV_VAR;
-pub use remote_control::RemoteControlDisabledByRequirements;
-pub use remote_control::RemoteControlEnableError;
-pub use remote_control::RemoteControlHandle;
-pub use remote_control::RemoteControlPolicy;
-pub use remote_control::RemoteControlStartConfig;
-pub use remote_control::RemoteControlStartupMode;
-pub use remote_control::RemoteControlUnavailable;
-pub use remote_control::start_remote_control;
-pub use remote_control::take_remote_control_disabled_env;
 pub use stdio::start_stdio_connection;
 pub use unix_socket::AppServerStartupLock;
 pub use unix_socket::acquire_app_server_startup_lock;
@@ -109,10 +98,13 @@ impl std::fmt::Display for AppServerTransportParseError {
 impl std::error::Error for AppServerTransportParseError {}
 
 impl AppServerTransport {
+    #[cfg(unix)]
+    pub const DEFAULT_LISTEN_URL: &'static str = "unix://";
+    #[cfg(not(unix))]
     pub const DEFAULT_LISTEN_URL: &'static str = "stdio://";
 
     pub fn from_listen_url(listen_url: &str) -> Result<Self, AppServerTransportParseError> {
-        if listen_url == Self::DEFAULT_LISTEN_URL {
+        if listen_url == "stdio://" {
             return Ok(Self::Stdio);
         }
 
@@ -188,7 +180,6 @@ pub enum ConnectionOrigin {
     Stdio,
     InProcess,
     WebSocket,
-    RemoteControl,
 }
 
 static CONNECTION_ID_COUNTER: AtomicU64 = AtomicU64::new(0);

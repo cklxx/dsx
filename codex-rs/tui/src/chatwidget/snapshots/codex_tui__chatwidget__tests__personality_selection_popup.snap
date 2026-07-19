@@ -2,6 +2,6 @@
 source: tui/src/chatwidget/tests/popups_and_settings.rs
 expression: popup
 ---
-› Ask Codex to do anything
+› Ask DSX to do anything
 
   gpt-5.3-codex default · /tmp/project

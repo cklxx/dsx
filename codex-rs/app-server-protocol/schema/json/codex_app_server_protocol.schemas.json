@@ -102,60 +102,6 @@
       "title": "AttestationGenerateResponse",
       "type": "object"
     },
-    "ChatgptAuthTokensRefreshParams": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "properties": {
-        "previousAccountId": {
-          "description": "Workspace/account identifier that Codex was previously using.\n\nClients that manage multiple accounts/workspaces can use this as a hint to refresh the token for the correct workspace.\n\nThis may be `null` when the prior auth state did not include a workspace identifier (`chatgpt_account_id`).",
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "reason": {
-          "$ref": "#/definitions/ChatgptAuthTokensRefreshReason"
-        }
-      },
-      "required": [
-        "reason"
-      ],
-      "title": "ChatgptAuthTokensRefreshParams",
-      "type": "object"
-    },
-    "ChatgptAuthTokensRefreshReason": {
-      "oneOf": [
-        {
-          "description": "Codex attempted a backend request and received `401 Unauthorized`.",
-          "enum": [
-            "unauthorized"
-          ],
-          "type": "string"
-        }
-      ]
-    },
-    "ChatgptAuthTokensRefreshResponse": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "properties": {
-        "accessToken": {
-          "type": "string"
-        },
-        "chatgptAccountId": {
-          "type": "string"
-        },
-        "chatgptPlanType": {
-          "type": [
-            "string",
-            "null"
-          ]
-        }
-      },
-      "required": [
-        "accessToken",
-        "chatgptAccountId"
-      ],
-      "title": "ChatgptAuthTokensRefreshResponse",
-      "type": "object"
-    },
     "ClientInfo": {
       "properties": {
         "name": {
@@ -1761,77 +1707,6 @@
             "method"
           ],
           "title": "WindowsSandbox/readinessRequest",
-          "type": "object"
-        },
-        {
-          "properties": {
-            "id": {
-              "$ref": "#/definitions/v2/RequestId"
-            },
-            "method": {
-              "enum": [
-                "account/login/start"
-              ],
-              "title": "Account/login/startRequestMethod",
-              "type": "string"
-            },
-            "params": {
-              "$ref": "#/definitions/v2/LoginAccountParams"
-            }
-          },
-          "required": [
-            "id",
-            "method",
-            "params"
-          ],
-          "title": "Account/login/startRequest",
-          "type": "object"
-        },
-        {
-          "properties": {
-            "id": {
-              "$ref": "#/definitions/v2/RequestId"
-            },
-            "method": {
-              "enum": [
-                "account/login/cancel"
-              ],
-              "title": "Account/login/cancelRequestMethod",
-              "type": "string"
-            },
-            "params": {
-              "$ref": "#/definitions/v2/CancelLoginAccountParams"
-            }
-          },
-          "required": [
-            "id",
-            "method",
-            "params"
-          ],
-          "title": "Account/login/cancelRequest",
-          "type": "object"
-        },
-        {
-          "properties": {
-            "id": {
-              "$ref": "#/definitions/v2/RequestId"
-            },
-            "method": {
-              "enum": [
-                "account/logout"
-              ],
-              "title": "Account/logoutRequestMethod",
-              "type": "string"
-            },
-            "params": {
-              "type": "null"
-            }
-          },
-          "required": [
-            "id",
-            "method"
-          ],
-          "title": "Account/logoutRequest",
           "type": "object"
         },
         {
@@ -4897,26 +4772,6 @@
           "properties": {
             "method": {
               "enum": [
-                "remoteControl/status/changed"
-              ],
-              "title": "RemoteControl/status/changedNotificationMethod",
-              "type": "string"
-            },
-            "params": {
-              "$ref": "#/definitions/v2/RemoteControlStatusChangedNotification"
-            }
-          },
-          "required": [
-            "method",
-            "params"
-          ],
-          "title": "RemoteControl/status/changedNotification",
-          "type": "object"
-        },
-        {
-          "properties": {
-            "method": {
-              "enum": [
                 "externalAgentConfig/import/progress"
               ],
               "title": "ExternalAgentConfig/import/progressNotificationMethod",
@@ -5454,26 +5309,6 @@
           ],
           "title": "WindowsSandbox/setupCompletedNotification",
           "type": "object"
-        },
-        {
-          "properties": {
-            "method": {
-              "enum": [
-                "account/login/completed"
-              ],
-              "title": "Account/login/completedNotificationMethod",
-              "type": "string"
-            },
-            "params": {
-              "$ref": "#/definitions/v2/AccountLoginCompletedNotification"
-            }
-          },
-          "required": [
-            "method",
-            "params"
-          ],
-          "title": "Account/login/completedNotification",
-          "type": "object"
         }
       ],
       "title": "ServerNotification"
@@ -5630,30 +5465,6 @@
             "params"
           ],
           "title": "Item/tool/callRequest",
-          "type": "object"
-        },
-        {
-          "properties": {
-            "id": {
-              "$ref": "#/definitions/v2/RequestId"
-            },
-            "method": {
-              "enum": [
-                "account/chatgptAuthTokens/refresh"
-              ],
-              "title": "Account/chatgptAuthTokens/refreshRequestMethod",
-              "type": "string"
-            },
-            "params": {
-              "$ref": "#/definitions/ChatgptAuthTokensRefreshParams"
-            }
-          },
-          "required": [
-            "id",
-            "method",
-            "params"
-          ],
-          "title": "Account/chatgptAuthTokens/refreshRequest",
           "type": "object"
         },
         {
@@ -5949,31 +5760,6 @@
             "type": "object"
           }
         ]
-      },
-      "AccountLoginCompletedNotification": {
-        "$schema": "http://json-schema.org/draft-07/schema#",
-        "properties": {
-          "error": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "loginId": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "success": {
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "success"
-        ],
-        "title": "AccountLoginCompletedNotification",
-        "type": "object"
       },
       "AccountRateLimitsUpdatedNotification": {
         "$schema": "http://json-schema.org/draft-07/schema#",
@@ -7017,39 +6803,6 @@
           "start"
         ],
         "type": "object"
-      },
-      "CancelLoginAccountParams": {
-        "$schema": "http://json-schema.org/draft-07/schema#",
-        "properties": {
-          "loginId": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "loginId"
-        ],
-        "title": "CancelLoginAccountParams",
-        "type": "object"
-      },
-      "CancelLoginAccountResponse": {
-        "$schema": "http://json-schema.org/draft-07/schema#",
-        "properties": {
-          "status": {
-            "$ref": "#/definitions/v2/CancelLoginAccountStatus"
-          }
-        },
-        "required": [
-          "status"
-        ],
-        "title": "CancelLoginAccountResponse",
-        "type": "object"
-      },
-      "CancelLoginAccountStatus": {
-        "enum": [
-          "canceled",
-          "notFound"
-        ],
-        "type": "string"
       },
       "CapabilityRootLocation": {
         "description": "Location used to resolve a selected capability root.",
@@ -8324,12 +8077,6 @@
             ]
           },
           "allowManagedHooksOnly": {
-            "type": [
-              "boolean",
-              "null"
-            ]
-          },
-          "allowRemoteControl": {
             "type": [
               "boolean",
               "null"
@@ -10317,12 +10064,6 @@
       },
       "GetAccountParams": {
         "$schema": "http://json-schema.org/draft-07/schema#",
-        "properties": {
-          "refreshToken": {
-            "description": "When `true`, requests a proactive token refresh before returning.\n\nIn managed auth mode this triggers the normal refresh-token flow. In external auth mode this flag is ignored. Clients should refresh tokens themselves and call `account/login/start` with `chatgptAuthTokens`.",
-            "type": "boolean"
-          }
-        },
         "title": "GetAccountParams",
         "type": "object"
       },
@@ -11470,199 +11211,6 @@
           "incomplete"
         ],
         "type": "string"
-      },
-      "LoginAccountParams": {
-        "$schema": "http://json-schema.org/draft-07/schema#",
-        "oneOf": [
-          {
-            "properties": {
-              "apiKey": {
-                "type": "string"
-              },
-              "type": {
-                "enum": [
-                  "apiKey"
-                ],
-                "title": "ApiKeyv2::LoginAccountParamsType",
-                "type": "string"
-              }
-            },
-            "required": [
-              "apiKey",
-              "type"
-            ],
-            "title": "ApiKeyv2::LoginAccountParams",
-            "type": "object"
-          },
-          {
-            "properties": {
-              "codexStreamlinedLogin": {
-                "type": "boolean"
-              },
-              "type": {
-                "enum": [
-                  "chatgpt"
-                ],
-                "title": "Chatgptv2::LoginAccountParamsType",
-                "type": "string"
-              }
-            },
-            "required": [
-              "type"
-            ],
-            "title": "Chatgptv2::LoginAccountParams",
-            "type": "object"
-          },
-          {
-            "properties": {
-              "type": {
-                "enum": [
-                  "chatgptDeviceCode"
-                ],
-                "title": "ChatgptDeviceCodev2::LoginAccountParamsType",
-                "type": "string"
-              }
-            },
-            "required": [
-              "type"
-            ],
-            "title": "ChatgptDeviceCodev2::LoginAccountParams",
-            "type": "object"
-          },
-          {
-            "description": "[UNSTABLE] FOR OPENAI INTERNAL USE ONLY - DO NOT USE. The access token must contain the same scopes that Codex-managed ChatGPT auth tokens have.",
-            "properties": {
-              "accessToken": {
-                "description": "Access token (JWT) supplied by the client. This token is used for backend API requests and email extraction.",
-                "type": "string"
-              },
-              "chatgptAccountId": {
-                "description": "Workspace/account identifier supplied by the client.",
-                "type": "string"
-              },
-              "chatgptPlanType": {
-                "description": "Optional plan type supplied by the client.\n\nWhen `null`, Codex attempts to derive the plan type from access-token claims. If unavailable, the plan defaults to `unknown`.",
-                "type": [
-                  "string",
-                  "null"
-                ]
-              },
-              "type": {
-                "enum": [
-                  "chatgptAuthTokens"
-                ],
-                "title": "ChatgptAuthTokensv2::LoginAccountParamsType",
-                "type": "string"
-              }
-            },
-            "required": [
-              "accessToken",
-              "chatgptAccountId",
-              "type"
-            ],
-            "title": "ChatgptAuthTokensv2::LoginAccountParams",
-            "type": "object"
-          }
-        ],
-        "title": "LoginAccountParams"
-      },
-      "LoginAccountResponse": {
-        "$schema": "http://json-schema.org/draft-07/schema#",
-        "oneOf": [
-          {
-            "properties": {
-              "type": {
-                "enum": [
-                  "apiKey"
-                ],
-                "title": "ApiKeyv2::LoginAccountResponseType",
-                "type": "string"
-              }
-            },
-            "required": [
-              "type"
-            ],
-            "title": "ApiKeyv2::LoginAccountResponse",
-            "type": "object"
-          },
-          {
-            "properties": {
-              "authUrl": {
-                "description": "URL the client should open in a browser to initiate the OAuth flow.",
-                "type": "string"
-              },
-              "loginId": {
-                "type": "string"
-              },
-              "type": {
-                "enum": [
-                  "chatgpt"
-                ],
-                "title": "Chatgptv2::LoginAccountResponseType",
-                "type": "string"
-              }
-            },
-            "required": [
-              "authUrl",
-              "loginId",
-              "type"
-            ],
-            "title": "Chatgptv2::LoginAccountResponse",
-            "type": "object"
-          },
-          {
-            "properties": {
-              "loginId": {
-                "type": "string"
-              },
-              "type": {
-                "enum": [
-                  "chatgptDeviceCode"
-                ],
-                "title": "ChatgptDeviceCodev2::LoginAccountResponseType",
-                "type": "string"
-              },
-              "userCode": {
-                "description": "One-time code the user must enter after signing in.",
-                "type": "string"
-              },
-              "verificationUrl": {
-                "description": "URL the client should open in a browser to complete device code authorization.",
-                "type": "string"
-              }
-            },
-            "required": [
-              "loginId",
-              "type",
-              "userCode",
-              "verificationUrl"
-            ],
-            "title": "ChatgptDeviceCodev2::LoginAccountResponse",
-            "type": "object"
-          },
-          {
-            "properties": {
-              "type": {
-                "enum": [
-                  "chatgptAuthTokens"
-                ],
-                "title": "ChatgptAuthTokensv2::LoginAccountResponseType",
-                "type": "string"
-              }
-            },
-            "required": [
-              "type"
-            ],
-            "title": "ChatgptAuthTokensv2::LoginAccountResponse",
-            "type": "object"
-          }
-        ],
-        "title": "LoginAccountResponse"
-      },
-      "LogoutAccountResponse": {
-        "$schema": "http://json-schema.org/draft-07/schema#",
-        "title": "LogoutAccountResponse",
-        "type": "object"
       },
       "ManagedHooksRequirements": {
         "properties": {
@@ -14904,59 +14452,6 @@
           "turnId"
         ],
         "title": "ReasoningTextDeltaNotification",
-        "type": "object"
-      },
-      "RemoteControlConnectionStatus": {
-        "enum": [
-          "disabled",
-          "connecting",
-          "connected",
-          "errored"
-        ],
-        "type": "string"
-      },
-      "RemoteControlDisableParams": {
-        "properties": {
-          "ephemeral": {
-            "type": "boolean"
-          }
-        },
-        "type": "object"
-      },
-      "RemoteControlEnableParams": {
-        "properties": {
-          "ephemeral": {
-            "type": "boolean"
-          }
-        },
-        "type": "object"
-      },
-      "RemoteControlStatusChangedNotification": {
-        "$schema": "http://json-schema.org/draft-07/schema#",
-        "description": "Current remote-control connection status and remote identity exposed to clients.",
-        "properties": {
-          "environmentId": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "installationId": {
-            "type": "string"
-          },
-          "serverName": {
-            "type": "string"
-          },
-          "status": {
-            "$ref": "#/definitions/v2/RemoteControlConnectionStatus"
-          }
-        },
-        "required": [
-          "installationId",
-          "serverName",
-          "status"
-        ],
-        "title": "RemoteControlStatusChangedNotification",
         "type": "object"
       },
       "RequestId": {

@@ -1,7 +1,6 @@
 // GENERATED CODE! DO NOT MODIFY BY HAND!
 
 export type { Account } from "./Account";
-export type { AccountLoginCompletedNotification } from "./AccountLoginCompletedNotification";
 export type { AccountRateLimitsUpdatedNotification } from "./AccountRateLimitsUpdatedNotification";
 export type { AccountTokenUsageDailyBucket } from "./AccountTokenUsageDailyBucket";
 export type { AccountTokenUsageSummary } from "./AccountTokenUsageSummary";
@@ -37,13 +36,7 @@ export type { AttestationGenerateParams } from "./AttestationGenerateParams";
 export type { AttestationGenerateResponse } from "./AttestationGenerateResponse";
 export type { AutoReviewDecisionSource } from "./AutoReviewDecisionSource";
 export type { ByteRange } from "./ByteRange";
-export type { CancelLoginAccountParams } from "./CancelLoginAccountParams";
-export type { CancelLoginAccountResponse } from "./CancelLoginAccountResponse";
-export type { CancelLoginAccountStatus } from "./CancelLoginAccountStatus";
 export type { CapabilityRootLocation } from "./CapabilityRootLocation";
-export type { ChatgptAuthTokensRefreshParams } from "./ChatgptAuthTokensRefreshParams";
-export type { ChatgptAuthTokensRefreshReason } from "./ChatgptAuthTokensRefreshReason";
-export type { ChatgptAuthTokensRefreshResponse } from "./ChatgptAuthTokensRefreshResponse";
 export type { CodexErrorInfo } from "./CodexErrorInfo";
 export type { CollabAgentState } from "./CollabAgentState";
 export type { CollabAgentStatus } from "./CollabAgentStatus";
@@ -192,9 +185,6 @@ export type { ItemGuardianApprovalReviewStartedNotification } from "./ItemGuardi
 export type { ItemStartedNotification } from "./ItemStartedNotification";
 export type { ListMcpServerStatusParams } from "./ListMcpServerStatusParams";
 export type { ListMcpServerStatusResponse } from "./ListMcpServerStatusResponse";
-export type { LoginAccountParams } from "./LoginAccountParams";
-export type { LoginAccountResponse } from "./LoginAccountResponse";
-export type { LogoutAccountResponse } from "./LogoutAccountResponse";
 export type { ManagedHooksRequirements } from "./ManagedHooksRequirements";
 export type { MarketplaceAddParams } from "./MarketplaceAddParams";
 export type { MarketplaceAddResponse } from "./MarketplaceAddResponse";
@@ -343,10 +333,6 @@ export type { ReasoningEffortOption } from "./ReasoningEffortOption";
 export type { ReasoningSummaryPartAddedNotification } from "./ReasoningSummaryPartAddedNotification";
 export type { ReasoningSummaryTextDeltaNotification } from "./ReasoningSummaryTextDeltaNotification";
 export type { ReasoningTextDeltaNotification } from "./ReasoningTextDeltaNotification";
-export type { RemoteControlConnectionStatus } from "./RemoteControlConnectionStatus";
-export type { RemoteControlDisableParams } from "./RemoteControlDisableParams";
-export type { RemoteControlEnableParams } from "./RemoteControlEnableParams";
-export type { RemoteControlStatusChangedNotification } from "./RemoteControlStatusChangedNotification";
 export type { RequestPermissionProfile } from "./RequestPermissionProfile";
 export type { ResidencyRequirement } from "./ResidencyRequirement";
 export type { ReviewDelivery } from "./ReviewDelivery";

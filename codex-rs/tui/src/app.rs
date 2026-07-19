@@ -41,8 +41,6 @@ use crate::external_editor;
 use crate::file_search::FileSearchManager;
 use crate::history_cell;
 use crate::history_cell::HistoryCell;
-#[cfg(not(debug_assertions))]
-use crate::history_cell::UpdateAvailableHistoryCell;
 use crate::hooks_rpc::HookTrustUpdate;
 use crate::key_hint::KeyBindingListExt;
 use crate::keymap::RuntimeKeymap;
@@ -77,8 +75,7 @@ use crate::token_usage::TokenUsage;
 use crate::transcript_reflow::TranscriptReflowState;
 use crate::tui;
 use crate::tui::TuiEvent;
-use crate::update_action::UpdateAction;
-use crate::version::CODEX_CLI_VERSION;
+
 use crate::workspace_command::AppServerWorkspaceCommandRunner;
 use crate::workspace_command::WorkspaceCommandRunner;
 use codex_ansi_escape::ansi_escape_line;
@@ -400,7 +397,6 @@ pub struct AppExitInfo {
     pub token_usage: TokenUsage,
     pub thread_id: Option<ThreadId>,
     pub resume_hint: Option<String>,
-    pub update_action: Option<UpdateAction>,
     pub exit_reason: ExitReason,
 }
 
@@ -410,7 +406,6 @@ impl AppExitInfo {
             token_usage: TokenUsage::default(),
             thread_id: None,
             resume_hint: None,
-            update_action: None,
             exit_reason: ExitReason::Fatal(message.into()),
         }
     }
@@ -550,8 +545,6 @@ pub(crate) struct App {
     feedback_audience: FeedbackAudience,
     environment_manager: Arc<EnvironmentManager>,
     app_server_target: AppServerTarget,
-    /// Set when the user confirms an update; propagated on exit.
-    pub(crate) pending_update_action: Option<UpdateAction>,
 
     /// Tracks the thread we intentionally shut down while exiting the app.
     ///
@@ -1011,9 +1004,6 @@ Fix the config and retry.\n\
 See the Codex keymap documentation for supported actions and examples."
             )
         })?;
-        #[cfg(not(debug_assertions))]
-        let upgrade_version = crate::updates::get_upgrade_version(&config);
-
         let mut app = Self {
             model_catalog,
             session_telemetry: session_telemetry.clone(),
@@ -1047,7 +1037,6 @@ See the Codex keymap documentation for supported actions and examples."
             feedback_audience,
             environment_manager,
             app_server_target,
-            pending_update_action: None,
             pending_shutdown_exit_thread_id: None,
             windows_sandbox: WindowsSandboxState::default(),
             thread_event_channels: HashMap::new(),
@@ -1141,89 +1130,64 @@ See the Codex keymap documentation for supported actions and examples."
         let mut listen_for_app_server_events = true;
         let mut waiting_for_initial_session_configured = wait_for_initial_session_configured;
 
-        #[cfg(not(debug_assertions))]
-        let pre_loop_exit_reason = if let Some(latest_version) = upgrade_version {
-            let control = Box::pin(app.handle_event(
-                tui,
-                &mut app_server,
-                AppEvent::InsertHistoryCell(Box::new(UpdateAvailableHistoryCell::new(
-                    latest_version,
-                    crate::update_action::get_update_action(),
-                ))),
-            ))
-            .await?;
-            match control {
-                AppRunControl::Continue => None,
-                AppRunControl::Exit(exit_reason) => Some(exit_reason),
-            }
-        } else {
-            None
-        };
-        #[cfg(debug_assertions)]
-        let pre_loop_exit_reason: Option<ExitReason> = None;
-
-        let exit_reason_result = if let Some(exit_reason) = pre_loop_exit_reason {
-            Ok(exit_reason)
-        } else {
-            loop {
-                let control = select! {
-                    Some(event) = app_event_rx.recv() => {
-                        match Box::pin(app.handle_event(tui, &mut app_server, event)).await {
+        let exit_reason_result = loop {
+            let control = select! {
+                Some(event) = app_event_rx.recv() => {
+                    match Box::pin(app.handle_event(tui, &mut app_server, event)).await {
+                        Ok(control) => control,
+                        Err(err) => break Err(err),
+                    }
+                }
+                active = async {
+                    if let Some(rx) = app.active_thread_rx.as_mut() {
+                        rx.recv().await
+                    } else {
+                        None
+                    }
+                }, if App::should_handle_active_thread_events(
+                    waiting_for_initial_session_configured,
+                    app.active_thread_rx.is_some()
+                ) => {
+                    if let Some(event) = active {
+                        if let Err(err) = app.handle_active_thread_event(tui, &mut app_server, event).await {
+                            break Err(err);
+                        }
+                    } else {
+                        app.clear_active_thread().await;
+                    }
+                    AppRunControl::Continue
+                }
+                event = tui_events.next() => {
+                    if let Some(event) = event {
+                        match app.handle_tui_event(tui, &mut app_server, event).await {
                             Ok(control) => control,
                             Err(err) => break Err(err),
                         }
+                    } else {
+                        tracing::warn!("terminal input stream closed; shutting down active thread");
+                        app.handle_exit_mode(&mut app_server, ExitMode::ShutdownFirst).await
                     }
-                    active = async {
-                        if let Some(rx) = app.active_thread_rx.as_mut() {
-                            rx.recv().await
-                        } else {
-                            None
-                        }
-                    }, if App::should_handle_active_thread_events(
-                        waiting_for_initial_session_configured,
-                        app.active_thread_rx.is_some()
-                    ) => {
-                        if let Some(event) = active {
-                            if let Err(err) = app.handle_active_thread_event(tui, &mut app_server, event).await {
-                                break Err(err);
-                            }
-                        } else {
-                            app.clear_active_thread().await;
-                        }
-                        AppRunControl::Continue
-                    }
-                    event = tui_events.next() => {
-                        if let Some(event) = event {
-                            match app.handle_tui_event(tui, &mut app_server, event).await {
-                                Ok(control) => control,
-                                Err(err) => break Err(err),
-                            }
-                        } else {
-                            tracing::warn!("terminal input stream closed; shutting down active thread");
-                            app.handle_exit_mode(&mut app_server, ExitMode::ShutdownFirst).await
-                        }
-                    }
-                    app_server_event = app_server.next_event(), if listen_for_app_server_events => {
-                        match app_server_event {
-                            Some(event) => app.handle_app_server_event(&app_server, event).await,
-                            None => {
-                                listen_for_app_server_events = false;
-                                tracing::warn!("app-server event stream closed");
-                            }
-                        }
-                        AppRunControl::Continue
-                    }
-                };
-                if App::should_stop_waiting_for_initial_session(
-                    waiting_for_initial_session_configured,
-                    app.primary_thread_id,
-                ) {
-                    waiting_for_initial_session_configured = false;
                 }
-                match control {
-                    AppRunControl::Continue => {}
-                    AppRunControl::Exit(reason) => break Ok(reason),
+                app_server_event = app_server.next_event(), if listen_for_app_server_events => {
+                    match app_server_event {
+                        Some(event) => app.handle_app_server_event(&app_server, event).await,
+                        None => {
+                            listen_for_app_server_events = false;
+                            tracing::warn!("app-server event stream closed");
+                        }
+                    }
+                    AppRunControl::Continue
                 }
+            };
+            if App::should_stop_waiting_for_initial_session(
+                waiting_for_initial_session_configured,
+                app.primary_thread_id,
+            ) {
+                waiting_for_initial_session_configured = false;
+            }
+            match control {
+                AppRunControl::Continue => {}
+                AppRunControl::Exit(reason) => break Ok(reason),
             }
         };
         if let Err(err) = app_server.shutdown().await {
@@ -1257,7 +1221,6 @@ See the Codex keymap documentation for supported actions and examples."
             token_usage: app.token_usage(),
             thread_id,
             resume_hint,
-            update_action: app.pending_update_action,
             exit_reason,
         })
     }

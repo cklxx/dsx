@@ -1,30 +1,30 @@
 {
   "outputs": {
-    "codex": {
+    "dsx": {
       "platforms": {
         "macos-aarch64": {
           "regex": "^codex-package-aarch64-apple-darwin\\.tar\\.zst$",
-          "path": "bin/codex"
+          "path": "bin/dsx"
         },
         "macos-x86_64": {
           "regex": "^codex-package-x86_64-apple-darwin\\.tar\\.zst$",
-          "path": "bin/codex"
+          "path": "bin/dsx"
         },
         "linux-x86_64": {
           "regex": "^codex-package-x86_64-unknown-linux-musl\\.tar\\.zst$",
-          "path": "bin/codex"
+          "path": "bin/dsx"
         },
         "linux-aarch64": {
           "regex": "^codex-package-aarch64-unknown-linux-musl\\.tar\\.zst$",
-          "path": "bin/codex"
+          "path": "bin/dsx"
         },
         "windows-x86_64": {
           "regex": "^codex-package-x86_64-pc-windows-msvc\\.tar\\.zst$",
-          "path": "bin/codex.exe"
+          "path": "bin/dsx.exe"
         },
         "windows-aarch64": {
           "regex": "^codex-package-aarch64-pc-windows-msvc\\.tar\\.zst$",
-          "path": "bin/codex.exe"
+          "path": "bin/dsx.exe"
         }
       }
     },
@@ -53,34 +53,6 @@
         "windows-aarch64": {
           "regex": "^codex-app-server-package-aarch64-pc-windows-msvc\\.tar\\.zst$",
           "path": "bin/codex-app-server.exe"
-        }
-      }
-    },
-    "codex-responses-api-proxy": {
-      "platforms": {
-        "macos-aarch64": {
-          "regex": "^codex-responses-api-proxy-aarch64-apple-darwin\\.zst$",
-          "path": "codex-responses-api-proxy"
-        },
-        "macos-x86_64": {
-          "regex": "^codex-responses-api-proxy-x86_64-apple-darwin\\.zst$",
-          "path": "codex-responses-api-proxy"
-        },
-        "linux-x86_64": {
-          "regex": "^codex-responses-api-proxy-x86_64-unknown-linux-musl\\.zst$",
-          "path": "codex-responses-api-proxy"
-        },
-        "linux-aarch64": {
-          "regex": "^codex-responses-api-proxy-aarch64-unknown-linux-musl\\.zst$",
-          "path": "codex-responses-api-proxy"
-        },
-        "windows-x86_64": {
-          "regex": "^codex-responses-api-proxy-x86_64-pc-windows-msvc\\.exe\\.zst$",
-          "path": "codex-responses-api-proxy.exe"
-        },
-        "windows-aarch64": {
-          "regex": "^codex-responses-api-proxy-aarch64-pc-windows-msvc\\.exe\\.zst$",
-          "path": "codex-responses-api-proxy.exe"
         }
       }
     },

@@ -28,6 +28,8 @@ jobs:
   repo-checks:
     name: repo-checks
     uses: ./.github/workflows/repo-checks.yml
+    with:
+      base_ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
     secrets: inherit
 
   rust-ci:

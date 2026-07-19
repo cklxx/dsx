@@ -83,7 +83,7 @@ jobs:
             target: aarch64-apple-darwin
             bundle: primary
             artifact_name: aarch64-apple-darwin
-            binaries: "codex codex-responses-api-proxy"
+            binaries: "dsx"
             build_dmg: "true"
           - runner: macos-latest
             target: aarch64-apple-darwin
@@ -95,7 +95,7 @@ jobs:
             target: x86_64-apple-darwin
             bundle: primary
             artifact_name: x86_64-apple-darwin
-            binaries: "codex codex-responses-api-proxy"
+            binaries: "dsx"
             build_dmg: "true"
           - runner: macos-latest
             target: x86_64-apple-darwin
@@ -108,7 +108,7 @@ jobs:
             target: x86_64-unknown-linux-musl
             bundle: primary
             artifact_name: x86_64-unknown-linux-musl
-            binaries: "codex codex-responses-api-proxy bwrap"
+            binaries: "dsx bwrap"
             build_dmg: "false"
           - runner: ubuntu-24.04
             target: x86_64-unknown-linux-musl
@@ -120,7 +120,7 @@ jobs:
             target: aarch64-unknown-linux-musl
             bundle: primary
             artifact_name: aarch64-unknown-linux-musl
-            binaries: "codex codex-responses-api-proxy bwrap"
+            binaries: "dsx bwrap"
             build_dmg: "false"
           - runner: ubuntu-24.04
             target: aarch64-unknown-linux-musl
@@ -346,11 +346,11 @@ jobs:
             bundle_root="${RUNNER_TEMP}/codex-${{ matrix.target }}-bundle"
             rm -rf "$bundle_root"
             mkdir -p "$bundle_root/codex-resources"
-            cp "$dest/codex-${{ matrix.target }}" "$bundle_root/codex"
+            cp "$dest/dsx-${{ matrix.target }}" "$bundle_root/dsx"
             cp "$dest/bwrap-${{ matrix.target }}" "$bundle_root/codex-resources/bwrap"
-            chmod 0755 "$bundle_root/codex" "$bundle_root/codex-resources/bwrap"
-            tar -C "$bundle_root" -cf - codex codex-resources/bwrap |
-              zstd -T0 -19 -o "$dest/codex-${{ matrix.target }}-bundle.tar.zst"
+            chmod 0755 "$bundle_root/dsx" "$bundle_root/codex-resources/bwrap"
+            tar -C "$bundle_root" -cf - dsx codex-resources/bwrap |
+              zstd -T0 -19 -o "$dest/dsx-${{ matrix.target }}-bundle.tar.zst"
           fi
 
           if [[ "${{ matrix.build_dmg }}" == "true" ]]; then
@@ -497,7 +497,7 @@ jobs:
           - target: aarch64-apple-darwin
             bundle: primary
             artifact_name: aarch64-apple-darwin
-            binaries: "codex codex-responses-api-proxy"
+            binaries: "dsx"
           - target: aarch64-apple-darwin
             bundle: app-server
             artifact_name: aarch64-apple-darwin-app-server
@@ -505,7 +505,7 @@ jobs:
           - target: x86_64-apple-darwin
             bundle: primary
             artifact_name: x86_64-apple-darwin
-            binaries: "codex codex-responses-api-proxy"
+            binaries: "dsx"
           - target: x86_64-apple-darwin
             bundle: app-server
             artifact_name: x86_64-apple-darwin-app-server
@@ -615,7 +615,7 @@ jobs:
           - target: aarch64-apple-darwin
             bundle: primary
             artifact_name: aarch64-apple-darwin
-            binaries: "codex codex-responses-api-proxy"
+            binaries: "dsx"
             build_dmg: "true"
           - target: aarch64-apple-darwin
             bundle: app-server
@@ -625,7 +625,7 @@ jobs:
           - target: x86_64-apple-darwin
             bundle: primary
             artifact_name: x86_64-apple-darwin
-            binaries: "codex codex-responses-api-proxy"
+            binaries: "dsx"
             build_dmg: "true"
           - target: x86_64-apple-darwin
             bundle: app-server
@@ -911,7 +911,7 @@ jobs:
           - target: aarch64-apple-darwin
             bundle: primary
             artifact_name: aarch64-apple-darwin
-            binaries: "codex codex-responses-api-proxy"
+            binaries: "dsx"
             verify_dmg: "true"
           - target: aarch64-apple-darwin
             bundle: app-server
@@ -921,7 +921,7 @@ jobs:
           - target: x86_64-apple-darwin
             bundle: primary
             artifact_name: x86_64-apple-darwin
-            binaries: "codex codex-responses-api-proxy"
+            binaries: "dsx"
             verify_dmg: "true"
           - target: x86_64-apple-darwin
             bundle: app-server
@@ -997,7 +997,7 @@ jobs:
           case "${{ matrix.bundle }}" in
             primary)
               package_stem="codex-package"
-              package_entrypoint="codex"
+              package_entrypoint="dsx"
               ;;
             app-server)
               package_stem="codex-app-server-package"
@@ -1210,9 +1210,7 @@ jobs:
             --release-version "$RELEASE_VERSION" \
             --workflow-url "$workflow_url" \
             --artifacts-dir "${GITHUB_WORKSPACE}/dist" \
-            --package codex \
-            --package codex-responses-api-proxy \
-            --package codex-sdk
+            --package dsx
 
       - name: Stage installer scripts
         run: |
@@ -1296,12 +1294,10 @@ jobs:
           tag="$RELEASE_TAG"
           mkdir -p dist/npm
           patterns=(
-            "codex-npm-${version}.tgz"
-            "codex-npm-linux-*-${version}.tgz"
-            "codex-npm-darwin-*-${version}.tgz"
-            "codex-npm-win32-*-${version}.tgz"
-            "codex-responses-api-proxy-npm-${version}.tgz"
-            "codex-sdk-npm-${version}.tgz"
+            "dsx-npm-${version}.tgz"
+            "dsx-npm-linux-*-${version}.tgz"
+            "dsx-npm-darwin-*-${version}.tgz"
+            "dsx-npm-win32-*-${version}.tgz"
           )
           for pattern in "${patterns[@]}"; do
             gh release download "$tag" \
@@ -1322,19 +1318,18 @@ jobs:
             prefix="${NPM_TAG}-"
           fi
 
-          root_tarball="dist/npm/codex-npm-${VERSION}.tgz"
-          sdk_tarball="dist/npm/codex-sdk-npm-${VERSION}.tgz"
+          root_tarball="dist/npm/dsx-npm-${VERSION}.tgz"
           # Keep this list in sync with DSX_PLATFORM_PACKAGES in
           # codex-cli/scripts/build_npm_package.py. The root wrapper advances
-          # @openai/codex@latest as soon as it publishes, so every platform
+          # The dsx root package advances as soon as it publishes, so every platform
           # package it aliases must already exist in the registry first.
           platform_tarballs=(
-            "dist/npm/codex-npm-linux-x64-${VERSION}.tgz"
-            "dist/npm/codex-npm-linux-arm64-${VERSION}.tgz"
-            "dist/npm/codex-npm-darwin-x64-${VERSION}.tgz"
-            "dist/npm/codex-npm-darwin-arm64-${VERSION}.tgz"
-            "dist/npm/codex-npm-win32-x64-${VERSION}.tgz"
-            "dist/npm/codex-npm-win32-arm64-${VERSION}.tgz"
+            "dist/npm/dsx-npm-linux-x64-${VERSION}.tgz"
+            "dist/npm/dsx-npm-linux-arm64-${VERSION}.tgz"
+            "dist/npm/dsx-npm-darwin-x64-${VERSION}.tgz"
+            "dist/npm/dsx-npm-darwin-arm64-${VERSION}.tgz"
+            "dist/npm/dsx-npm-win32-x64-${VERSION}.tgz"
+            "dist/npm/dsx-npm-win32-arm64-${VERSION}.tgz"
           )
 
           for required_tarball in "${platform_tarballs[@]}" "${root_tarball}"; do
@@ -1347,7 +1342,7 @@ jobs:
           shopt -s nullglob
           other_tarballs=()
           for tarball in dist/npm/*-"${VERSION}".tgz; do
-            if [[ "${tarball}" == "${root_tarball}" || "${tarball}" == "${sdk_tarball}" ]]; then
+            if [[ "${tarball}" == "${root_tarball}" ]]; then
               continue
             fi
 
@@ -1366,29 +1361,24 @@ jobs:
           done
 
           # npm returns HTTP 409 when concurrent publishes update the same
-          # packument. Every platform tarball is a version of @openai/codex,
+          # packument. Every platform tarball is a version of dsx,
           # so publish all tarballs serially.
           tarballs=(
             "${platform_tarballs[@]}"
             "${other_tarballs[@]}"
             "${root_tarball}"
           )
-          # The SDK depends on this exact root package version.
-          if [[ -f "${sdk_tarball}" ]]; then
-            tarballs+=("${sdk_tarball}")
-          fi
-
           for tarball in "${tarballs[@]}"; do
             filename="$(basename "${tarball}")"
             tag=""
 
             case "${filename}" in
-              codex-npm-linux-*-"${VERSION}".tgz|codex-npm-darwin-*-"${VERSION}".tgz|codex-npm-win32-*-"${VERSION}".tgz)
-                platform="${filename#codex-npm-}"
+              dsx-npm-linux-*-"${VERSION}".tgz|dsx-npm-darwin-*-"${VERSION}".tgz|dsx-npm-win32-*-"${VERSION}".tgz)
+                platform="${filename#dsx-npm-}"
                 platform="${platform%-${VERSION}.tgz}"
                 tag="${prefix}${platform}"
                 ;;
-              codex-npm-"${VERSION}".tgz|codex-responses-api-proxy-npm-"${VERSION}".tgz|codex-sdk-npm-"${VERSION}".tgz)
+              dsx-npm-"${VERSION}".tgz)
                 tag="${NPM_TAG}"
                 ;;
               *)

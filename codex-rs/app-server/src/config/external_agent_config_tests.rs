@@ -701,11 +701,7 @@ async fn import_repo_mcp_preserves_existing_same_named_server() {
     let existing_config = r#"[mcp_servers.mixedTransport]
 url = "https://example.com/mixed-transport"
 "#;
-    fs::write(
-        repo_root.join(".dsx").join("config.toml"),
-        existing_config,
-    )
-    .expect("write config");
+    fs::write(repo_root.join(".dsx").join("config.toml"), existing_config).expect("write config");
 
     let service = service_for_paths(
         root.path().join(EXTERNAL_AGENT_DIR),

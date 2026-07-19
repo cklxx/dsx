@@ -82,7 +82,7 @@ function Find-ReleaseAssetMetadata {
         [string]$ResolvedVersion
     )
 
-    $release = Invoke-RestMethod -Uri "https://api.github.com/repos/openai/codex/releases/tags/rust-v$ResolvedVersion"
+    $release = Invoke-RestMethod -Uri "https://api.github.com/repos/cklxx/dsx/releases/tags/rust-v$ResolvedVersion"
     $asset = $release.assets | Where-Object { $_.name -eq $AssetName } | Select-Object -First 1
     if ($null -eq $asset) {
         return $null
@@ -223,7 +223,7 @@ function Resolve-Version {
         return $normalizedVersion
     }
 
-    $release = Invoke-RestMethod -Uri "https://api.github.com/repos/openai/codex/releases/latest"
+    $release = Invoke-RestMethod -Uri "https://api.github.com/repos/cklxx/dsx/releases/latest"
     if (-not $release.tag_name) {
         Write-Error "Failed to resolve the latest Codex release version."
         exit 1
@@ -261,12 +261,12 @@ function Get-CurrentInstalledVersion {
         [string]$StandaloneCurrentDir
     )
 
-    $standaloneVersion = Get-VersionFromBinary -CodexPath (Join-Path $StandaloneCurrentDir "bin\codex.exe")
+    $standaloneVersion = Get-VersionFromBinary -CodexPath (Join-Path $StandaloneCurrentDir "bin\dsx.exe")
     if (-not [string]::IsNullOrWhiteSpace($standaloneVersion)) {
         return $standaloneVersion
     }
 
-    $standaloneVersion = Get-VersionFromBinary -CodexPath (Join-Path $StandaloneCurrentDir "codex.exe")
+    $standaloneVersion = Get-VersionFromBinary -CodexPath (Join-Path $StandaloneCurrentDir "dsx.exe")
     if (-not [string]::IsNullOrWhiteSpace($standaloneVersion)) {
         return $standaloneVersion
     }
@@ -292,7 +292,7 @@ function Test-OldStandaloneBinLayout {
         return $false
     }
 
-    $requiredFiles = @("codex.exe", "rg.exe")
+    $requiredFiles = @("dsx.exe", "rg.exe")
     foreach ($fileName in $requiredFiles) {
         if (-not (Test-Path -LiteralPath (Join-Path $VisibleBinDir $fileName) -PathType Leaf)) {
             return $false
@@ -300,7 +300,7 @@ function Test-OldStandaloneBinLayout {
     }
 
     $knownFiles = @(
-        "codex.exe",
+        "dsx.exe",
         "rg.exe",
         "codex-command-runner.exe",
         "codex-windows-sandbox.exe",
@@ -536,7 +536,7 @@ function Test-PackageContentsAreComplete {
 
     $expectedFiles = @(
         "codex-package.json",
-        "bin\codex.exe",
+        "bin\dsx.exe",
         "codex-path\rg.exe",
         "codex-resources\codex-command-runner.exe",
         "codex-resources\codex-windows-sandbox-setup.exe"
@@ -560,7 +560,7 @@ function Test-LegacyPlatformNpmContentsAreComplete {
     }
 
     $expectedFiles = @(
-        "codex.exe",
+        "dsx.exe",
         "codex-resources\codex-command-runner.exe",
         "codex-resources\codex-windows-sandbox-setup.exe",
         "codex-resources\rg.exe"
@@ -602,7 +602,7 @@ function Test-ReleaseIsComplete {
 }
 
 function Get-ExistingCodexCommand {
-    $existing = Get-Command codex -ErrorAction SilentlyContinue
+    $existing = Get-Command dsx -ErrorAction SilentlyContinue
     if ($null -eq $existing) {
         return $null
     }
@@ -681,7 +681,7 @@ function Maybe-HandleConflictingInstall {
             Write-WarningStep "Failed to uninstall the existing $manager-managed Codex. Continuing with the standalone install."
         }
     } else {
-        Write-WarningStep "Leaving the existing $manager-managed Codex installed. PATH order will determine which codex runs."
+        Write-WarningStep "Leaving the existing $manager-managed Codex installed. PATH order will determine which dsx runs."
     }
 }
 
@@ -690,7 +690,7 @@ function Test-VisibleCodexCommand {
         [string]$VisibleBinDir
     )
 
-    $codexCommand = Join-Path $VisibleBinDir "codex.exe"
+    $codexCommand = Join-Path $VisibleBinDir "dsx.exe"
     & $codexCommand --version *> $null
     if ($LASTEXITCODE -ne 0) {
         throw "Installed Codex command failed verification: $codexCommand --version"
@@ -740,7 +740,7 @@ $releasesDir = Join-Path $standaloneRoot "releases"
 $currentDir = Join-Path $standaloneRoot "current"
 $lockPath = Join-Path $standaloneRoot "install.lock"
 
-$defaultVisibleBinDir = Join-Path $env:LOCALAPPDATA "Programs\OpenAI\Codex\bin"
+$defaultVisibleBinDir = Join-Path $env:LOCALAPPDATA "Programs\DSX\bin"
 if ([string]::IsNullOrWhiteSpace($env:CODEX_INSTALL_DIR)) {
     $visibleBinDir = $defaultVisibleBinDir
 } else {
@@ -753,11 +753,11 @@ $releaseName = "$resolvedVersion-$target"
 $releaseDir = Join-Path $releasesDir $releaseName
 
 if (-not [string]::IsNullOrWhiteSpace($currentVersion) -and $currentVersion -ne $resolvedVersion) {
-    Write-Step "Updating Codex CLI from $currentVersion to $resolvedVersion"
+    Write-Step "Updating DSX CLI from $currentVersion to $resolvedVersion"
 } elseif (-not [string]::IsNullOrWhiteSpace($currentVersion)) {
-    Write-Step "Updating Codex CLI"
+    Write-Step "Updating DSX CLI"
 } else {
-    Write-Step "Installing Codex CLI"
+    Write-Step "Installing DSX CLI"
 }
 Write-Step "Detected platform: $platformLabel"
 Write-Step "Resolved version: $resolvedVersion"
@@ -776,7 +776,7 @@ if ($null -eq $packageMetadata -or $null -eq $checksumMetadata) {
     if ($null -ne $packageMetadata) {
         $installLayout = "LegacyPlatformNpm"
     } else {
-        throw "Could not find Codex package or platform npm release assets for Codex $resolvedVersion."
+        throw "Could not find DSX package or platform npm release assets for DSX $resolvedVersion."
     }
     $checksumMetadata = $null
 }
@@ -796,7 +796,7 @@ try {
             $checksumPath = Join-Path $tempDir $checksumAsset
             $stagingDir = Join-Path $releasesDir ".staging.$releaseName.$PID"
 
-            Write-Step "Downloading Codex CLI"
+            Write-Step "Downloading DSX CLI"
             if ($installLayout -eq "Package") {
                 Invoke-WebRequest -Uri $checksumMetadata.Url -OutFile $checksumPath
                 Test-ArchiveDigest -ArchivePath $checksumPath -ExpectedDigest $checksumMetadata.Sha256
@@ -826,10 +826,10 @@ try {
                 $resourcesDir = Join-Path $stagingDir "codex-resources"
                 New-Item -ItemType Directory -Force -Path $resourcesDir | Out-Null
                 $copyMap = @{
-                    "codex/codex.exe" = "codex.exe"
-                    "codex/codex-command-runner.exe" = "codex-resources\codex-command-runner.exe"
-                    "codex/codex-windows-sandbox-setup.exe" = "codex-resources\codex-windows-sandbox-setup.exe"
-                    "path/rg.exe" = "codex-resources\rg.exe"
+                    "bin/dsx.exe" = "dsx.exe"
+                    "codex-resources/codex-command-runner.exe" = "codex-resources\codex-command-runner.exe"
+                    "codex-resources/codex-windows-sandbox-setup.exe" = "codex-resources\codex-windows-sandbox-setup.exe"
+                    "codex-path/rg.exe" = "codex-resources\rg.exe"
                 }
 
                 foreach ($relativeSource in $copyMap.Keys) {
@@ -915,12 +915,12 @@ if ($prioritizeVisibleBin) {
     }
 }
 
-Write-Step "Current PowerShell session: codex"
-Write-Step "Future PowerShell windows: open a new PowerShell window and run: codex"
-Write-Host "Codex CLI $resolvedVersion installed successfully."
+Write-Step "Current PowerShell session: dsx"
+Write-Step "Future PowerShell windows: open a new PowerShell window and run: dsx"
+Write-Host "DSX CLI $resolvedVersion installed successfully."
 
-$codexCommand = Join-Path $visibleBinDir "codex.exe"
-if (Prompt-YesNo "Start Codex now?") {
-    Write-Step "Launching Codex"
+$codexCommand = Join-Path $visibleBinDir "dsx.exe"
+if (Prompt-YesNo "Start DSX now?") {
+    Write-Step "Launching DSX"
     & $codexCommand
 }

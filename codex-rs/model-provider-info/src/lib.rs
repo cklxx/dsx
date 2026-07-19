@@ -221,6 +221,17 @@ impl ModelProviderInfo {
     }
 
     fn build_header_map(&self) -> CodexResult<HeaderMap> {
+        if self.is_deepseek()
+            && std::env::var(DEEPSEEK_API_KEY_ENV_VAR)
+                .ok()
+                .is_none_or(|value| value.trim().is_empty())
+        {
+            return Err(CodexErr::EnvVar(EnvVarError {
+                var: DEEPSEEK_API_KEY_ENV_VAR.to_string(),
+                instructions: self.env_key_instructions.clone(),
+            }));
+        }
+
         let capacity = self.http_headers.as_ref().map_or(0, HashMap::len)
             + self.env_http_headers.as_ref().map_or(0, HashMap::len);
         let mut headers = HeaderMap::with_capacity(capacity);

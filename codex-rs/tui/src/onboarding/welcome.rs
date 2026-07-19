@@ -57,9 +57,10 @@ impl WidgetRef for &WelcomeWidget {
         let suppressed = self.animations_suppressed.get();
         let show_animation = self.animations_enabled
             && !suppressed
-            && self.layout_area.get().is_none_or(|a| {
-                a.height >= MIN_ANIMATION_HEIGHT && a.width >= MIN_ANIMATION_WIDTH
-            });
+            && self
+                .layout_area
+                .get()
+                .is_none_or(|a| a.height >= MIN_ANIMATION_HEIGHT && a.width >= MIN_ANIMATION_WIDTH);
 
         if show_animation {
             self.animation.schedule_next_frame();

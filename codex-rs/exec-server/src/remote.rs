@@ -402,7 +402,7 @@ fn static_bearer_auth_provider(
         .map(|account_id| {
             HeaderValue::try_from(account_id).map_err(|error| {
                 ExecServerError::EnvironmentRegistryConfig(format!(
-                    "ChatGPT account id is not a valid HTTP header: {error}"
+                    "environment registry account id is not a valid HTTP header: {error}"
                 ))
             })
         })

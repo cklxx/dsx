@@ -22,10 +22,8 @@ sleep 0.3
 # Find binary
 if command -v dsx &>/dev/null; then
   BIN=dsx
-elif command -v codex &>/dev/null; then
-  BIN=codex
 else
-  echo "✗ 找不到 codex/dsx 可执行文件"
+  echo "✗ 找不到 dsx 可执行文件"
   exit 1
 fi
 
@@ -67,9 +65,12 @@ fi
 npm run build 2>&1 | tail -5
 echo "✓ 前端构建完成 (dist/)"
 
+TOKEN="$(python3 -c 'import secrets; print(secrets.token_urlsafe(32))')"
+URL="http://127.0.0.1:$GUI_PORT/?token=$TOKEN"
+
 # Start the combined HTTP + WebSocket proxy server
 echo "→ 启动 GUI + WS 代理服务器..."
-DSX_GUI_APP_PORT="$APP_PORT" DSX_GUI_PORT="$GUI_PORT" DSX_GUI_DIST="$SCRIPT_DIR/dist" \
+DSX_GUI_APP_PORT="$APP_PORT" DSX_GUI_PORT="$GUI_PORT" DSX_GUI_TOKEN="$TOKEN" DSX_GUI_DIST="$SCRIPT_DIR/dist" \
   python3 "$SCRIPT_DIR/server.py" &
 GUI_PID=$!
 sleep 0.8
@@ -81,7 +82,6 @@ if ! curl -s -o /dev/null "http://127.0.0.1:$GUI_PORT/" 2>/dev/null; then
   exit 1
 fi
 
-URL="http://127.0.0.1:$GUI_PORT"
 echo "✓ 全部就绪: $URL"
 echo ""
 

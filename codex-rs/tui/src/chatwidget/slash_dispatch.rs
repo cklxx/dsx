@@ -177,7 +177,7 @@ impl ChatWidget {
                 self.bottom_pane.show_selection_view(SelectionViewParams {
                     title: Some("Archive this session?".to_string()),
                     subtitle: Some(
-                        "Are you sure? This will archive the current session and exit Codex"
+                        "Are you sure? This will archive the current session and exit DSX"
                             .to_string(),
                     ),
                     footer_hint: Some(standard_popup_hint_line()),
@@ -238,16 +238,6 @@ impl ChatWidget {
             }
             SlashCommand::Fork => {
                 self.app_event_tx.send(AppEvent::ForkCurrentSession);
-            }
-            SlashCommand::App => {
-                let Some(thread_id) = self.thread_id else {
-                    self.add_error_message(
-                        "Session is still starting; try /app again in a moment.".to_string(),
-                    );
-                    return;
-                };
-                self.app_event_tx
-                    .send(AppEvent::OpenDesktopThread { thread_id });
             }
             SlashCommand::Init => {
                 const INIT_PROMPT: &str = include_str!("../../prompt_for_init_command.md");
@@ -1056,7 +1046,6 @@ impl ChatWidget {
             | SlashCommand::Raw
             | SlashCommand::Vim
             | SlashCommand::Diff
-            | SlashCommand::App
             | SlashCommand::Rename
             | SlashCommand::TestApproval => QueueDrain::Continue,
             SlashCommand::Feedback

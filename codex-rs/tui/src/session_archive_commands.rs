@@ -327,10 +327,7 @@ async fn start_app_server_for_archive_command(
     .await
     .wrap_err("failed to load config.toml")?;
     let config_toml = &bootstrap_config.config_toml;
-    let chatgpt_base_url = config_toml
-        .chatgpt_base_url
-        .clone()
-        .unwrap_or_else(|| "https://chatgpt.com/backend-api/".to_string());
+    let chatgpt_base_url = "https://chatgpt.com/backend-api/".to_string();
     let auth_route_config = resolve_bootstrap_auth_route_config(
         config_toml,
         bootstrap_config

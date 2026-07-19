@@ -5,29 +5,6 @@
       "description": "A path that is guaranteed to be absolute and normalized (though it is not guaranteed to be canonicalized or exist on the filesystem).\n\nIMPORTANT: When deserializing an `AbsolutePathBuf`, a base path must be set using [AbsolutePathBufGuard::new]. If no base path is set, the deserialization will fail unless the path being deserialized is already absolute.",
       "type": "string"
     },
-    "AccountLoginCompletedNotification": {
-      "properties": {
-        "error": {
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "loginId": {
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "success": {
-          "type": "boolean"
-        }
-      },
-      "required": [
-        "success"
-      ],
-      "type": "object"
-    },
     "AccountRateLimitsUpdatedNotification": {
       "description": "Sparse rolling rate-limit update.\n\nClients should merge available values into the most recent `account/rateLimits/read` response or refetch that snapshot. Nullable account metadata may be unavailable in a rolling update and does not clear a previously observed value.",
       "properties": {
@@ -3172,41 +3149,6 @@
         "itemId",
         "threadId",
         "turnId"
-      ],
-      "type": "object"
-    },
-    "RemoteControlConnectionStatus": {
-      "enum": [
-        "disabled",
-        "connecting",
-        "connected",
-        "errored"
-      ],
-      "type": "string"
-    },
-    "RemoteControlStatusChangedNotification": {
-      "description": "Current remote-control connection status and remote identity exposed to clients.",
-      "properties": {
-        "environmentId": {
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "installationId": {
-          "type": "string"
-        },
-        "serverName": {
-          "type": "string"
-        },
-        "status": {
-          "$ref": "#/definitions/RemoteControlConnectionStatus"
-        }
-      },
-      "required": [
-        "installationId",
-        "serverName",
-        "status"
       ],
       "type": "object"
     },
@@ -6506,26 +6448,6 @@
       "properties": {
         "method": {
           "enum": [
-            "remoteControl/status/changed"
-          ],
-          "title": "RemoteControl/status/changedNotificationMethod",
-          "type": "string"
-        },
-        "params": {
-          "$ref": "#/definitions/RemoteControlStatusChangedNotification"
-        }
-      },
-      "required": [
-        "method",
-        "params"
-      ],
-      "title": "RemoteControl/status/changedNotification",
-      "type": "object"
-    },
-    {
-      "properties": {
-        "method": {
-          "enum": [
             "externalAgentConfig/import/progress"
           ],
           "title": "ExternalAgentConfig/import/progressNotificationMethod",
@@ -7062,26 +6984,6 @@
         "params"
       ],
       "title": "WindowsSandbox/setupCompletedNotification",
-      "type": "object"
-    },
-    {
-      "properties": {
-        "method": {
-          "enum": [
-            "account/login/completed"
-          ],
-          "title": "Account/login/completedNotificationMethod",
-          "type": "string"
-        },
-        "params": {
-          "$ref": "#/definitions/AccountLoginCompletedNotification"
-        }
-      },
-      "required": [
-        "method",
-        "params"
-      ],
-      "title": "Account/login/completedNotification",
       "type": "object"
     }
   ],

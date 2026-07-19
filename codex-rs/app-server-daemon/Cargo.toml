@@ -20,17 +20,14 @@ codex-utils-home-dir = { workspace = true }
 codex-uds = { workspace = true }
 futures = { workspace = true }
 libc = { workspace = true }
-reqwest = { workspace = true, features = ["rustls-tls"] }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
-sha2 = { workspace = true }
 tokio = { workspace = true, features = [
     "fs",
     "io-util",
     "macros",
     "process",
     "rt-multi-thread",
-    "signal",
     "time",
 ] }
 tokio-tungstenite = { workspace = true }

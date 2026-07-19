@@ -52,13 +52,13 @@ dsx exec "explain what this repo does"
 
 ## GUI
 
-dsx ships with a Vue 3 + Naive UI browser GUI that talks to `dsx app-server` over WebSocket JSON-RPC:
+dsx ships with a Vue 3 + Naive UI browser GUI behind a tokenized loopback proxy to `dsx app-server`:
 
 ```bash
 ./dsx-gui/start.sh
 ```
 
-Opens at **http://localhost:9021**. See [`dsx-gui/README.md`](dsx-gui/README.md) for details.
+The launcher opens a per-run tokenized URL on `127.0.0.1:9021`. See [`dsx-gui/README.md`](dsx-gui/README.md) for details.
 
 ![dsx-gui screenshot](dsx-gui/screenshot.png)
 
@@ -72,6 +72,17 @@ model_provider = "deepseek"           # the only built-in provider
 ```
 
 The `deepseek` provider reads `DEEPSEEK_API_KEY` from the environment -- there is no login flow. Switch models in-session with `/model`.
+
+### Migrating from Codex
+
+dsx uses `$DSX_HOME`, defaulting to `~/.dsx`. Copy only the settings you still need from Codex, then review them before starting dsx:
+
+```bash
+mkdir -p ~/.dsx
+cp ~/.codex/config.toml ~/.dsx/config.toml
+```
+
+Remove Codex/ChatGPT-specific settings such as `chatgpt_base_url` and `forced_chatgpt_workspace_id`. Do not copy `auth.json`: dsx uses `DEEPSEEK_API_KEY` and has no ChatGPT login. `CODEX_HOME` is accepted only as a compatibility fallback; prefer `DSX_HOME`.
 
 ## How it works
 

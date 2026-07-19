@@ -287,7 +287,10 @@ impl StatusHistoryCell {
         ];
         // dsx: reasoning effort/summaries apply to both Responses and Anthropic
         // wires — DeepSeek-V4 supports thinking mode over the Anthropic Messages API.
-        if matches!(config.model_provider.wire_api, WireApi::Responses | WireApi::Anthropic) {
+        if matches!(
+            config.model_provider.wire_api,
+            WireApi::Responses | WireApi::Anthropic
+        ) {
             let effort_value = reasoning_effort_override
                 .unwrap_or_else(|| config.model_reasoning_effort.clone())
                 .map(|effort| effort.to_string())

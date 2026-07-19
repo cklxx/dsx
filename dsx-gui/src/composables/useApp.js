@@ -26,7 +26,10 @@ export function useApp() {
   const streamingItemId = ref(null);
 
   // ── UI state ─────────────────────────────────────────────────
-  const wsUrl = ref(`ws://${location.hostname}:9021`);
+  const guiToken = new URLSearchParams(location.search).get("token") || "";
+  const wsUrl = ref(
+    `${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/?token=${encodeURIComponent(guiToken)}`,
+  );
   const searchTerm = ref("");
 
   // ── Computed ─────────────────────────────────────────────────

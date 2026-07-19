@@ -242,16 +242,6 @@ impl OnboardingScreen {
 
     fn handle_app_server_notification(&mut self, notification: ServerNotification) {
         match notification {
-            ServerNotification::AccountLoginCompleted(notification) => {
-                if let Some(widget) = self.auth_widget_mut() {
-                    widget.on_account_login_completed(notification);
-                }
-            }
-            ServerNotification::AccountUpdated(notification) => {
-                if let Some(widget) = self.auth_widget_mut() {
-                    widget.on_account_updated(notification);
-                }
-            }
             _ => {}
         }
     }

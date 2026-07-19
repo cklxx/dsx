@@ -3,11 +3,11 @@ use dirs::home_dir;
 use std::path::PathBuf;
 
 /// Returns the path to the dsx configuration directory, which can be
-/// specified by the `DSX_HOME` environment variable (with `DSX_HOME` as a
+/// specified by the `DSX_HOME` environment variable (with `CODEX_HOME` as a
 /// fallback for backwards compatibility). If neither is set, defaults to
 /// `~/.dsx`.
 ///
-/// - If `DSX_HOME` (or `DSX_HOME`) is set, the value must exist and be a
+/// - If `DSX_HOME` (or `CODEX_HOME`) is set, the value must exist and be a
 ///   directory. The value will be canonicalized and this function will Err otherwise.
 /// - If neither environment variable is set, this function does not verify that the
 ///   directory exists.
@@ -24,8 +24,8 @@ pub fn find_codex_home() -> std::io::Result<AbsolutePathBuf> {
 }
 
 fn find_codex_home_from_env(codex_home_env: Option<&str>) -> std::io::Result<AbsolutePathBuf> {
-    // Honor the `DSX_HOME` (or `DSX_HOME`) environment variable when it is set to allow users
-    // (and tests) to override the default location.
+    // Honor the `DSX_HOME` (or legacy `CODEX_HOME`) environment variable when it is set to allow
+    // users and tests to override the default location.
     match codex_home_env {
         Some(val) => {
             let path = PathBuf::from(val);

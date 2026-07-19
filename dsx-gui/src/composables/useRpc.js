@@ -127,7 +127,7 @@ export function useRpc() {
     });
   }
 
-  /** Auto-approve everything the server asks for. */
+  /** Decline privileged requests until the GUI has an explicit approval prompt. */
   function handleServerRequest(socket, msg) {
     const m = msg.method;
     if (
@@ -135,10 +135,10 @@ export function useRpc() {
       m === "item/fileChange/requestApproval"
     ) {
       socket.send(
-        JSON.stringify({ id: msg.id, result: { decision: "accept" } }),
+        JSON.stringify({ id: msg.id, result: { decision: "decline" } }),
       );
     } else if (m === "item/permissions/requestApproval") {
-      socket.send(JSON.stringify({ id: msg.id, result: { accept: true } }));
+      socket.send(JSON.stringify({ id: msg.id, result: { accept: false } }));
     } else if (m === "currentTime/read") {
       socket.send(
         JSON.stringify({

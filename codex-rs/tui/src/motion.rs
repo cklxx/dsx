@@ -73,9 +73,7 @@ fn animated_activity_indicator(start_time: Option<Instant>) -> Span<'static> {
     let fg = Color::Rgb(130, 160, 255);
     Span::styled(
         BUBBLE[idx],
-        Style::default()
-            .fg(fg)
-            .add_modifier(Modifier::BOLD),
+        Style::default().fg(fg).add_modifier(Modifier::BOLD),
     )
 }
 

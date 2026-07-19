@@ -24,7 +24,10 @@ pub fn create_config_summary_entries(config: &Config, model: &str) -> Vec<(&'sta
     ];
     // dsx: reasoning effort applies to both Responses and Anthropic wires —
     // DeepSeek-V4 supports thinking mode over the Anthropic Messages API.
-    if matches!(config.model_provider.wire_api, WireApi::Responses | WireApi::Anthropic) {
+    if matches!(
+        config.model_provider.wire_api,
+        WireApi::Responses | WireApi::Anthropic
+    ) {
         let reasoning_effort = config
             .model_reasoning_effort
             .as_ref()

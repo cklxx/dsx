@@ -3,6 +3,7 @@
 import http.server
 import mimetypes
 import os
+import secrets
 import socket
 import socketserver
 import sys
@@ -11,6 +12,7 @@ import urllib.parse
 
 APP_PORT = int(os.environ.get("DSX_GUI_APP_PORT", "9020"))
 GUI_PORT = int(os.environ.get("DSX_GUI_PORT", "9021"))
+GUI_TOKEN = os.environ.get("DSX_GUI_TOKEN") or secrets.token_urlsafe(32)
 DIST_DIR = os.environ.get("DSX_GUI_DIST", os.path.join(os.path.dirname(__file__), "dist"))
 
 
@@ -146,13 +148,23 @@ class ProxyHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
                 pass
 
     def _proxy_websocket(self):
-        """Proxy a WebSocket connection bidirectionally to the app-server."""
+        """Proxy an authenticated same-origin WebSocket connection to app-server."""
+        query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        origin = self.headers.get("Origin")
+        expected_origin = f"http://127.0.0.1:{GUI_PORT}"
+        if origin != expected_origin or not secrets.compare_digest(
+            query.get("token", [""])[0], GUI_TOKEN
+        ):
+            self.send_response(403)
+            self.end_headers()
+            return
+
         try:
             app_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             app_sock.settimeout(10)
             app_sock.connect(("127.0.0.1", APP_PORT))
 
-            # Rebuild the WebSocket upgrade request, STRIPPING the Origin header
+            # The app-server rejects browser Origin headers; authentication is enforced above.
             req = f"GET {self.path} HTTP/1.1\r\n"
             req += f"Host: 127.0.0.1:{APP_PORT}\r\n"
             req += "Upgrade: websocket\r\n"
@@ -244,7 +256,7 @@ class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
 def main():
     port = GUI_PORT
     server = ThreadedTCPServer(("127.0.0.1", port), ProxyHTTPRequestHandler)
-    print(f"  dsx GUI: http://127.0.0.1:{port}")
+    print(f"  dsx GUI: http://127.0.0.1:{port}/?token={GUI_TOKEN}")
     print(f"  (serving {DIST_DIR}, proxies WS → app-server port {APP_PORT})")
     try:
         server.serve_forever()

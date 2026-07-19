@@ -508,13 +508,13 @@ pub(crate) async fn handle_output_item_done(
                         tools: Vec::new(),
                     }
                 }
-                ResponseItem::CustomToolCall {
-                    call_id, name, ..
-                } => ResponseInputItem::CustomToolCallOutput {
-                    call_id: call_id.clone(),
-                    name: Some(name.clone()),
-                    output: text_out(message),
-                },
+                ResponseItem::CustomToolCall { call_id, name, .. } => {
+                    ResponseInputItem::CustomToolCallOutput {
+                        call_id: call_id.clone(),
+                        name: Some(name.clone()),
+                        output: text_out(message),
+                    }
+                }
                 _ => ResponseInputItem::FunctionCallOutput {
                     call_id: String::new(),
                     output: text_out(message),

@@ -7,7 +7,7 @@ on:
 # nested submodules. Prefer the system git CLI across every Cargo invocation.
 env:
   CARGO_NET_GIT_FETCH_WITH_CLI: "true"
-  WINDOWS_BINARIES: "codex codex-responses-api-proxy codex-windows-sandbox-setup codex-command-runner codex-app-server"
+  WINDOWS_BINARIES: "dsx codex-windows-sandbox-setup codex-command-runner codex-app-server"
 
 jobs:
   build-windows-binaries:
@@ -28,12 +28,12 @@ jobs:
           - runner: windows-latest
             target: x86_64-pc-windows-msvc
             bundle: primary
-            binaries: "codex codex-responses-api-proxy"
+            binaries: "dsx"
             runs_on: windows-latest
           - runner: windows-latest
             target: aarch64-pc-windows-msvc
             bundle: primary
-            binaries: "codex codex-responses-api-proxy"
+            binaries: "dsx"
             runs_on: windows-latest
           - runner: windows-latest
             target: x86_64-pc-windows-msvc
@@ -358,9 +358,9 @@ jobs:
             # Create zip archive for Windows binaries.
             # Must run from inside the dest dir so 7z does not embed the
             # directory path inside the zip.
-            if [[ "$base" == "codex-${target}.exe" ]]; then
+            if [[ "$base" == "dsx-${target}.exe" ]]; then
               # Bundle the sandbox helper binaries into the main codex zip so
-              # WinGet installs include the required helpers next to codex.exe.
+              # WinGet installs include the required helpers next to dsx.exe.
               # Fall back to the single-binary zip if the helpers are missing
               # to avoid breaking releases.
               bundle_dir="$(mktemp -d)"

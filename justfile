@@ -11,14 +11,14 @@ python := if os_family() == "windows" { "python" } else { "python3" }
 help:
     just -l
 
-# `codex`
-alias c := codex
-codex *args:
-    cargo run --bin codex -- {args}
+# `dsx`
+alias c := dsx
+dsx *args:
+    cargo run --bin dsx -- {args}
 
-# `codex exec`
+# `dsx exec`
 exec *args:
-    cargo run --bin codex -- exec {args}
+    cargo run --bin dsx -- exec {args}
 
 # Start `codex exec-server` and run codex-tui.
 [no-cd]
@@ -38,7 +38,7 @@ code-mode-host *args:
 # Build the CLI and run the app-server test client
 app-server-test-client *args:
     cargo build -p codex-cli
-    cargo run -p codex-app-server-test-client -- --codex-bin ./target/debug/codex {args}
+    cargo run -p codex-app-server-test-client -- --codex-bin ./target/debug/dsx {args}
 
 # Format the justfile, Rust, Bazel/Starlark, Python SDK code, and Python scripts.
 fmt:
@@ -91,6 +91,16 @@ test *args:
 test-github-scripts:
     {{ python }} -m unittest discover -s {{ justfile_directory() }}/.github/scripts -p 'test_*.py'
 
+# Check the staged repository snapshot for new legacy product identity references.
+[no-cd]
+check-dsx-identity *args:
+    {{ python }} "{{ justfile_directory() }}/.github/scripts/check_dsx_identity.py" {args}
+
+# Refresh the reviewed migration-debt baseline from the staged repository snapshot.
+[no-cd]
+update-dsx-identity-baseline:
+    {{ python }} "{{ justfile_directory() }}/.github/scripts/check_dsx_identity.py" --update-baseline
+
 # Run explicit workspace benchmark targets.
 bench *args:
     cargo bench --workspace --bench '*' {args}
@@ -99,17 +109,17 @@ bench *args:
 bench-smoke:
     just bench -- --test
 
-# Build and run Codex from source using Bazel.
+# Build and run DSX from source using Bazel.
 # On Unix, use `[no-cd]` and `--run_under="cd $PWD &&"` to ensure Bazel runs
 # the command in the current working directory.
 [no-cd]
 [unix]
-bazel-codex *args:
-    bazel run //codex-rs/cli:codex --run_under="cd $PWD &&" -- "$@"
+bazel-dsx *args:
+    bazel run //codex-rs/cli:dsx --run_under="cd $PWD &&" -- "$@"
 
 [windows]
-bazel-codex *args:
-    bazel run //codex-rs/cli:codex --run_under='cd /d "{{ invocation_directory_native() }}" &&' -- @($args | Select-Object -Skip 1)
+bazel-dsx *args:
+    bazel run //codex-rs/cli:dsx --run_under='cd /d "{{ invocation_directory_native() }}" &&' -- @($args | Select-Object -Skip 1)
 
 # Build and run the standalone code-mode host from source using Bazel.
 [no-cd]

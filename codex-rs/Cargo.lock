@@ -1692,10 +1692,8 @@ dependencies = [
  "futures",
  "libc",
  "pretty_assertions",
- "reqwest 0.12.28",
  "serde",
  "serde_json",
- "sha2 0.10.9",
  "tempfile",
  "tokio",
  "tokio-tungstenite",
@@ -1758,28 +1756,17 @@ dependencies = [
  "anyhow",
  "axum",
  "base64 0.22.1",
- "chrono",
  "clap",
- "codex-api",
  "codex-app-server-protocol",
- "codex-config",
  "codex-core",
- "codex-login",
- "codex-model-provider",
- "codex-protocol",
- "codex-state",
  "codex-uds",
  "codex-utils-absolute-path",
- "codex-utils-rustls-provider",
  "constant_time_eq 0.3.1",
  "futures",
- "gethostname",
  "hmac 0.12.1",
- "httpdate",
  "jsonwebtoken",
  "owo-colors",
  "pretty_assertions",
- "rand 0.9.3",
  "serde",
  "serde_json",
  "sha2 0.10.9",
@@ -1789,8 +1776,6 @@ dependencies = [
  "tokio-tungstenite",
  "tokio-util",
  "tracing",
- "url",
- "uuid",
 ]
 
 [[package]]
@@ -1915,7 +1900,6 @@ dependencies = [
  "codex-app-server-test-client",
  "codex-arg0",
  "codex-chatgpt",
- "codex-cloud-tasks",
  "codex-config",
  "codex-core",
  "codex-core-plugins",
@@ -1934,7 +1918,6 @@ dependencies = [
  "codex-models-manager",
  "codex-plugin",
  "codex-protocol",
- "codex-responses-api-proxy",
  "codex-rmcp-client",
  "codex-rollout",
  "codex-rollout-trace",
@@ -1965,7 +1948,6 @@ dependencies = [
  "tokio",
  "toml 0.9.11+spec-1.1.0",
  "tracing",
- "tracing-appender",
  "tracing-subscriber",
  "unicode-segmentation",
  "url",
@@ -2029,60 +2011,6 @@ dependencies = [
  "thiserror 2.0.18",
  "tokio",
  "tracing",
-]
-
-[[package]]
-name = "codex-cloud-tasks"
-version = "0.1.2"
-dependencies = [
- "anyhow",
- "chrono",
- "clap",
- "codex-client",
- "codex-cloud-tasks-client",
- "codex-cloud-tasks-mock-client",
- "codex-core",
- "codex-git-utils",
- "codex-login",
- "codex-model-provider",
- "codex-tui",
- "codex-utils-cli",
- "crossterm",
- "owo-colors",
- "pretty_assertions",
- "ratatui",
- "reqwest 0.12.28",
- "serde",
- "serde_json",
- "supports-color 3.0.2",
- "tokio",
- "tokio-stream",
- "tracing",
- "tracing-subscriber",
- "unicode-width 0.2.1",
-]
-
-[[package]]
-name = "codex-cloud-tasks-client"
-version = "0.1.2"
-dependencies = [
- "anyhow",
- "chrono",
- "codex-api",
- "codex-backend-client",
- "codex-git-utils",
- "serde",
- "serde_json",
- "thiserror 2.0.18",
-]
-
-[[package]]
-name = "codex-cloud-tasks-mock-client"
-version = "0.1.2"
-dependencies = [
- "chrono",
- "codex-cloud-tasks-client",
- "diffy",
 ]
 
 [[package]]
@@ -3335,23 +3263,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "codex-responses-api-proxy"
-version = "0.1.2"
-dependencies = [
- "anyhow",
- "clap",
- "codex-process-hardening",
- "ctor 0.6.3",
- "libc",
- "pretty_assertions",
- "reqwest 0.12.28",
- "serde",
- "serde_json",
- "tiny_http",
- "zeroize",
-]
-
-[[package]]
 name = "codex-rmcp-client"
 version = "0.1.2"
 dependencies = [
@@ -3683,7 +3594,6 @@ dependencies = [
  "codex-feedback",
  "codex-file-search",
  "codex-git-utils",
- "codex-install-context",
  "codex-login",
  "codex-mcp",
  "codex-message-history",

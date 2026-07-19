@@ -14,6 +14,15 @@ from codex_package.targets import TARGET_SPECS
 
 
 class SourceBinariesForTargetTest(unittest.TestCase):
+    def test_primary_package_uses_dsx_binary_and_entrypoint(self) -> None:
+        variant = PACKAGE_VARIANTS["codex"]
+
+        self.assertEqual(variant.cargo_bin, "dsx")
+        self.assertEqual(
+            variant.entrypoint_name(TARGET_SPECS["x86_64-pc-windows-msvc"]),
+            "dsx.exe",
+        )
+
     def test_macos_package_with_prebuilt_entrypoint_builds_nothing(self) -> None:
         self.assertEqual(
             source_binaries_for_target(
@@ -73,7 +82,7 @@ class SourceBinariesForTargetTest(unittest.TestCase):
     def test_build_uses_prebuilt_windows_helpers_without_running_cargo(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
-            entrypoint = touch_file(root / "codex.exe")
+            entrypoint = touch_file(root / "dsx.exe")
             command_runner = touch_file(root / "codex-command-runner.exe")
             sandbox_setup = touch_file(root / "codex-windows-sandbox-setup.exe")
 
