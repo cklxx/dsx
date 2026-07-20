@@ -121,6 +121,9 @@ uuid = { workspace = true, features = ["serde", "v4", "v5"] }
 which = { workspace = true }
 whoami = { workspace = true }
 
+# Build OpenSSL from source so cross-compiles don't need system OpenSSL dev libs.
+openssl-sys = { workspace = true, features = ["vendored"] }
+
 # Build OpenSSL from source for musl builds.
 [target.x86_64-unknown-linux-musl.dependencies]
 openssl-sys = { workspace = true, features = ["vendored"] }
