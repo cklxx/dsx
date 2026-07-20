@@ -1,0 +1,21 @@
+.github/workflows/build-all-platforms.yml
+  s_12e2a3bf1c3fa1::t_e3636b9c15d694 49-52
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "6d45e1d4df69b7c5fb652e9b2c32bb5079f3f150",
+  "prompts": {},
+  "sessions": {
+    "s_12e2a3bf1c3fa1": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9aba68e9-6e1e-45c3-805a-33753385ff8c",
+        "model": "unknown"
+      },
+      "human_author": "cklxx <q1293822641@gmail.com>"
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
