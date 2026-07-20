@@ -25,6 +25,7 @@ jobs:
             target: x86_64-unknown-linux-gnu
           - runner: ubuntu-24.04
             target: aarch64-unknown-linux-gnu
+            use-cross: true
           - runner: windows-latest
             target: x86_64-pc-windows-msvc
           - runner: windows-latest
@@ -35,40 +36,26 @@ jobs:
           persist-credentials: false
 
       - name: Install Linux build dependencies
-        if: ${{ runner.os == 'Linux' }}
+        if: ${{ runner.os == 'Linux' && matrix.use-cross != true }}
         shell: bash
         run: |
           set -euo pipefail
           sudo apt-get update -y
           sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
             binutils pkg-config libcap-dev
-          if [[ "${{ matrix.target }}" == "aarch64-unknown-linux-gnu" ]]; then
-            sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-              gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
-            sudo dpkg --add-architecture arm64
-            # Use ports.ubuntu.com which serves arm64 packages
-            sudo sed -i 's|http://azure.archive.ubuntu.com/ubuntu|http://ports.ubuntu.com/ubuntu-ports|g; s|http://security.ubuntu.com/ubuntu|http://ports.ubuntu.com/ubuntu-ports|g; s|http://archive.ubuntu.com/ubuntu|http://ports.ubuntu.com/ubuntu-ports|g' /etc/apt/sources.list.d/ubuntu.sources
-            sudo apt-get update -y
-            sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-              libssl-dev:arm64
-          fi
+
+      - name: Install cross for aarch64 Linux
+        if: ${{ matrix.use-cross == true }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          cargo install cross --git https://github.com/cross-rs/cross --tag v0.2.5
 
       - uses: dtolnay/rust-toolchain@e081816240890017053eacbb1bdf337761dc5582 # 1.95.0
         with:
           targets: ${{ matrix.target }}
 
-      - name: Set cross-compiler for aarch64 Linux
-        if: ${{ matrix.target == 'aarch64-unknown-linux-gnu' }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          echo "CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc" >> "$GITHUB_ENV"
-          echo "CC_aarch64_unknown_linux_gnu=aarch64-linux-gnu-gcc" >> "$GITHUB_ENV"
-          echo "CXX_aarch64_unknown_linux_gnu=aarch64-linux-gnu-g++" >> "$GITHUB_ENV"
-          echo "PKG_CONFIG_PATH=/usr/lib/aarch64-linux-gnu/pkgconfig" >> "$GITHUB_ENV"
-          echo "PKG_CONFIG_SYSROOT_DIR=/" >> "$GITHUB_ENV"
-
-      - if: ${{ runner.os == 'Linux' && matrix.target != 'aarch64-unknown-linux-gnu' }}
+      - if: ${{ runner.os == 'Linux' && matrix.use-cross != true }}
         name: Build bwrap
         shell: bash
         run: |
@@ -83,7 +70,11 @@ jobs:
           if [[ "${{ matrix.target }}" == *windows* ]]; then
             export LIBSQLITE3_FLAGS=SQLITE_DISABLE_INTRINSIC
           fi
-          cargo build --target "${{ matrix.target }}" --release --bin dsx
+          if [[ "${{ matrix.use-cross }}" == "true" ]]; then
+            cross build --target "${{ matrix.target }}" --release --bin dsx
+          else
+            cargo build --target "${{ matrix.target }}" --release --bin dsx
+          fi
 
       - name: Package binary
         shell: bash
