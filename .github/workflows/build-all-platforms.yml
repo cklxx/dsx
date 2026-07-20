@@ -60,7 +60,7 @@ jobs:
           echo "CC_aarch64_unknown_linux_gnu=aarch64-linux-gnu-gcc" >> "$GITHUB_ENV"
           echo "CXX_aarch64_unknown_linux_gnu=aarch64-linux-gnu-g++" >> "$GITHUB_ENV"
 
-      - if: ${{ runner.os == 'Linux' }}
+      - if: ${{ runner.os == 'Linux' && matrix.target != 'aarch64-unknown-linux-gnu' }}
         name: Build bwrap
         shell: bash
         run: |
