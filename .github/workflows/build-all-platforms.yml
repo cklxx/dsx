@@ -1,0 +1,113 @@
+name: build-all-platforms
+on:
+  workflow_dispatch:
+
+env:
+  CARGO_NET_GIT_FETCH_WITH_CLI: "true"
+
+jobs:
+  build:
+    name: Build - ${{ matrix.target }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 90
+    defaults:
+      run:
+        working-directory: codex-rs
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-latest
+            target: aarch64-apple-darwin
+          - runner: macos-latest
+            target: x86_64-apple-darwin
+          - runner: ubuntu-24.04
+            target: x86_64-unknown-linux-musl
+          - runner: ubuntu-24.04
+            target: aarch64-unknown-linux-musl
+          - runner: windows-latest
+            target: x86_64-pc-windows-msvc
+          - runner: windows-latest
+            target: aarch64-pc-windows-msvc
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Install Linux bwrap build dependencies
+        if: ${{ runner.os == 'Linux' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -y
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends binutils pkg-config libcap-dev
+
+      - uses: dtolnay/rust-toolchain@e081816240890017053eacbb1bdf337761dc5582 # 1.95.0
+        with:
+          targets: ${{ matrix.target }}
+
+      - if: ${{ contains(matrix.target, 'linux-musl') }}
+        name: Install Zig
+        uses: mlugg/setup-zig@d1434d08867e3ee9daa34448df10607b98908d29 # v2.2.1
+        with:
+          version: 0.14.0
+          use-cache: false
+
+      - if: ${{ contains(matrix.target, 'linux-musl') }}
+        name: Install musl build tools
+        env:
+          TARGET: ${{ matrix.target }}
+        run: bash "${GITHUB_WORKSPACE}/.github/scripts/install-musl-build-tools.sh"
+
+      - if: ${{ contains(matrix.target, 'linux-musl') }}
+        name: Disable aws-lc jitter entropy (musl)
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "AWS_LC_SYS_NO_JITTER_ENTROPY=1" >> "$GITHUB_ENV"
+          target_no_jitter="AWS_LC_SYS_NO_JITTER_ENTROPY_${{ matrix.target }}"
+          target_no_jitter="${target_no_jitter//-/_}"
+          echo "${target_no_jitter}=1" >> "$GITHUB_ENV"
+
+      - name: Configure rusty_v8 artifact overrides
+        uses: ./.github/actions/setup-rusty-v8
+        with:
+          target: ${{ matrix.target }}
+
+      - if: ${{ contains(matrix.target, 'linux') }}
+        name: Build bwrap
+        shell: bash
+        run: |
+          set -euo pipefail
+          cargo build --target "${{ matrix.target }}" --release --bin bwrap
+          strip --strip-debug --strip-unneeded "target/${{ matrix.target }}/release/bwrap"
+
+      - name: Build dsx
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${{ matrix.target }}" == *windows* ]]; then
+            export LIBSQLITE3_FLAGS=SQLITE_DISABLE_INTRINSIC
+          fi
+          cargo build --target "${{ matrix.target }}" --release --bin dsx
+
+      - name: Package binary
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "target/${{ matrix.target }}/release"
+          version="0.2.0"
+          target="${{ matrix.target }}"
+          if [[ "$target" == *windows* ]]; then
+            tar -czf "dsx-${version}-${target}.tar.gz" dsx.exe
+          else
+            tar -czf "dsx-${version}-${target}.tar.gz" dsx
+          fi
+          ls -la "dsx-${version}-${target}.tar.gz"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: dsx-0.2.0-${{ matrix.target }}
+          path: codex-rs/target/${{ matrix.target }}/release/dsx-0.2.0-${{ matrix.target }}.tar.gz
+          if-no-files-found: error
