@@ -47,19 +47,19 @@ jobs:
               gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
             sudo dpkg --add-architecture arm64
             # Rewrite apt sources to use ports.ubuntu.com (serves arm64)
-            sudo tee /etc/apt/sources.list.d/ubuntu.sources > /dev/null <<'EOF'
-Types: deb
-URIs: http://ports.ubuntu.com/ubuntu-ports
-Suites: noble noble-updates noble-backports
-Components: main restricted universe multiverse
-Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
+            sudo tee /etc/apt/sources.list.d/ubuntu.sources > /dev/null <<'APTEOF'
+            Types: deb
+            URIs: http://ports.ubuntu.com/ubuntu-ports
+            Suites: noble noble-updates noble-backports
+            Components: main restricted universe multiverse
+            Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
 
-Types: deb
-URIs: http://ports.ubuntu.com/ubuntu-ports
-Suites: noble-security
-Components: main restricted universe multiverse
-Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
-EOF
+            Types: deb
+            URIs: http://ports.ubuntu.com/ubuntu-ports
+            Suites: noble-security
+            Components: main restricted universe multiverse
+            Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
+            APTEOF
             sudo apt-get update -y
             sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
               libssl-dev:arm64
