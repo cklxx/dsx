@@ -46,6 +46,9 @@ jobs:
             sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
               gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
             sudo dpkg --add-architecture arm64
+            # security.ubuntu.com doesn't serve arm64; use ports.ubuntu.com
+            sudo sed -i 's|http://security.ubuntu.com/ubuntu|http://ports.ubuntu.com/ubuntu-ports|g' /etc/apt/sources.list
+            sudo sed -i 's|http://azure.archive.ubuntu.com/ubuntu|http://ports.ubuntu.com/ubuntu-ports|g' /etc/apt/sources.list
             sudo apt-get update -y
             sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
               libssl-dev:arm64
